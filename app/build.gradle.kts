@@ -1,29 +1,62 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.ainovel.android.application)
     alias(libs.plugins.ainovel.android.hilt)
     alias(libs.plugins.kotlin.serialization)
 }
 
+// Release signing: keystore.properties at the repo root (git-ignored). Without it the release build
+// falls back to the debug key so local release testing still works; CI injects the file from secrets.
+val keystoreProperties = Properties().apply {
+    val file = rootProject.file("keystore.properties")
+    if (file.isFile) file.inputStream().use { load(it) }
+}
+val hasReleaseKeystore = keystoreProperties.getProperty("storeFile")?.let { rootProject.file(it).isFile } == true
+
 android {
     namespace = "vn.esstar.ainovel"
 
     defaultConfig {
         applicationId = "vn.esstar.ainovel"
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 100
+        versionName = "1.0.0"
         vectorDrawables.useSupportLibrary = true
         // sherpa-onnx/onnxruntime native libs: real phones only (x86 emulators are not a target).
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
     }
 
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = if (hasReleaseKeystore) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
         }
         debug {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
+        }
+    }
+
+    // One APK per ABI (smaller downloads from GitHub Releases) plus a universal one.
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a")
+            isUniversalApk = true
         }
     }
 
@@ -32,7 +65,7 @@ android {
     }
 
     packaging {
-        resources.excludes += setOf("/META-INF/{AL2.0,LGPL2.1}", "META-INF/LICENSE*")
+        resources.excludes += setOf("/META-INF/{AL2.0,LGPL2.1}", "META-INF/LICENSE*", "META-INF/DEPENDENCIES", "META-INF/NOTICE*")
     }
 }
 

@@ -151,7 +151,7 @@ class IndexedDictionary private constructor(
 /** Parses QuickTranslator-style `key=value` text (UTF-8, optional BOM, `#` comments). */
 object DictionaryTextParser {
     fun parse(lines: Sequence<String>): Sequence<Pair<String, String>> = lines
-        .map { it.removePrefix("﻿").trimEnd('\r') }
+        .map { it.removePrefix("\uFEFF").trimEnd('\r') }
         .filter { it.isNotBlank() && !it.startsWith("#") }
         .mapNotNull { line ->
             val eq = line.indexOf('=')

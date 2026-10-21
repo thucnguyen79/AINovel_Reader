@@ -42,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -65,6 +66,7 @@ internal fun HomeRoute(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val resources = LocalResources.current
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -72,7 +74,7 @@ internal fun HomeRoute(
                 is HomeEvent.OpenBook -> onOpenBook(event.bookId)
                 is HomeEvent.OpenReader -> onOpenReader(event.bookId, event.chapterId)
                 is HomeEvent.OpenBrowser -> onOpenBrowser(event.url)
-                is HomeEvent.ShowMessage -> snackbar.showSnackbar(context.getString(event.message.res()))
+                is HomeEvent.ShowMessage -> snackbar.showSnackbar(resources.getString(event.message.res()))
             }
         }
     }

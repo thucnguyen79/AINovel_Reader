@@ -24,6 +24,21 @@ import vn.esstar.ainovel.core.datastore.DohMode
 import vn.esstar.ainovel.core.datastore.NetworkPreferences
 import vn.esstar.ainovel.domain.model.StorageInfo
 import vn.esstar.ainovel.domain.repository.DownloadRepository
+import vn.esstar.ainovel.domain.model.AppInfo
+import vn.esstar.ainovel.domain.model.BackupSummary
+import vn.esstar.ainovel.domain.repository.BackupRepository
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
+import vn.esstar.ainovel.core.common.log.FileLoggingTree
+import java.io.File
+
+sealed interface SettingsEvent {
+    data class Exported(val summary: BackupSummary) : SettingsEvent
+    data class Imported(val summary: BackupSummary) : SettingsEvent
+    data class BackupFailed(val reason: String?) : SettingsEvent
+    data class ShareLog(val files: List<File>) : SettingsEvent
+    data object NoLog : SettingsEvent
+}
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -32,7 +47,46 @@ class SettingsViewModel @Inject constructor(
     private val networkPreferences: NetworkPreferences,
     private val downloads: DownloadRepository,
     private val voiceModels: VoiceModelManager,
+    private val backup: BackupRepository,
+    private val updateChecker: UpdateChecker,
+    val appInfo: AppInfo,
+    private val fileLog: FileLoggingTree,
 ) : ViewModel() {
+
+    private val _events = Channel<SettingsEvent>(Channel.BUFFERED)
+    val events = _events.receiveAsFlow()
+
+    private val _backupBusy = MutableStateFlow(false)
+    val backupBusy: StateFlow<Boolean> = _backupBusy
+
+    private val _update = MutableStateFlow<UpdateState>(UpdateState.Idle)
+    val update: StateFlow<UpdateState> = _update
+
+    fun exportBackup(uri: String) = runBackup { SettingsEvent.Exported(backup.export(uri)) }
+    fun importBackup(uri: String) = runBackup { SettingsEvent.Imported(backup.import(uri)) }
+
+    private fun runBackup(block: suspend () -> SettingsEvent) {
+        if (_backupBusy.value) return
+        viewModelScope.launch {
+            _backupBusy.value = true
+            runCatching { block() }
+                .onSuccess { _events.send(it) }
+                .onFailure { Timber.e(it, "Backup failed"); _events.send(SettingsEvent.BackupFailed(it.message)) }
+            _backupBusy.value = false
+            refreshStorage()
+        }
+    }
+
+    fun checkUpdate() = viewModelScope.launch {
+        _update.value = UpdateState.Checking
+        _update.value = runCatching { updateChecker.check() }
+            .fold({ if (it == null) UpdateState.UpToDate else UpdateState.Available(it) }, { Timber.w(it, "Update check failed"); UpdateState.Failed(it.message) })
+    }
+
+    fun shareLog() = viewModelScope.launch {
+        val files = fileLog.snapshotFiles()
+        _events.send(if (files.isEmpty()) SettingsEvent.NoLog else SettingsEvent.ShareLog(files))
+    }
 
     val neuralModels: StateFlow<List<VoiceModelStatus>> = voiceModels.models
 

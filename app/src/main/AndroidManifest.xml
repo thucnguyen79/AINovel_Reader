@@ -28,6 +28,17 @@
             </intent-filter>
         </activity>
 
+        <!-- Log files only (see res/xml/file_paths.xml); used by "Chia sẻ nhật ký". -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <!-- Disable default WorkManager initializer; Hilt-aware initialization happens in AINovelApplication. -->
         <provider
             android:name="androidx.startup.InitializationProvider"

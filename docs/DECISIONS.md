@@ -2,6 +2,11 @@
 
 Mỗi mục: bối cảnh, quyết định, hệ quả. Mới nhất ở trên.
 
+## ADR-009 (2026-10-21): Phát hành qua GitHub Releases, ký bằng keystore cục bộ, sao lưu ZIP do người dùng giữ
+- Bối cảnh: app không có backend, cần cách phân phối và cập nhật không tốn phí, và cách người dùng giữ dữ liệu khi đổi máy.
+- Quyết định: (1) APK ký bằng keystore trong `keystore/` + `keystore.properties` (git-ignore); CI nhận keystore qua secrets base64; không có keystore thì release ký debug chỉ để thử. (2) Split ABI arm64/armv7 + universal, R8 bật; rule keep cho sherpa-onnx JNI, pdfbox, serializer. (3) Kiểm tra bản mới bằng GitHub REST API `releases/latest` khi người dùng bấm, không tự động, không gửi thông tin máy. (4) Sao lưu là một file ZIP (JSON + text ebook + bìa) người dùng tự chọn nơi lưu qua SAF; khôi phục gộp, không ghi đè truyện đang có. (5) Nhật ký ghi file trong app, chỉ rời máy khi người dùng chia sẻ.
+- Hệ quả: tên tag phải là `vX.Y.Z` và asset APK phải chứa `arm64` để app chọn đúng file. Mất keystore là mất khả năng cập nhật cho người dùng cũ, cần sao lưu keystore riêng. Backup không chứa chương web nên khôi phục cần mạng để đọc lại.
+
 ## ADR-007 (2026-10-21): Giọng neural bằng sherpa-onnx AAR tải từ GitHub, model Piper tải theo yêu cầu
 - Bối cảnh: sherpa-onnx không có bản ổn định trên Maven Central vào thời điểm này; bản master đã bỏ `dataDir` (espeak-ng) và yêu cầu phonemize bên ngoài, trong khi model Piper tiếng Việt cần espeak-ng. AAR chính thức ~50 MB (4 ABI) không nên commit vào git.
 - Quyết định: dùng AAR `sherpa-onnx-1.13.8.aar` (còn hỗ trợ `dataDir`) qua repo Maven cục bộ `third_party/m2` (chỉ commit POM; `tools/sherpa/fetch_sherpa_aar.py` tải AAR, git-ignore). App chỉ đóng gói `arm64-v8a` và `armeabi-v7a`. Model tải từ release `tts-models` dưới dạng tar.bz2 (giải nén bằng commons-compress), lưu `files/models/tts/<id>/`, đánh dấu `.ready`. `CompositeTtsEngine` thay binding `TtsEngine` và định tuyến theo voice id `neural:<model>`; giọng hệ thống vẫn là mặc định. Piper bỏ qua chữ số nên engine neural đọc số bằng `VietnameseNumberSpeller`.

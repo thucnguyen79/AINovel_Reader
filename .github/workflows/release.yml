@@ -1,0 +1,57 @@
+name: Release APK
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Fetch sherpa-onnx AAR
+        run: python3 tools/sherpa/fetch_sherpa_aar.py
+
+      - name: Restore signing keystore
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        run: |
+          mkdir -p keystore
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore/ainovel-release.jks
+          cat > keystore.properties <<EOF
+          storeFile=keystore/ainovel-release.jks
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          EOF
+
+      - name: Unit tests
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Build release APKs
+        run: ./gradlew :app:assembleRelease --stacktrace
+
+      - name: Rename APKs
+        run: |
+          cd app/build/outputs/apk/release
+          for f in app-*-release.apk; do mv "$f" "ainovel-${GITHUB_REF_NAME}-${f#app-}"; done
+          ls -la
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app/build/outputs/apk/release/ainovel-*.apk
+          generate_release_notes: true

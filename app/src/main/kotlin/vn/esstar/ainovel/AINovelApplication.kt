@@ -17,6 +17,7 @@ import vn.esstar.ainovel.core.network.SwitchableDns
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 import timber.log.Timber
+import vn.esstar.ainovel.core.common.log.FileLoggingTree
 
 @HiltAndroidApp
 class AINovelApplication : Application(), Configuration.Provider, SingletonImageLoader.Factory {
@@ -37,6 +38,9 @@ class AINovelApplication : Application(), Configuration.Provider, SingletonImage
     @ApplicationScope
     lateinit var appScope: CoroutineScope
 
+    @Inject
+    lateinit var fileLoggingTree: FileLoggingTree
+
     /** Covers are loaded through the same OkHttp client as pages, so they carry the browser User-Agent. */
     override fun newImageLoader(context: PlatformContext): ImageLoader =
         ImageLoader.Builder(context)
@@ -46,9 +50,9 @@ class AINovelApplication : Application(), Configuration.Provider, SingletonImage
 
     override fun onCreate() {
         super.onCreate()
-        if (BuildConfig.DEBUG) {
-            Timber.plant(Timber.DebugTree())
-        }
+        if (BuildConfig.DEBUG) Timber.plant(Timber.DebugTree())
+        Timber.plant(fileLoggingTree)
+        Timber.i("App start %s (%d)", BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE)
         appScope.launch {
             networkPreferences.dohMode.collect { switchableDns.mode = it }
         }

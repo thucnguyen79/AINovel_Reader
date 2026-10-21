@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.view.View
 import android.webkit.CookieManager
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -67,6 +68,15 @@ class WebViewHtmlFetcher @Inject constructor(
                 if (request.isForMainFrame && !firstLoad.isCompleted) {
                     firstLoad.completeExceptionally(IOException("WebView error ${error.errorCode} for ${request.url}"))
                 }
+            }
+
+            /** The renderer died (OOM / crash): drop this WebView and let the next fetch create a fresh one. */
+            override fun onRenderProcessGone(v: WebView, detail: RenderProcessGoneDetail): Boolean {
+                Timber.w("WebView renderer gone (crash=%s)", detail.didCrash())
+                if (webView === v) webView = null
+                runCatching { v.destroy() }
+                if (!firstLoad.isCompleted) firstLoad.completeExceptionally(IOException("WebView renderer gone"))
+                return true
             }
         }
         Timber.d("WebView fetch %s (waitFor=%s)", url, options.waitFor)

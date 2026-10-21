@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
@@ -44,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -65,6 +67,7 @@ internal fun BrowserRoute(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val resources = LocalResources.current
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -72,8 +75,8 @@ internal fun BrowserRoute(
                 is BrowserEvent.OpenBook -> onOpenBook(event.bookId)
                 is BrowserEvent.OpenReader -> onOpenReader(event.bookId, event.chapterId)
                 BrowserEvent.OpenPlayer -> onOpenPlayer()
-                BrowserEvent.Unsupported -> snackbar.showSnackbar(context.getString(R.string.browser_unsupported))
-                BrowserEvent.Failed -> snackbar.showSnackbar(context.getString(R.string.browser_open_failed))
+                BrowserEvent.Unsupported -> snackbar.showSnackbar(resources.getString(R.string.browser_unsupported))
+                BrowserEvent.Failed -> snackbar.showSnackbar(resources.getString(R.string.browser_open_failed))
             }
         }
     }
@@ -115,6 +118,12 @@ internal fun BrowserScreen(
             settings.builtInZoomControls = true
             settings.displayZoomControls = false
             webViewClient = object : WebViewClient() {
+                    /** Renderer crash / OOM: return true so the app survives; the page shows empty until reloaded. */
+                    override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+                        Timber.w("Browser renderer gone (crash=%s)", detail.didCrash())
+                        return true
+                    }
+
                 /** Blocks main-frame navigation to other domains (ad pop-unders); redirects are allowed. */
                 override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                     if (!request.isForMainFrame || request.isRedirect) return false

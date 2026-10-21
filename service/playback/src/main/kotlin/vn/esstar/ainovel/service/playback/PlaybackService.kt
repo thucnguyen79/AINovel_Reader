@@ -9,7 +9,9 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaSession
+import androidx.media3.session.SessionError
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
@@ -44,6 +46,7 @@ import vn.esstar.ainovel.tts.api.TtsEngine
  * Background text-to-speech player. One MediaItem per sentence; Media3 provides the notification,
  * lock-screen controls and headset buttons. Chapter navigation is exposed as custom session commands.
  */
+@androidx.annotation.OptIn(UnstableApi::class)
 @AndroidEntryPoint
 class PlaybackService : MediaSessionService() {
 
@@ -229,7 +232,7 @@ class PlaybackService : MediaSessionService() {
                 }
                 else -> {
                     Timber.w("Unknown command %s", customCommand.customAction)
-                    return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
+                    return Futures.immediateFuture(SessionResult(SessionError.ERROR_NOT_SUPPORTED))
                 }
             }
             return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))

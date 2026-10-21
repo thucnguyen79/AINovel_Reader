@@ -48,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -74,6 +75,7 @@ internal fun TranslateRoute(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val resources = LocalResources.current
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -83,18 +85,18 @@ internal fun TranslateRoute(
                 is TranslateEvent.OpenBrowser -> onOpenBrowser(event.url)
                 is TranslateEvent.ShowMessage -> snackbar.showSnackbar(
                     when (val m = event.message) {
-                        TranslateMessage.EmptyInput -> context.getString(R.string.translate_msg_empty_input)
-                        TranslateMessage.ClipboardEmpty -> context.getString(R.string.translate_msg_clipboard_empty)
-                        TranslateMessage.Unsupported -> context.getString(R.string.translate_msg_unsupported)
-                        TranslateMessage.OpenFailed -> context.getString(R.string.translate_msg_open_failed)
-                        TranslateMessage.ImportFailed -> context.getString(R.string.translate_msg_import_failed)
-                        TranslateMessage.Removed -> context.getString(R.string.translate_msg_removed)
-                        TranslateMessage.ModelDownloaded -> context.getString(R.string.translate_msg_model_downloaded)
-                        is TranslateMessage.ModelFailed -> context.getString(R.string.translate_msg_model_failed, m.reason ?: "")
-                        TranslateMessage.ModelDeleted -> context.getString(R.string.translate_msg_model_deleted)
-                        is TranslateMessage.Imported -> context.getString(
+                        TranslateMessage.EmptyInput -> resources.getString(R.string.translate_msg_empty_input)
+                        TranslateMessage.ClipboardEmpty -> resources.getString(R.string.translate_msg_clipboard_empty)
+                        TranslateMessage.Unsupported -> resources.getString(R.string.translate_msg_unsupported)
+                        TranslateMessage.OpenFailed -> resources.getString(R.string.translate_msg_open_failed)
+                        TranslateMessage.ImportFailed -> resources.getString(R.string.translate_msg_import_failed)
+                        TranslateMessage.Removed -> resources.getString(R.string.translate_msg_removed)
+                        TranslateMessage.ModelDownloaded -> resources.getString(R.string.translate_msg_model_downloaded)
+                        is TranslateMessage.ModelFailed -> resources.getString(R.string.translate_msg_model_failed, m.reason ?: "")
+                        TranslateMessage.ModelDeleted -> resources.getString(R.string.translate_msg_model_deleted)
+                        is TranslateMessage.Imported -> resources.getString(
                             R.string.translate_msg_imported,
-                            context.getString(m.info.type.label()),
+                            resources.getString(m.info.type.label()),
                             "%,d".format(m.info.entries),
                         )
                     },

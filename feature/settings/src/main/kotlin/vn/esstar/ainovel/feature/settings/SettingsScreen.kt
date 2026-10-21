@@ -8,7 +8,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import android.content.Intent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.core.content.FileProvider
+import vn.esstar.ainovel.domain.model.AppInfo
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,6 +62,32 @@ import vn.esstar.ainovel.domain.model.StorageInfo
 
 @Composable
 internal fun SettingsRoute(viewModel: SettingsViewModel = hiltViewModel()) {
+    val context = LocalContext.current
+    val resources = LocalResources.current
+    val snackbar = remember { SnackbarHostState() }
+    val backupBusy by viewModel.backupBusy.collectAsStateWithLifecycle()
+    val update by viewModel.update.collectAsStateWithLifecycle()
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is SettingsEvent.Exported -> snackbar.showSnackbar(resources.getString(R.string.settings_backup_exported, event.summary.books, event.summary.glossaryEntries))
+                is SettingsEvent.Imported -> snackbar.showSnackbar(resources.getString(R.string.settings_backup_imported, event.summary.books, event.summary.glossaryEntries))
+                is SettingsEvent.BackupFailed -> snackbar.showSnackbar(resources.getString(R.string.settings_backup_failed, event.reason ?: ""))
+                SettingsEvent.NoLog -> snackbar.showSnackbar(resources.getString(R.string.settings_share_log_empty))
+                is SettingsEvent.ShareLog -> {
+                    val authority = context.packageName + ".files"
+                    val uris = ArrayList(event.files.map { FileProvider.getUriForFile(context, authority, it) })
+                    val intent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+                        type = "text/plain"
+                        putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
+                        putExtra(Intent.EXTRA_SUBJECT, resources.getString(R.string.settings_share_log_subject, viewModel.appInfo.versionName))
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    runCatching { context.startActivity(Intent.createChooser(intent, resources.getString(R.string.settings_share_log))) }
+                }
+            }
+        }
+    }
     val prefs by viewModel.prefs.collectAsStateWithLifecycle()
     val voices by viewModel.voices.collectAsStateWithLifecycle()
     val engineAvailable by viewModel.engineAvailable.collectAsStateWithLifecycle()
@@ -75,6 +112,14 @@ internal fun SettingsRoute(viewModel: SettingsViewModel = hiltViewModel()) {
         onStableMode = viewModel::setStableMode,
         onDohMode = viewModel::setDohMode,
         onClearCaches = viewModel::clearCaches,
+        snackbar = snackbar,
+        backupBusy = backupBusy,
+        onExport = viewModel::exportBackup,
+        onImport = viewModel::importBackup,
+        appInfo = viewModel.appInfo,
+        update = update,
+        onCheckUpdate = viewModel::checkUpdate,
+        onShareLog = viewModel::shareLog,
     )
 }
 
@@ -98,10 +143,19 @@ internal fun SettingsScreen(
     onStableMode: (Boolean) -> Unit,
     onDohMode: (DohMode) -> Unit,
     onClearCaches: () -> Unit,
+    snackbar: SnackbarHostState,
+    backupBusy: Boolean,
+    onExport: (String) -> Unit,
+    onImport: (String) -> Unit,
+    appInfo: AppInfo,
+    update: UpdateState,
+    onCheckUpdate: () -> Unit,
+    onShareLog: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    Box(modifier = modifier.fillMaxSize()) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
@@ -228,6 +282,13 @@ internal fun SettingsScreen(
                 modifier = Modifier.padding(top = 4.dp),
             )
         }
+
+        BackupSection(busy = backupBusy, onExport = onExport, onImport = onImport)
+
+        AboutSection(appInfo = appInfo, update = update, onCheckUpdate = onCheckUpdate, onShareLog = onShareLog)
+        Spacer(Modifier.height(8.dp))
+    }
+    SnackbarHost(hostState = snackbar, modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
 

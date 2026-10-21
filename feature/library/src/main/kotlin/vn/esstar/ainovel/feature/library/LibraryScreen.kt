@@ -49,6 +49,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import vn.esstar.ainovel.core.designsystem.component.BookCover
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.LinearProgressIndicator
@@ -69,11 +70,12 @@ internal fun LibraryRoute(
     val importing by viewModel.importing.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val resources = LocalResources.current
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
                 is LibraryEvent.OpenBook -> onOpenBook(event.bookId)
-                is LibraryEvent.ImportFailed -> snackbar.showSnackbar(context.getString(R.string.library_import_failed, event.reason ?: ""))
+                is LibraryEvent.ImportFailed -> snackbar.showSnackbar(resources.getString(R.string.library_import_failed, event.reason ?: ""))
             }
         }
     }

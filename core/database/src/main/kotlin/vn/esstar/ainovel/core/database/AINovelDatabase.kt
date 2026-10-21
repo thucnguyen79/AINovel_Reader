@@ -3,6 +3,7 @@ package vn.esstar.ainovel.core.database
 import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import vn.esstar.ainovel.core.database.dao.BackupDao
 import vn.esstar.ainovel.core.database.dao.BookDao
 import vn.esstar.ainovel.core.database.dao.ChapterDao
 import vn.esstar.ainovel.core.database.dao.DownloadDao
@@ -32,6 +33,7 @@ abstract class AINovelDatabase : RoomDatabase() {
     abstract fun downloadDao(): DownloadDao
     abstract fun glossaryDao(): GlossaryDao
     abstract fun ebookDao(): EbookDao
+    abstract fun backupDao(): BackupDao
 
     companion object {
         const val NAME = "ainovel.db"

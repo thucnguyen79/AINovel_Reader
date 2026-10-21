@@ -34,4 +34,26 @@
     <string name="settings_neural_cancel">Huỷ</string>
     <string name="settings_neural_use">Dùng</string>
     <string name="settings_neural_delete">Xoá</string>
+    <string name="settings_section_backup">Sao lưu</string>
+    <string name="settings_backup_hint">Xuất tủ sách (danh sách truyện, tiến độ đọc, lịch sử, từ riêng, nội dung ebook) ra một file ZIP do bạn chọn nơi lưu. Nội dung chương truyện web không kèm theo vì có thể tải lại.</string>
+    <string name="settings_backup_export">Xuất file ZIP</string>
+    <string name="settings_backup_import">Khôi phục</string>
+    <string name="settings_backup_exported">Đã sao lưu %1$d truyện, %2$d từ riêng.</string>
+    <string name="settings_backup_imported">Đã khôi phục %1$d truyện, %2$d từ riêng.</string>
+    <string name="settings_backup_failed">Sao lưu thất bại. %1$s</string>
+    <string name="settings_section_about">Giới thiệu</string>
+    <string name="settings_version">AINovel Reader %1$s (%2$d)</string>
+    <string name="settings_about_blurb">Ứng dụng miễn phí, mã nguồn mở, không tài khoản, không quảng cáo, không thu thập dữ liệu. Mọi dữ liệu nằm trong bộ nhớ riêng của app trên máy bạn.</string>
+    <string name="settings_update_check">Kiểm tra bản mới</string>
+    <string name="settings_update_checking">Đang kiểm tra trên GitHub…</string>
+    <string name="settings_update_none">Bạn đang dùng bản mới nhất.</string>
+    <string name="settings_update_failed">Không kiểm tra được. Kiểm tra mạng rồi thử lại.</string>
+    <string name="settings_update_available">Có bản %1$s mới</string>
+    <string name="settings_update_download">Tải bản mới</string>
+    <string name="settings_privacy">Chính sách riêng tư</string>
+    <string name="settings_source_code">Mã nguồn</string>
+    <string name="settings_share_log">Chia sẻ nhật ký</string>
+    <string name="settings_share_log_subject">AINovel Reader %1$s – nhật ký lỗi</string>
+    <string name="settings_share_log_empty">Chưa có nhật ký để chia sẻ.</string>
+    <string name="settings_licenses">Thư viện mở: Jetpack Compose, Room, Media3, OkHttp, Jsoup, Coil, Timber (Apache-2.0); sherpa-onnx và model Piper (Apache-2.0/MIT); pdfbox-android, commons-compress (Apache-2.0); ML Kit (Google APIs ToS); từ điển Hán Việt từ Thiều Chửu và Unihan.</string>
 </resources>

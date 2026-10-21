@@ -112,9 +112,20 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [x] Màn hình Đang nghe có nút "Mở văn bản" tới đúng chương, thay Reader đang có trên back stack
 - [x] Kiểm tra trên máy 21/10/2026 với truyện truyenfull chương 44
 
-## Giai đoạn 6 – Hoàn thiện & phát hành
-- [ ] Nhạc nền, khoá màn hình, chia sẻ log
-- [ ] Source Tester, 30+ site
-- [ ] Kiểm tra cập nhật qua GitHub Releases
-- [ ] Test Android 8–15, chính sách riêng tư
-- [ ] Phát hành APK 1.0
+## Giai đoạn 6 – Hoàn thiện & phát hành (bắt đầu 21/10/2026)
+### Epic 6.1 Dữ liệu người dùng
+- [x] Sao lưu / khôi phục ZIP (`BackupRepository`): truyện, chương, tiến độ, lịch sử, từ riêng, ebook kèm nội dung và bìa; khôi phục gộp theo URL truyện, giữ tiến độ mới hơn
+- [x] Chia sẻ nhật ký: `FileLoggingTree` ghi INFO+ vào `files/logs/app.log` (xoay 512 KB), gửi qua FileProvider chỉ cho thư mục logs
+- [ ] Tải trước audio N chương kế tiếp khi sạc / Wi-Fi (P1, chưa làm)
+### Epic 6.2 Phát hành
+- [x] Cấu hình release: R8 minify + shrink, rule cho sherpa-onnx / pdfbox / serialization, ký bằng `keystore.properties` (git-ignore, fallback debug), split ABI arm64 / armv7 / universal, version 1.0.0 (100)
+- [x] Kiểm tra bản mới qua GitHub Releases API (`UpdateChecker`), nút Tải bản mới trong Cài đặt › Giới thiệu
+- [x] Chính sách riêng tư `docs/PRIVACY.md`, mục Giới thiệu (phiên bản, mã nguồn, giấy phép thư viện)
+- [x] Workflow `release.yml`: tag `v*` → build, ký từ secrets, đính APK vào Release; CI tải AAR sherpa-onnx trước khi build
+- [x] Lint: sửa hết lỗi mức Error (LocalResources, UnstableApi, BOM, onRenderProcessGone)
+- [x] Build release thử trên máy (arm64, minified)
+- [ ] Nhạc nền khi nghe (P2, chưa làm)
+- [ ] Source Tester trong app, mở rộng 30+ site (làm dần sau 1.0)
+- [ ] Test Android 8–13 và 15 trên máy thật (chỉ có OPPO Android 14)
+- [ ] Nộp Google Play (không trong phạm vi 1.0; kênh chính là GitHub Releases)
+- [ ] Gắn tag `v1.0.0` và tạo Release đầu tiên (người dùng quyết định thời điểm)

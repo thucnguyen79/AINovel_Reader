@@ -33,3 +33,6 @@ secrets.properties
 
 # sherpa-onnx AAR is downloaded, not committed (50 MB)
 third_party/m2/**/*.aar
+
+# release keystore directory
+/keystore/

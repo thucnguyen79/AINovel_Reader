@@ -4,7 +4,9 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import vn.esstar.ainovel.data.library.BackupRepositoryImpl
 import vn.esstar.ainovel.data.library.LibraryRepositoryImpl
+import vn.esstar.ainovel.domain.repository.BackupRepository
 import vn.esstar.ainovel.domain.repository.LibraryRepository
 
 @Module
@@ -12,4 +14,7 @@ import vn.esstar.ainovel.domain.repository.LibraryRepository
 abstract class LibraryModule {
     @Binds
     abstract fun bindLibraryRepository(impl: LibraryRepositoryImpl): LibraryRepository
+
+    @Binds
+    abstract fun bindBackupRepository(impl: BackupRepositoryImpl): BackupRepository
 }

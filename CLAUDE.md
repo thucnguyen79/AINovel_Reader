@@ -8,7 +8,7 @@ Kế hoạch đầy đủ: `docs/PLAN.md`. Mọi quyết định kiến trúc m�
 - Dịch và TTS chỉ dùng công cụ miễn phí: Android TextToSpeech, sherpa-onnx/Piper, convert engine offline, ML Kit on-device. LLM chỉ ở dạng BYOK do người dùng tự nhập key.
 - Dữ liệu người dùng nằm trong bộ nhớ riêng của app. Không xin quyền đọc toàn bộ bộ nhớ.
 - Chuỗi hiển thị cho người dùng đặt trong `res/values/strings.xml` (tiếng Việt), không hard-code trong Kotlin.
-- Không commit keystore, `local.properties`, file build.
+- Không commit keystore, `local.properties`, file build. Keystore phát hành nằm ở `keystore/` + `keystore.properties` (git-ignore); quy trình phát hành trong `docs/RELEASE.md`.
 
 ## Môi trường
 - JDK 21: `D:\Tools\jdk-21.0.11+10` (biến `JAVA_HOME` đã trỏ sẵn). Android SDK: `D:\Android\Sdk` (platform 34–37, build-tools 36.0.0). adb: `D:\Android\Sdk\platform-tools\adb.exe`.
@@ -21,7 +21,8 @@ Kế hoạch đầy đủ: `docs/PLAN.md`. Mọi quyết định kiến trúc m�
 .\gradlew.bat :app:assembleDebug            # build APK debug
 .\gradlew.bat testDebugUnitTest             # unit test tất cả module
 .\gradlew.bat :data:source:testDebugUnitTest  # unit test 1 module
-.\gradlew.bat lintDebug                     # lint
+.\gradlew.bat lintDebug                     # lint (CI chạy, phải không còn lỗi mức Error)
+.\gradlew.bat :app:assembleRelease          # APK release (R8, ký bằng keystore.properties nếu có; xem docs/RELEASE.md)
 D:\Android\Sdk\platform-tools\adb.exe devices
 D:\Android\Sdk\platform-tools\adb.exe install -r app\build\outputs\apk\debug\app-debug.apk
 D:\Android\Sdk\platform-tools\adb.exe shell am start -n vn.esstar.ainovel.debug/vn.esstar.ainovel.MainActivity

@@ -34,4 +34,6 @@ object DatabaseModule {
     @Provides fun provideGlossaryDao(db: AINovelDatabase) = db.glossaryDao()
 
     @Provides fun provideEbookDao(db: AINovelDatabase) = db.ebookDao()
+
+    @Provides fun provideBackupDao(db: AINovelDatabase) = db.backupDao()
 }

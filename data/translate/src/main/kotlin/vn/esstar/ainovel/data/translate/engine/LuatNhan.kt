@@ -34,7 +34,7 @@ data class LuatNhanRule(val pattern: String, val replacement: String) {
 
         /** Parses `pattern=replacement` lines; blank lines and `#` comments are skipped. */
         fun parseLines(lines: Sequence<String>): List<LuatNhanRule> = lines
-            .map { it.removePrefix("﻿").trimEnd('\r').trim() }
+            .map { it.removePrefix("\uFEFF").trimEnd('\r').trim() }
             .filter { it.isNotEmpty() && !it.startsWith("#") }
             .mapNotNull { line ->
                 val eq = line.indexOf('=')
