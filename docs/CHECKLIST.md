@@ -66,7 +66,7 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [x] `IndexedDictionary`: file nhị phân mmap, khoá sắp xếp theo byte UTF-8, tra `longestMatch` không nạp cả từ điển vào heap
 - [x] `DictionaryTextParser` đọc định dạng QuickTranslator (`Hán=Việt`, nghĩa đầu trước `/`)
 - [x] `ConvertEngine`: glossary > Names > VietPhrase (khớp dài nhất) > Hán Việt từng chữ; 3 chế độ Convert / Hán Việt / Nguyên văn; đổi dấu câu Trung, viết hoa đầu câu
-- [x] Từ điển Hán Việt có sẵn sinh từ Unicode Unihan `kVietnamese` (8306 chữ, `assets/dicts/hanviet.txt`)
+- [x] Từ điển Hán Việt có sẵn (~18.000 chữ, Thiều Chửu + phiên âm cộng đồng + Unihan, sinh bằng `tools/hanviet/gen_hanviet.py`)
 - [x] Unit test `ConvertEngineTest` (6 test)
 - [ ] Luật nhân (VietPhrase 2 nghĩa, đảo trật tự tính từ) – để sau
 ### Epic 4.2 Từ điển và tích hợp
@@ -85,7 +85,7 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [x] Dán link truyện Trung (dùng chung `OpenUrlUseCase`), chip site Trung, danh sách "Truyện đã dịch" từ lịch sử
 - [x] Chọn chế độ mặc định, nhập / thay / gỡ từ điển
 - [ ] ML Kit zh → vi (P1, tải model theo yêu cầu người dùng)
-- [ ] Kiểm tra trên máy thật (chưa cắm thiết bị khi hoàn thành lát này)
+- [x] Kiểm tra trên máy thật 21/10/2026: mở jjwxc (GB18030) từ tab Dịch truyện, đổi Convert / Hán Việt / Nguyên văn trong Reader, nhập Names.txt + VietPhrase.txt qua SAF, nghe chương bằng văn bản đã convert
 
 ## Giai đoạn 5 – Ebook + giọng neural
 - [ ] Nhập EPUB / TXT / ZIP / PDF, URL / Google Drive

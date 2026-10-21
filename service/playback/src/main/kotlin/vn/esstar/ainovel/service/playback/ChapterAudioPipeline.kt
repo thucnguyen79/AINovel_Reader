@@ -152,7 +152,7 @@ class ChapterAudioPipeline(
                 continue
             }
             consecutiveFailures = 0
-            val item = mediaItem(book, chapter, segment, segments.size, file.toURI().toString())
+            val item = mediaItem(book, chapter, content.title.ifBlank { chapter.title }, segment, segments.size, file.toURI().toString())
             withContext(Dispatchers.Main) {
                 player.addMediaItem(item)
                 if (isFirstItem) {
@@ -238,7 +238,7 @@ class ChapterAudioPipeline(
     private fun playingChapterId(): Long? =
         player.currentMediaItem?.mediaMetadata?.extras?.getLong(PlaybackCommands.EXTRA_CHAPTER_ID, -1)?.takeIf { it >= 0 }
 
-    private fun mediaItem(book: Book, chapter: Chapter, segment: Segment, segmentCount: Int, uri: String): MediaItem {
+    private fun mediaItem(book: Book, chapter: Chapter, title: String, segment: Segment, segmentCount: Int, uri: String): MediaItem {
         val extras = Bundle().apply {
             putLong(PlaybackCommands.EXTRA_BOOK_ID, book.id)
             putLong(PlaybackCommands.EXTRA_CHAPTER_ID, chapter.id)
@@ -249,7 +249,7 @@ class ChapterAudioPipeline(
             putInt(PlaybackCommands.EXTRA_PARAGRAPH_INDEX, segment.paragraphIndex)
         }
         val metadata = MediaMetadata.Builder()
-            .setTitle(chapter.title)
+            .setTitle(title)
             .setArtist(book.title)
             .setAlbumTitle(book.title)
             .setArtworkUri(book.coverUrl?.let(Uri::parse))

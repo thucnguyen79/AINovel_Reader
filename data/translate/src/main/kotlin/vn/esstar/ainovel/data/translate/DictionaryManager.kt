@@ -37,7 +37,7 @@ class DictionaryManager @Inject constructor(
     @Dispatcher(AppDispatcher.IO) private val io: CoroutineDispatcher,
 ) {
     @Serializable
-    private data class Meta(val type: String, val displayName: String, val entries: Int, val importedAt: Long, val builtIn: Boolean = false)
+    private data class Meta(val type: String, val displayName: String, val entries: Int, val importedAt: Long, val builtIn: Boolean = false, val version: Int = 0)
 
     private val dir: File get() = storage.dictionaries
     private val metaFile: File get() = File(dir, "meta.json")
@@ -120,13 +120,20 @@ class DictionaryManager @Inject constructor(
 
     private fun ensureBuiltInHanViet() {
         val metas = readMeta()
-        if (metas.any { it.type == DictionaryType.HANVIET.name } && fileFor(DictionaryType.HANVIET).isFile) return
+        val current = metas.firstOrNull { it.type == DictionaryType.HANVIET.name }
+        val upToDate = current != null && (!current.builtIn || current.version == BUILTIN_HANVIET_VERSION)
+        if (upToDate && fileFor(DictionaryType.HANVIET).isFile) return
         runCatching {
             val entries = context.assets.open("dicts/hanviet.txt").bufferedReader(Charsets.UTF_8).useLines { lines ->
                 IndexedDictionary.build(DictionaryTextParser.parse(lines), fileFor(DictionaryType.HANVIET))
             }
-            writeMeta(metas.filter { it.type != DictionaryType.HANVIET.name } + Meta(DictionaryType.HANVIET.name, "Hán Việt (Unihan)", entries, System.currentTimeMillis(), builtIn = true))
+            writeMeta(metas.filter { it.type != DictionaryType.HANVIET.name } + Meta(DictionaryType.HANVIET.name, "Hán Việt (Thiều Chửu + Unihan)", entries, System.currentTimeMillis(), builtIn = true, version = BUILTIN_HANVIET_VERSION))
         }.onFailure { Timber.e(it, "Cannot build built-in Hán Việt dictionary") }
+    }
+
+    private companion object {
+        /** Bump when assets/dicts/hanviet.txt changes so installed devices rebuild the index. */
+        const val BUILTIN_HANVIET_VERSION = 2
     }
 
     private fun fileFor(type: DictionaryType) = File(dir, "${type.name.lowercase()}.dict")
