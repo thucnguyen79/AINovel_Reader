@@ -34,9 +34,11 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [x] WebView trong app: thanh URL, back/forward, "Đọc chương này"
 ### Epic 1.4 Chất lượng
 - [x] Build + unit test xanh, cập nhật checklist, commit, push
-- [ ] Thêm 4 site Việt tiếp theo (metruyenchu, wikidich, tvtruyen, xtruyen) kèm fixture
+- [x] Thêm site metruyenchu, wikidich, tvtruyen kèm fixture + 15 unit test (engine thêm `bookId`, `pageList`, `pageJson`, `pageHeaders`, placeholder `{base}`/`{bookId}`)
+- [ ] xtruyen.net: cần mode `webview` hoặc giải mã API admin-ajax (nội dung và danh sách chương nạp bằng JS) – chuyển sang khi làm fetch mode `webview`
+- [ ] Thử metruyenchu / tvtruyen trên máy thật (điện thoại ngắt kết nối trước khi kịp thử)
 - [x] Kiểm tra trên máy thật: dán link truyenfull, đọc, lịch sử, WebView (đã sửa 4 lỗi phát hiện: thiếu serializer route, inset cộng đôi, trang chủ bị nhập thành truyện, popup quảng cáo chặn chạm trong WebView)
-- [ ] Tài liệu `docs/SOURCE_RULES.md` (đã viết) cập nhật khi thêm `json:` / mode `webview`
+- [x] Tài liệu `docs/SOURCE_RULES.md` cập nhật (bảng rule, trường TOC mới, ghi chú xtruyen)
 
 ## Giai đoạn 2 – Audio player
 - [ ] `TextSegmenter`, `TextNormalizer` + test

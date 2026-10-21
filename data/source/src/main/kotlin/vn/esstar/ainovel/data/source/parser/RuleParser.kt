@@ -3,6 +3,11 @@ package vn.esstar.ainovel.data.source.parser
 import java.net.URLEncoder
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import vn.esstar.ainovel.data.source.model.SourceRule
 import vn.esstar.ainovel.data.source.selector.all
 import vn.esstar.ainovel.data.source.selector.first
@@ -88,13 +93,17 @@ class RuleParser(private val rule: SourceRule) {
         )
     }
 
-    /** Parses one TOC page. [startIndex] is the index to assign to the first chapter found. */
-    fun parseTocPage(html: String, pageUrl: String, startIndex: Int = 0): ParsedTocPage {
-        val doc = parse(html, pageUrl)
+    /**
+     * Parses one TOC page. [startIndex] is the index to assign to the first chapter found.
+     * [fragment] marks pages 2..N delivered as HTML fragments (possibly extracted from JSON), which use [TocRule.pageList].
+     */
+    fun parseTocPage(html: String, pageUrl: String, startIndex: Int = 0, fragment: Boolean = false): ParsedTocPage {
+        val doc = if (fragment) Jsoup.parseBodyFragment(html, baseUrlOf(pageUrl)) else parse(html, pageUrl)
         val t = rule.toc
         val titleSel = t.title.toSelector()
         val linkSel = t.link.toSelector()
-        val chapters = doc.select(t.list).mapNotNull { el ->
+        val listSel = if (fragment && t.pageList != null) t.pageList else t.list
+        val chapters = doc.select(listSel).mapNotNull { el ->
             val url = linkSel.first(el) ?: return@mapNotNull null
             val title = titleSel.first(el) ?: url
             url to title
@@ -106,10 +115,30 @@ class RuleParser(private val rule: SourceRule) {
         )
     }
 
+    /** Site-internal book id read from the book/TOC page, when the rule declares one. */
+    fun tocBookId(html: String, pageUrl: String): String? = rule.toc.bookId?.let { parse(html, pageUrl).first(it) }
+
     /** Builds the URL of TOC page [page] (1-based) from the template, when the rule has one. */
-    fun tocPageUrl(bookUrl: String, page: Int): String? = rule.toc.pageUrl
-        ?.replace("{url}", if (bookUrl.endsWith("/")) bookUrl else "$bookUrl/")
+    fun tocPageUrl(bookUrl: String, page: Int, bookId: String? = null): String? = rule.toc.pageUrl
+        ?.replace("{url}", bookUrl.trimEnd('/'))
+        ?.replace("{base}", rule.baseUrl.trimEnd('/'))
+        ?.replace("{bookId}", bookId ?: "")
         ?.replace("{page}", page.toString())
+
+    /** Extracts the HTML fragment from a JSON TOC page using [TocRule.pageJson] (dot path). */
+    fun tocHtmlFromJson(body: String): String {
+        val path = rule.toc.pageJson ?: return body
+        var node: JsonElement = Json.parseToJsonElement(body)
+        for (key in path.split('.')) {
+            node = (node as? JsonObject)?.get(key) ?: throw SourceParseException("JSON field '$path' missing in TOC page")
+        }
+        return (node as? JsonPrimitive)?.contentOrNull ?: throw SourceParseException("JSON field '$path' is not a string")
+    }
+
+    private fun baseUrlOf(url: String): String = runCatching {
+        val u = java.net.URI(url)
+        "${u.scheme}://${u.host}/"
+    }.getOrDefault(rule.baseUrl)
 
     fun parseChapter(html: String, pageUrl: String): FetchedChapterContent {
         val doc = parse(html, pageUrl)

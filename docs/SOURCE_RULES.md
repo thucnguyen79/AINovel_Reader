@@ -47,7 +47,12 @@ Ví dụ: `h3.truyen-title a@href`, `#total-page@value`, `.info a[itemprop=genre
     "list": "css của từng link chương",
     "title": "@text", "link": "@href",
     "totalPages": "#total-page@value", // cách 1: biết tổng số trang
-    "pageUrl": "{url}trang-{page}/",   //   -> tải song song các trang 2..N
+    "pageUrl": "{url}/trang-{page}/",  //   -> tải song song các trang 2..N
+                                       //   placeholder: {url} (URL truyện, không có / cuối), {base}, {bookId}, {page}
+    "bookId": "input[name=bid]@value", //   id nội bộ của truyện cho template có {bookId}
+    "pageList": "ul li a",             //   selector dùng cho trang 2..N nếu là fragment HTML khác cấu trúc
+    "pageJson": "data",                //   nếu trang 2..N là JSON: tên trường chứa HTML (đường dẫn chấm)
+    "pageHeaders": { "X-Requested-With": "XMLHttpRequest" },  // header thêm cho trang 2..N
     "next": "css link trang sau",      // cách 2: lần theo link "sau" đến khi hết
     "reverse": false,                  // true nếu site liệt kê chương mới nhất trước
     "maxPages": 500
@@ -74,7 +79,18 @@ Ví dụ: `h3.truyen-title a@href`, `#total-page@value`, `.info a[itemprop=genre
 3. Viết `<Id>RuleTest.kt` theo mẫu `TruyenfullRuleTest`: kiểm tra classify, search, book info, toc (số chương, chỉ số, URL), chapter (tiêu đề, số đoạn, prev/next, không còn rác).
 4. `.\gradlew.bat :data:source:testDebugUnitTest` xanh rồi mới commit.
 
+## Các rule hiện có (21/10/2026)
+
+| id | Host | Danh sách chương | Ghi chú |
+|---|---|---|---|
+| `truyenfull` | truyenfull.live (.vn, .vision, .io, .tv) | `#total-page` + `{url}/trang-N/` | Popup quảng cáo chặn chạm trong WebView, đã xử lý ở trình duyệt |
+| `metruyenchu` | metruyenchu.com.vn, metruyenchuvn.com | Trang 1 inline, trang 2..N qua AJAX JSON `/get/listchap/{bookId}?page=N` | Văn bản có chèn dấu chấm chống copy (`t.h.u.ố.c`), cần chuẩn hoá ở TextNormalizer |
+| `wikidich` | wikidichvn.com | Cùng engine với metruyenchu | |
+| `tvtruyen` | tvtruyen.space (tvtruyen.com chuyển hướng) | `?page=N`, 50 chương/trang, tổng số trang lấy từ phân trang | Trang truyện ~300 KB |
+
+Chưa hỗ trợ: **xtruyen.net** (theme Madara tuỳ biến: nội dung chương và danh sách chương nạp bằng `admin-ajax.php` có nonce, tìm kiếm là ứng dụng JS). Cần mode `webview` hoặc giải mã API; để lại cho giai đoạn sau.
+
 ## Giới hạn hiện tại
 
-- Chưa có `json:` cho API trả JSON; chưa có mode `webview` trong fetcher (WebView mới chỉ là trình duyệt trong app).
+- Chưa có mode `webview` trong fetcher (WebView mới chỉ là trình duyệt trong app).
 - Chưa cập nhật rule từ xa; rule chỉ nằm trong assets.

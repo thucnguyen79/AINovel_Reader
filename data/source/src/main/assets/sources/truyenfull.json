@@ -32,7 +32,7 @@
     "title": "@text",
     "link": "@href",
     "totalPages": "#total-page@value",
-    "pageUrl": "{url}trang-{page}/"
+    "pageUrl": "{url}/trang-{page}/"
   },
   "chapter": {
     "title": "a.chapter-title@text",

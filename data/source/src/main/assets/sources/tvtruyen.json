@@ -1,0 +1,46 @@
+{
+  "id": "tvtruyen",
+  "name": "TruyenTV",
+  "baseUrl": "https://www.tvtruyen.space",
+  "hosts": ["tvtruyen.space", "tvtruyen.com"],
+  "lang": "vi",
+  "fetch": { "mode": "http" },
+  "urls": {
+    "chapter": "^https?://[^/]+/[a-z0-9-]+/chuong-\\d+/?$",
+    "book": "^https?://[^/]+/[a-z0-9-]+\\.html(\\?.*)?$"
+  },
+  "search": {
+    "url": "{base}/tim-kiem?tukhoa={query}",
+    "list": ".category-list-container .info-mobile-card",
+    "title": ".name a@text",
+    "link": ".name a@href",
+    "author": ".author a@text",
+    "cover": ".info-image img@src",
+    "latestChapter": ".info-latest-chapter .chapter-text@text",
+    "next": ".custom-pagination-list .nav-next a@href"
+  },
+  "book": {
+    "title": "h1 span[itemprop=name]@text",
+    "author": "a[itemprop=author]@text",
+    "cover": "meta[property=og:image]@content",
+    "description": ".desc-text[itemprop=description]@html",
+    "status": ".info div:has(> h3:containsOwn(Trạng thái)) .item-value@text",
+    "genres": ".genres a[itemprop=genre]@text"
+  },
+  "toc": {
+    "list": "#mobile-list-chapter a.chapter-link, #list-chapter a.chapter-link",
+    "title": "@title|regex:^(?:.* - )?(.+)$",
+    "link": "@href",
+    "totalPages": "ul.custom-pagination-list li.custom-page-item:nth-last-child(2) a@text",
+    "pageUrl": "{url}?page={page}"
+  },
+  "chapter": {
+    "title": "a.chapter-title@text|regex:^(?:#\\d+\\.\\s*)?(.+)$",
+    "content": "#chapter-content",
+    "remove": ["script", "style", "iframe", "ins", "div[id*=ads]", "div[class*=ads]", ".banner"],
+    "removeLines": ["tvtruyen", "truyentv", "^Nguồn:"],
+    "bookUrl": "a.truyen-title@href",
+    "prev": "#prev_chap@href",
+    "next": "#next_chap@href"
+  }
+}

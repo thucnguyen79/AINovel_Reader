@@ -81,14 +81,18 @@ class SourceRepositoryImpl @Inject constructor(
 
         if (totalPages != null && totalPages > 1 && rule.toc.pageUrl != null) {
             // Known page count: fetch the remaining pages concurrently (bounded).
+            val bookId = parser.tocBookId(firstHtml, tocUrl)
+            val headers = rule.fetch.headers + rule.toc.pageHeaders
             val limit = Semaphore(MAX_CONCURRENT_TOC_FETCHES)
             val rest = coroutineScope {
                 (2..minOf(totalPages, rule.toc.maxPages)).map { page ->
                     async {
                         limit.withPermit {
-                            val pageUrl = parser.tocPageUrl(tocUrl, page) ?: return@withPermit emptyList()
-                            val html = fetcher.get(pageUrl, rule.fetch.headers).html
-                            parser.parseTocPage(html, pageUrl).chapters
+                            val pageUrl = parser.tocPageUrl(tocUrl, page, bookId) ?: return@withPermit emptyList()
+                            val body = fetcher.get(pageUrl, headers).html
+                            val isFragment = rule.toc.pageJson != null || rule.toc.pageList != null
+                            val html = if (rule.toc.pageJson != null) parser.tocHtmlFromJson(body) else body
+                            parser.parseTocPage(html, pageUrl, fragment = isFragment).chapters
                         }
                     }
                 }.map { it.await() }

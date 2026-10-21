@@ -70,8 +70,19 @@ data class TocRule(
     val next: String? = null,
     /** Selector giving the total number of TOC pages; used with [pageUrl]. */
     val totalPages: String? = null,
-    /** Template with `{url}` (book URL, trailing slash) and `{page}` placeholders. */
+    /**
+     * Template for TOC pages 2..N. Placeholders: `{url}` (book URL without trailing slash), `{base}` (site base URL),
+     * `{bookId}` (value of [bookId]) and `{page}`.
+     */
     val pageUrl: String? = null,
+    /** Selector giving the site's internal book id, for [pageUrl] templates that need it. */
+    val bookId: String? = null,
+    /** Selector used instead of [list] on pages 2..N when they are HTML fragments with a different structure. */
+    val pageList: String? = null,
+    /** When pages 2..N are JSON, the field holding the HTML fragment (dot path, e.g. `data` or `result.html`). */
+    val pageJson: String? = null,
+    /** Extra headers for pages 2..N (e.g. `X-Requested-With` for AJAX endpoints). */
+    val pageHeaders: Map<String, String> = emptyMap(),
     /** True when the site lists newest chapters first. */
     val reverse: Boolean = false,
     /** Safety cap on the number of TOC pages followed. */
