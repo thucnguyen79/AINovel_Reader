@@ -10,6 +10,8 @@ import vn.esstar.ainovel.data.translate.engine.ConvertEngine
 import vn.esstar.ainovel.data.translate.engine.ConvertMode
 import vn.esstar.ainovel.data.translate.engine.DictionaryTextParser
 import vn.esstar.ainovel.data.translate.engine.IndexedDictionary
+import vn.esstar.ainovel.data.translate.engine.LuatNhanRule
+import org.junit.Assert.assertTrue
 
 class ConvertEngineTest {
 
@@ -43,7 +45,7 @@ class ConvertEngineTest {
             在=ở
             """.trimIndent(),
         )
-        hanViet = build("hanviet", "你=nhĩ\n这=giá\n阴=âm\n魂=hồn\n不=bất\n散=tán\n林=lâm\n风=phong\n眠=miên\n妖=yêu\n女=nữ\n被=bị\n在=tại\n玉=ngọc\n仙=tiên\n宗=tông")
+        hanViet = build("hanviet", "你=nhĩ\n这=giá\n阴=âm\n魂=hồn\n不=bất\n散=tán\n林=lâm\n风=phong\n眠=miên\n妖=yêu\n女=nữ\n被=bị\n在=tại\n玉=ngọc\n仙=tiên\n宗=tông\n们=môn\n的=đích")
     }
 
     @After
@@ -71,9 +73,14 @@ class ConvertEngineTest {
     @Test
     fun `converts with names, phrases, hanviet fallback and punctuation`() {
         val engine = ConvertEngine(names, vietPhrase, hanViet)
+        // "{0}的{1}" luật nhân reorders the possessive: X của Y -> Y của X.
+        assertEquals(
+            "“Ngươi này sắc phôi của âm hồn bất tán, cư nhiên lại đến rồi!”",
+            engine.convert("“你这阴魂不散的色胚，居然又来了！”"),
+        )
         assertEquals(
             "“Ngươi này âm hồn bất tán của sắc phôi, cư nhiên lại đến rồi!”",
-            engine.convert("“你这阴魂不散的色胚，居然又来了！”"),
+            ConvertEngine(names, vietPhrase, hanViet, rules = emptyList()).convert("“你这阴魂不散的色胚，居然又来了！”"),
         )
         assertEquals("Lâm Phong Miên ở Ngọc Tiên Tông bị yêu nữ khi dễ.", engine.convert("林风眠在玉仙宗被妖女欺负。"))
     }
@@ -101,5 +108,32 @@ class ConvertEngineTest {
     fun `unknown characters are kept`() {
         val engine = ConvertEngine(null, vietPhrase, hanViet)
         assertEquals("Ngươi 龘 này", engine.convert("你龘这"))
+    }
+
+    @Test
+    fun `luat nhan rules reorder and pluralize`() {
+        val engine = ConvertEngine(names, vietPhrase, hanViet)
+        assertEquals("Các nữ tử của Ngọc Tiên Tông.", engine.convert("玉仙宗的女子们。"))
+        assertEquals("Các nữ tử", engine.convert("女子们"))
+        // Rule literal must match whole tokens: "的" inside a dictionary phrase is not a rule hit.
+        val custom = ConvertEngine(names, vietPhrase, hanViet, rules = LuatNhanRule.parseLines(sequenceOf("{0}在{1}={0} tại {1}")))
+        assertEquals("Lâm Phong Miên tại Ngọc Tiên Tông.", custom.convert("林风眠在玉仙宗。"))
+        assertEquals(5, LuatNhanRule.DEFAULT.size)
+        assertTrue(LuatNhanRule.parseLines(sequenceOf("# comment", "abc=def", "{0}=x", "{0}们=các {0}")).size == 1)
+    }
+
+    @Test
+    fun `detailed tokens map output back to source and expose other meanings`() {
+        val engine = ConvertEngine(names, vietPhrase, hanViet)
+        val tokens = engine.convertDetailed("你这居然来了。")
+        assertEquals("Ngươi này cư nhiên đến rồi.", tokens.joinToString("") { it.text })
+        assertEquals(listOf("你", "这", "居然", "来了", "。"), tokens.map { it.source })
+        assertEquals(listOf("nhĩ"), tokens[0].alternatives)
+        assertEquals(listOf("lại"), tokens[2].alternatives)
+        assertTrue(tokens[0].isChinese)
+        assertTrue(!tokens[4].isChinese)
+        val rule = engine.convertDetailed("玉仙宗的女子").single()
+        assertEquals("玉仙宗的女子", rule.source)
+        assertEquals("Nữ tử của Ngọc Tiên Tông", rule.text)
     }
 }

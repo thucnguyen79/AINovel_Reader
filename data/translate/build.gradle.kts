@@ -6,8 +6,10 @@ plugins {
 
 dependencies {
     implementation(projects.core.common)
+    implementation(projects.core.database)
     implementation(projects.core.datastore)
     implementation(projects.core.network)
     implementation(projects.core.storage)
     implementation(projects.domain)
+    implementation(libs.mlkit.translate)
 }

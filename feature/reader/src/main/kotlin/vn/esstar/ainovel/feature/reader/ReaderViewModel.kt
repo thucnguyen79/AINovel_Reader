@@ -18,6 +18,7 @@ import vn.esstar.ainovel.core.datastore.ReaderPrefs
 import vn.esstar.ainovel.domain.model.Book
 import vn.esstar.ainovel.domain.model.Chapter
 import vn.esstar.ainovel.domain.model.ChapterContent
+import vn.esstar.ainovel.domain.model.GlossaryEntry
 import vn.esstar.ainovel.domain.model.ReadingMode
 import vn.esstar.ainovel.domain.model.ReadingPosition
 import vn.esstar.ainovel.domain.model.TranslatableLanguages
@@ -37,6 +38,8 @@ data class ReaderUiState(
     val prefs: ReaderPrefs = ReaderPrefs(),
     /** Null when the book is not in a translatable language. */
     val translateMode: TranslateMode? = null,
+    /** Glossary entries that apply to this book (global ones included). */
+    val glossary: List<GlossaryEntry> = emptyList(),
     /** Paragraph index + pixel offset to restore when [content] changes. */
     val restoreIndex: Int = 0,
     val restoreOffset: Int = 0,
@@ -74,6 +77,9 @@ class ReaderViewModel @Inject constructor(
             val chapters = library.getChapters(bookId)
             val mode = if (book != null && TranslatableLanguages.needsTranslation(book.language)) translation.mode.first() else null
             _state.update { it.copy(book = book, chapters = chapters, translateMode = mode) }
+            if (mode != null) {
+                launch { translation.observeGlossary(bookId).collect { g -> _state.update { it.copy(glossary = g) } } }
+            }
             val progress = library.getProgress(bookId)
             val restore = progress?.takeIf { it.chapterId == route.chapterId }
             open(route.chapterId, restore?.sentenceIndex ?: 0, restore?.scrollOffset ?: 0)
@@ -146,6 +152,28 @@ class ReaderViewModel @Inject constructor(
         if (_state.value.translateMode == null || _state.value.translateMode == mode) return
         _state.update { it.copy(translateMode = mode) }
         viewModelScope.launch { translation.setMode(mode) }
+        _state.value.currentChapter?.let { open(it.id, lastSavedIndex.coerceAtLeast(0), lastSavedOffset.coerceAtLeast(0)) }
+    }
+
+    /** Saves a meaning for a Chinese word (this book only, or every book) and re-converts the chapter in place. */
+    fun saveGlossary(source: String, target: String, allBooks: Boolean) {
+        if (source.isBlank() || target.isBlank()) return
+        viewModelScope.launch {
+            runCatching { translation.upsertGlossary(if (allBooks) null else bookId, source, target) }
+                .onSuccess { reloadInPlace() }
+                .onFailure { Timber.e(it, "Save glossary failed") }
+        }
+    }
+
+    fun removeGlossary(entry: GlossaryEntry) {
+        viewModelScope.launch {
+            runCatching { translation.removeGlossary(entry.id) }
+                .onSuccess { reloadInPlace() }
+                .onFailure { Timber.e(it, "Remove glossary failed") }
+        }
+    }
+
+    private fun reloadInPlace() {
         _state.value.currentChapter?.let { open(it.id, lastSavedIndex.coerceAtLeast(0), lastSavedOffset.coerceAtLeast(0)) }
     }
 

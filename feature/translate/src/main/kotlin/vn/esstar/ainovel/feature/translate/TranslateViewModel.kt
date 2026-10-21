@@ -14,6 +14,7 @@ import timber.log.Timber
 import vn.esstar.ainovel.domain.model.DictionaryInfo
 import vn.esstar.ainovel.domain.model.DictionaryType
 import vn.esstar.ainovel.domain.model.HistoryEntry
+import vn.esstar.ainovel.domain.model.MlKitStatus
 import vn.esstar.ainovel.domain.model.SourceInfo
 import vn.esstar.ainovel.domain.model.TranslatableLanguages
 import vn.esstar.ainovel.domain.model.TranslateMode
@@ -31,6 +32,7 @@ data class TranslateUiState(
     val dictionaries: List<DictionaryInfo> = emptyList(),
     val importing: DictionaryType? = null,
     val mode: TranslateMode = TranslateMode.CONVERT,
+    val mlKit: MlKitStatus = MlKitStatus(),
 )
 
 sealed interface TranslateEvent {
@@ -48,6 +50,9 @@ sealed interface TranslateMessage {
     data class Imported(val info: DictionaryInfo) : TranslateMessage
     data object ImportFailed : TranslateMessage
     data object Removed : TranslateMessage
+    data object ModelDownloaded : TranslateMessage
+    data class ModelFailed(val reason: String?) : TranslateMessage
+    data object ModelDeleted : TranslateMessage
 }
 
 @HiltViewModel
@@ -77,6 +82,8 @@ class TranslateViewModel @Inject constructor(
         }
         viewModelScope.launch { translation.dictionaries.collect { d -> _state.update { it.copy(dictionaries = d) } } }
         viewModelScope.launch { translation.mode.collect { m -> _state.update { it.copy(mode = m) } } }
+        viewModelScope.launch { translation.mlKitStatus.collect { st -> _state.update { it.copy(mlKit = st) } } }
+        viewModelScope.launch { runCatching { translation.refreshMlKitStatus() }.onFailure { Timber.w(it, "ML Kit status") } }
         viewModelScope.launch {
             // Touch the engine once so the built-in Hán Việt dictionary is indexed and listed.
             runCatching { translation.translate(listOf("。"), null, TranslateMode.HAN_VIET) }
@@ -138,6 +145,22 @@ class TranslateViewModel @Inject constructor(
                     send(TranslateEvent.ShowMessage(TranslateMessage.ImportFailed))
                 }
             _state.update { it.copy(importing = null) }
+        }
+    }
+
+    fun downloadModel(wifiOnly: Boolean) {
+        if (_state.value.mlKit.downloading) return
+        viewModelScope.launch {
+            translation.downloadMlKitModel(wifiOnly)
+            val st = _state.value.mlKit
+            send(TranslateEvent.ShowMessage(if (st.downloaded) TranslateMessage.ModelDownloaded else TranslateMessage.ModelFailed(st.error)))
+        }
+    }
+
+    fun deleteModel() {
+        viewModelScope.launch {
+            translation.deleteMlKitModel()
+            send(TranslateEvent.ShowMessage(TranslateMessage.ModelDeleted))
         }
     }
 

@@ -47,6 +47,8 @@ data class ChapterContent(
     val chapterId: Long,
     val title: String,
     val paragraphs: List<String>,
+    /** Per-paragraph word tokens when the text was converted from Chinese (null otherwise). */
+    val tokens: List<List<TextToken>>? = null,
 ) {
     val text: String get() = paragraphs.joinToString("\n\n")
 }

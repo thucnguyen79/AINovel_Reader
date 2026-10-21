@@ -8,15 +8,27 @@
     <string name="translate_open_button">Mở</string>
     <string name="translate_clear">Xoá</string>
     <string name="translate_sites_section">Site tiếng Trung hỗ trợ</string>
-    <string name="translate_sites_webview_note">Các site như zongheng, ixdzs8, 17k cần trình duyệt trong app, sẽ bổ sung ở bản sau.</string>
+    <string name="translate_sites_webview_note">zongheng, ixdzs8 và 17k tải trang qua trình duyệt ẩn nên chậm hơn vài giây mỗi chương.</string>
     <string name="translate_translated_section">Truyện đã dịch</string>
     <string name="translate_translated_empty">Truyện tiếng Trung bạn đã mở sẽ xuất hiện ở đây.</string>
     <string name="translate_mode_section">Chế độ hiển thị mặc định</string>
     <string name="translate_mode_convert">Convert</string>
     <string name="translate_mode_hanviet">Hán Việt</string>
+    <string name="translate_mode_mlkit">Dịch máy</string>
     <string name="translate_mode_raw">Nguyên văn</string>
+    <string name="translate_mlkit_section">Dịch máy trên máy (ML Kit)</string>
+    <string name="translate_mlkit_description">Dịch Trung → Việt bằng model Google ML Kit chạy ngay trên điện thoại, không cần tài khoản. Cần tải model một lần (khoảng 60 MB cho hai ngôn ngữ), sau đó dùng offline. Chất lượng khác với convert: câu tự nhiên hơn nhưng tên riêng có thể sai.</string>
+    <string name="translate_mlkit_status_missing">Chưa tải model</string>
+    <string name="translate_mlkit_status_downloading">Đang tải model…</string>
+    <string name="translate_mlkit_status_ready">Model đã sẵn sàng, dùng offline</string>
+    <string name="translate_mlkit_download">Tải model (Wi-Fi)</string>
+    <string name="translate_mlkit_delete">Xoá model</string>
+    <string name="translate_msg_model_downloaded">Đã tải model dịch máy.</string>
+    <string name="translate_msg_model_failed">Không tải được model. Kiểm tra Wi-Fi rồi thử lại. %1$s</string>
+    <string name="translate_msg_model_deleted">Đã xoá model dịch máy.</string>
+    <string name="translate_dict_luatnhan">Luật nhân (đảo trật tự)</string>
     <string name="translate_dict_section">Từ điển</string>
-    <string name="translate_dict_description">Nhập file Names.txt và VietPhrase.txt (định dạng QuickTranslator, mỗi dòng Hán=Việt, mã UTF-8). Từ điển Hán Việt đã có sẵn.</string>
+    <string name="translate_dict_description">Nhập file Names.txt, VietPhrase.txt và LuatNhan.txt (định dạng QuickTranslator, mỗi dòng Hán=Việt, mã UTF-8). Từ điển Hán Việt và luật nhân mặc định đã có sẵn. Chạm vào một từ trong Reader để chọn nghĩa khác hoặc đặt tên riêng cho từng truyện.</string>
     <string name="translate_dict_names">Names (tên riêng)</string>
     <string name="translate_dict_vietphrase">VietPhrase</string>
     <string name="translate_dict_hanviet">Hán Việt</string>

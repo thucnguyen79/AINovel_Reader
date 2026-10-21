@@ -83,3 +83,19 @@ data class HistoryWithBook(
     @Embedded(prefix = "b_") val book: BookEntity,
     @Embedded(prefix = "ch_") val chapter: ChapterEntity?,
 )
+
+/** User word override for the convert engine; `book_id` null = applies to every book. */
+@Entity(
+    tableName = "glossary",
+    foreignKeys = [
+        ForeignKey(entity = BookEntity::class, parentColumns = ["id"], childColumns = ["book_id"], onDelete = ForeignKey.CASCADE),
+    ],
+    indices = [Index(value = ["book_id", "source"]), Index("source")],
+)
+data class GlossaryEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @ColumnInfo(name = "book_id") val bookId: Long?,
+    val source: String,
+    val target: String,
+    @ColumnInfo(name = "updated_at") val updatedAt: Long,
+)

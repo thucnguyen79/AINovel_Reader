@@ -61,6 +61,8 @@ import vn.esstar.ainovel.core.datastore.ReaderPrefs
 import vn.esstar.ainovel.core.designsystem.component.ErrorState
 import vn.esstar.ainovel.core.designsystem.component.LoadingState
 import vn.esstar.ainovel.domain.model.Chapter
+import vn.esstar.ainovel.domain.model.GlossaryEntry
+import vn.esstar.ainovel.domain.model.TextToken
 import vn.esstar.ainovel.domain.model.TranslateMode
 import androidx.compose.material.icons.filled.Headphones
 
@@ -82,6 +84,8 @@ internal fun ReaderRoute(
         onScroll = viewModel::onScroll,
         onFontSize = viewModel::setFontSize,
         onTranslateMode = viewModel::setTranslateMode,
+        onSaveGlossary = viewModel::saveGlossary,
+        onRemoveGlossary = viewModel::removeGlossary,
     )
 }
 
@@ -98,8 +102,12 @@ internal fun ReaderScreen(
     onScroll: (Int, Int) -> Unit,
     onFontSize: (Int) -> Unit,
     onTranslateMode: (TranslateMode) -> Unit,
+    onSaveGlossary: (source: String, target: String, allBooks: Boolean) -> Unit,
+    onRemoveGlossary: (GlossaryEntry) -> Unit,
 ) {
     var showTranslateMenu by remember { mutableStateOf(false) }
+    var showGlossary by rememberSaveable { mutableStateOf(false) }
+    var selectedWord by remember { mutableStateOf<TextToken?>(null) }
     var showChapters by rememberSaveable { mutableStateOf(false) }
     var chromeVisible by rememberSaveable { mutableStateOf(true) }
     val listState = remember(state.content?.chapterId) {
@@ -155,6 +163,11 @@ internal fun ReaderScreen(
                                         onClick = { showTranslateMenu = false; onTranslateMode(mode) },
                                     )
                                 }
+                                HorizontalDivider()
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.reader_glossary_menu, state.glossary.size)) },
+                                    onClick = { showTranslateMenu = false; showGlossary = true },
+                                )
                             }
                         }
                         IconButton(onClick = { onListen(listState.firstVisibleItemIndex) }, enabled = state.content != null) {
@@ -186,14 +199,31 @@ internal fun ReaderScreen(
             )
             else -> ChapterBody(
                 paragraphs = state.content.paragraphs,
+                tokens = state.content.tokens,
                 title = state.content.title.takeIf { it.isNotBlank() } ?: state.currentChapter?.title,
                 prefs = state.prefs,
                 listState = listState,
                 hasNext = state.hasNext,
                 onNext = onNext,
                 onTap = { chromeVisible = !chromeVisible },
+                onWordTap = { selectedWord = it },
                 modifier = Modifier.padding(padding),
             )
+        }
+    }
+
+    selectedWord?.let { token ->
+        WordSheet(
+            token = token,
+            onDismiss = { selectedWord = null },
+            onSave = { target, allBooks -> selectedWord = null; onSaveGlossary(token.source, target, allBooks) },
+        )
+    }
+
+    if (showGlossary) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(onDismissRequest = { showGlossary = false }, sheetState = sheetState) {
+            GlossarySheet(entries = state.glossary, onRemove = onRemoveGlossary)
         }
     }
 
@@ -212,12 +242,14 @@ internal fun ReaderScreen(
 @Composable
 private fun ChapterBody(
     paragraphs: List<String>,
+    tokens: List<List<TextToken>>?,
     title: String?,
     prefs: ReaderPrefs,
     listState: LazyListState,
     hasNext: Boolean,
     onNext: () -> Unit,
     onTap: () -> Unit,
+    onWordTap: (TextToken) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val fontSize = prefs.fontSizeSp.sp
@@ -236,8 +268,19 @@ private fun ChapterBody(
                 Text(title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(bottom = 8.dp))
             }
         }
-        itemsIndexed(paragraphs, key = { i, _ -> i }) { _, paragraph ->
-            Text(text = paragraph, fontSize = fontSize, lineHeight = lineHeight, color = MaterialTheme.colorScheme.onBackground)
+        itemsIndexed(paragraphs, key = { i, _ -> i }) { index, paragraph ->
+            val paragraphTokens = tokens?.getOrNull(index)
+            if (paragraphTokens != null && paragraphTokens.isNotEmpty()) {
+                TokenParagraph(
+                    tokens = paragraphTokens,
+                    fontSize = fontSize,
+                    lineHeight = lineHeight,
+                    onWordTap = onWordTap,
+                    onTap = onTap,
+                )
+            } else {
+                Text(text = paragraph, fontSize = fontSize, lineHeight = lineHeight, color = MaterialTheme.colorScheme.onBackground)
+            }
         }
         item(key = "end") {
             Column(modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -317,5 +360,6 @@ private fun ChapterList(chapters: List<Chapter>, currentId: Long?, onSelect: (Ch
 private fun TranslateMode.label(): Int = when (this) {
     TranslateMode.CONVERT -> R.string.reader_translate_convert
     TranslateMode.HAN_VIET -> R.string.reader_translate_hanviet
+    TranslateMode.MLKIT -> R.string.reader_translate_mlkit
     TranslateMode.RAW -> R.string.reader_translate_raw
 }

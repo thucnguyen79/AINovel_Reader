@@ -15,4 +15,15 @@
     <string name="reader_translate_convert">Convert (VietPhrase)</string>
     <string name="reader_translate_hanviet">Hán Việt</string>
     <string name="reader_translate_raw">Nguyên văn tiếng Trung</string>
+    <string name="reader_translate_mlkit">Dịch máy (ML Kit)</string>
+    <string name="reader_glossary_menu">Từ riêng của truyện (%1$d)</string>
+    <string name="reader_word_title">Chọn nghĩa</string>
+    <string name="reader_word_current">Đang dùng: %1$s</string>
+    <string name="reader_word_custom_hint">Nghĩa khác</string>
+    <string name="reader_word_save_book">Lưu cho truyện này</string>
+    <string name="reader_word_save_all">Lưu cho mọi truyện</string>
+    <string name="reader_glossary_title">Từ riêng của truyện</string>
+    <string name="reader_glossary_empty">Chạm vào một từ trong chương để chọn nghĩa khác hoặc đặt tên riêng.</string>
+    <string name="reader_glossary_all_books">Mọi truyện</string>
+    <string name="reader_glossary_delete">Xoá</string>
 </resources>

@@ -114,6 +114,12 @@ Lưu ý `waitFor` chạy bằng `document.querySelector` nên giá trị thuộc
 Cookie của WebView dùng chung cả tiến trình (trình duyệt trong app và fetcher), nên site đã "nhớ" bản mobile ở trình duyệt sẽ trả bản mobile cho fetcher; rule 17k vì vậy viết theo h5.
 Fixture của các site này là DOM đã render, lấy từ trình duyệt thật.
 
+## Dịch Trung → Việt (tóm tắt, chi tiết trong ADR-004/006)
+
+- Thứ tự tra: glossary (truyện > toàn cục) > Names > VietPhrase (khớp dài nhất) > Hán Việt từng chữ; sau đó luật nhân.
+- File người dùng nhập ở tab Dịch truyện: `Names.txt`, `VietPhrase.txt`, `LuatNhan.txt` (UTF-8, `Hán=Việt`, nghĩa phụ cách bằng `/`).
+- Chế độ: Convert, Hán Việt, Dịch máy (ML Kit, tải model theo yêu cầu), Nguyên văn.
+
 ## Giới hạn hiện tại
 
 - Mode `webview` chạy tuần tự một trang một lúc và không phát hiện CAPTCHA; site hiện CAPTCHA thật vẫn thất bại.

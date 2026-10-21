@@ -20,8 +20,12 @@ class GetReadableChapterUseCase @Inject constructor(
         val chapter = library.getChapter(chapterId) ?: return content
         val book = library.getBook(chapter.bookId) ?: return content
         if (!TranslatableLanguages.needsTranslation(book.language)) return content
-        val translated = translation.translate(content.paragraphs, book.id, mode)
         val title = translation.translate(listOf(content.title), book.id, mode).firstOrNull() ?: content.title
+        val tokens = translation.translateDetailed(content.paragraphs, book.id, mode)
+        if (tokens != null) {
+            return content.copy(title = title, paragraphs = tokens.map { p -> p.joinToString("") { it.text } }, tokens = tokens)
+        }
+        val translated = translation.translate(content.paragraphs, book.id, mode)
         return content.copy(title = title, paragraphs = translated)
     }
 }

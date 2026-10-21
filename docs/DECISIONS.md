@@ -2,6 +2,11 @@
 
 Mỗi mục: bối cảnh, quyết định, hệ quả. Mới nhất ở trên.
 
+## ADR-006 (2026-10-21): Luật nhân trên token, glossary theo bộ, ML Kit là chế độ tuỳ chọn
+- Bối cảnh: convert thuần khớp dài nhất cho ra trật tự Hán ("X của Y" ngược), không cho người đọc sửa tên riêng, và một số người muốn câu tự nhiên hơn dù sai tên.
+- Quyết định: (1) engine trả `ConvertedToken` (nguồn, đích, nghĩa khác); luật nhân kiểu QuickTranslator (`{0}的{1}={1} của {0}`) chạy trên chuỗi token sau khi tra từ điển, nhiều lượt, luật dài nhất thắng, kết quả luật có thể làm placeholder cho luật khác; không áp luật trong chế độ Hán Việt. (2) Glossary lưu trong Room (`glossary`, `book_id` null = toàn cục), được ghép vào engine theo từng lần convert và thắng mọi từ điển; Reader hiện sheet chọn nghĩa khi chạm từ. (3) ML Kit Translation (on-device, miễn phí, không key) là chế độ thứ tư; model chỉ tải khi người dùng bấm, có nút xoá; không có model thì tự quay về Convert. ML Kit không có ánh xạ từ nên không hỗ trợ chạm từ / glossary.
+- Hệ quả: thêm dependency `com.google.mlkit:translate` (~1 MB mã, model ~60 MB tải riêng). Đổi engine phải cập nhật `ConvertEngineTest`. `GetReadableChapterUseCase` trả thêm `tokens` nên Reader và TTS vẫn dùng cùng văn bản.
+
 ## ADR-005 (2026-10-21): Fetch mode `webview` cho site render bằng JS hoặc có WAF
 - Bối cảnh: zongheng (mục lục render bằng Nuxt), ixdzs8 (trang chương có bước xác minh trình duyệt bằng JS), 17k (WAF Aliyun) không lấy được bằng OkHttp. Giải mã API/JS riêng từng site dễ hỏng khi site đổi.
 - Quyết định: thêm `WebViewHtmlFetcher` dùng WebView ẩn của hệ thống (miễn phí, không thêm dependency) với cơ chế chờ selector `waitFor`; `RoutingHtmlFetcher` chọn HTTP hay WebView theo `FetchOptions`. Rule khai báo `mode`/`waitFor` ở mức `fetch` hoặc ghi đè theo từng phần để chỉ dùng WebView ở trang bắt buộc. Cookie WebView được đồng bộ sang OkHttp để các request HTTP sau có thể qua WAF. Fixture test là DOM đã render lấy từ trình duyệt thật.

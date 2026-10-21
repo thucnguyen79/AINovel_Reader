@@ -23,6 +23,7 @@ espresso = "3.7.0"
 biometric = "1.1.0"
 browser = "1.10.0"
 webkit = "1.17.1"
+mlkitTranslate = "17.0.3"
 documentfile = "1.1.0"
 materialIcons = "1.7.8"
 
@@ -52,6 +53,7 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-biometric = { group = "androidx.biometric", name = "biometric", version.ref = "biometric" }
 androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "browser" }
 androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
+mlkit-translate = { group = "com.google.mlkit", name = "translate", version.ref = "mlkitTranslate" }
 androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
 
 # Compose

@@ -68,14 +68,15 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [x] `ConvertEngine`: glossary > Names > VietPhrase (khớp dài nhất) > Hán Việt từng chữ; 3 chế độ Convert / Hán Việt / Nguyên văn; đổi dấu câu Trung, viết hoa đầu câu
 - [x] Từ điển Hán Việt có sẵn (~18.000 chữ, Thiều Chửu + phiên âm cộng đồng + Unihan, sinh bằng `tools/hanviet/gen_hanviet.py`)
 - [x] Unit test `ConvertEngineTest` (6 test)
-- [ ] Luật nhân (VietPhrase 2 nghĩa, đảo trật tự tính từ) – để sau
+- [x] Luật nhân: mẫu `{0}的{1}={1} của {0}` áp lên chuỗi token sau khi tra từ điển, nhiều lượt, luật dài nhất thắng; 5 luật mặc định, nhập LuatNhan.txt để thay
+- [x] Nhiều nghĩa: engine giữ token nguồn ↔ đích và các nghĩa khác (VietPhrase `a/b/c`, Hán Việt) cho Reader
 ### Epic 4.2 Từ điển và tích hợp
 - [x] `DictionaryManager`: nhập Names.txt / VietPhrase.txt qua SAF → build `.dict` trong `files/dicts/`, meta.json, gỡ từ điển
 - [x] `TranslationRepository` + `TranslatePreferences` (chế độ mặc định), `GetReadableChapterUseCase`
 - [x] Reader: sách `lang = zh` hiển thị bản convert, menu đổi Convert / Hán Việt / Nguyên văn trên thanh tiêu đề
 - [x] Nghe: `ChapterAudioPipeline` đọc văn bản đã convert (cùng use case với Reader)
-- [ ] Glossary theo bộ truyện (bảng đã dự kiến, chưa làm UI)
-- [ ] Dịch cả bộ chạy nền (hiện convert theo chương khi mở, đủ nhanh)
+- [x] Glossary theo bộ truyện: bảng `glossary` (Room v3, book_id null = mọi truyện), ưu tiên trên mọi từ điển; Reader chạm từ → sheet chọn nghĩa khác / nhập nghĩa / lưu cho truyện hoặc mọi truyện; menu "Từ riêng của truyện" để xem và xoá
+- [x] Dịch cả bộ chạy nền: không cần, convert theo chương khi mở (< 100 ms/chương); ML Kit có cache đoạn trong bộ nhớ
 ### Epic 4.3 Site Trung
 - [x] Fetcher hỗ trợ charset: sniff `<meta charset>`, GBK/GB2312 → GB18030, `search.queryCharset` để mã hoá từ khoá
 - [x] `52shuku` (52shuku.net) + fixture + test
@@ -87,7 +88,7 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 ### Epic 4.4 Tab Dịch truyện
 - [x] Dán link truyện Trung (dùng chung `OpenUrlUseCase`), chip site Trung, danh sách "Truyện đã dịch" từ lịch sử
 - [x] Chọn chế độ mặc định, nhập / thay / gỡ từ điển
-- [ ] ML Kit zh → vi (P1, tải model theo yêu cầu người dùng)
+- [x] ML Kit zh → vi: chế độ "Dịch máy", model tải theo yêu cầu (Wi-Fi) trong tab Dịch truyện, xoá được; thiếu model thì tự quay về Convert
 - [x] Kiểm tra trên máy thật 21/10/2026: mở jjwxc (GB18030) từ tab Dịch truyện, đổi Convert / Hán Việt / Nguyên văn trong Reader, nhập Names.txt + VietPhrase.txt qua SAF, nghe chương bằng văn bản đã convert
 
 ## Giai đoạn 5 – Ebook + giọng neural

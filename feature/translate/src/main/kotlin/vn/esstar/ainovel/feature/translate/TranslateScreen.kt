@@ -89,6 +89,9 @@ internal fun TranslateRoute(
                         TranslateMessage.OpenFailed -> context.getString(R.string.translate_msg_open_failed)
                         TranslateMessage.ImportFailed -> context.getString(R.string.translate_msg_import_failed)
                         TranslateMessage.Removed -> context.getString(R.string.translate_msg_removed)
+                        TranslateMessage.ModelDownloaded -> context.getString(R.string.translate_msg_model_downloaded)
+                        is TranslateMessage.ModelFailed -> context.getString(R.string.translate_msg_model_failed, m.reason ?: "")
+                        TranslateMessage.ModelDeleted -> context.getString(R.string.translate_msg_model_deleted)
                         is TranslateMessage.Imported -> context.getString(
                             R.string.translate_msg_imported,
                             context.getString(m.info.type.label()),
@@ -111,6 +114,8 @@ internal fun TranslateRoute(
         onModeChange = viewModel::setMode,
         onImport = viewModel::importDictionary,
         onRemove = viewModel::removeDictionary,
+        onDownloadModel = viewModel::downloadModel,
+        onDeleteModel = viewModel::deleteModel,
     )
 }
 
@@ -126,6 +131,8 @@ internal fun TranslateScreen(
     onModeChange: (TranslateMode) -> Unit,
     onImport: (uri: String, type: DictionaryType) -> Unit,
     onRemove: (DictionaryType) -> Unit,
+    onDownloadModel: (wifiOnly: Boolean) -> Unit,
+    onDeleteModel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val clipboard = LocalClipboard.current
@@ -239,13 +246,47 @@ internal fun TranslateScreen(
 
             item { SectionTitle(stringResource(R.string.translate_mode_section)) }
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TranslateMode.entries.forEach { mode ->
                         FilterChip(
                             selected = state.mode == mode,
                             onClick = { onModeChange(mode) },
                             label = { Text(stringResource(mode.label())) },
                         )
+                    }
+                }
+            }
+
+            item { SectionTitle(stringResource(R.string.translate_mlkit_section)) }
+            item {
+                AINovelCard(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        stringResource(R.string.translate_mlkit_description),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    val status = when {
+                        state.mlKit.downloading -> stringResource(R.string.translate_mlkit_status_downloading)
+                        state.mlKit.downloaded -> stringResource(R.string.translate_mlkit_status_ready)
+                        else -> stringResource(R.string.translate_mlkit_status_missing)
+                    }
+                    Text(status, style = MaterialTheme.typography.titleSmall)
+                    Spacer(Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        if (state.mlKit.downloaded) {
+                            OutlinedButton(onClick = onDeleteModel, modifier = Modifier.weight(1f)) {
+                                Text(stringResource(R.string.translate_mlkit_delete))
+                            }
+                        } else {
+                            Button(onClick = { onDownloadModel(true) }, enabled = !state.mlKit.downloading, modifier = Modifier.weight(1f)) {
+                                if (state.mlKit.downloading) {
+                                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                                    Spacer(Modifier.width(6.dp))
+                                }
+                                Text(stringResource(R.string.translate_mlkit_download))
+                            }
+                        }
                     }
                 }
             }
@@ -348,6 +389,7 @@ private fun TranslatedRow(entry: HistoryEntry, onClick: () -> Unit) {
 private fun TranslateMode.label(): Int = when (this) {
     TranslateMode.CONVERT -> R.string.translate_mode_convert
     TranslateMode.HAN_VIET -> R.string.translate_mode_hanviet
+    TranslateMode.MLKIT -> R.string.translate_mode_mlkit
     TranslateMode.RAW -> R.string.translate_mode_raw
 }
 
@@ -355,4 +397,5 @@ private fun DictionaryType.label(): Int = when (this) {
     DictionaryType.NAMES -> R.string.translate_dict_names
     DictionaryType.VIETPHRASE -> R.string.translate_dict_vietphrase
     DictionaryType.HANVIET -> R.string.translate_dict_hanviet
+    DictionaryType.LUATNHAN -> R.string.translate_dict_luatnhan
 }

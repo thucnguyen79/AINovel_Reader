@@ -30,4 +30,6 @@ object DatabaseModule {
     @Provides fun provideHistoryDao(db: AINovelDatabase) = db.historyDao()
 
     @Provides fun provideDownloadDao(db: AINovelDatabase) = db.downloadDao()
+
+    @Provides fun provideGlossaryDao(db: AINovelDatabase) = db.glossaryDao()
 }
