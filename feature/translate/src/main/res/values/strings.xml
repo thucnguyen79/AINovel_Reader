@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="translate_title">Dịch truyện</string>
+    <string name="translate_paste_title">Dán link chương truyện</string>
+    <string name="translate_paste_description">Sao chép đường dẫn chương truyện tiếng Trung và dán vào đây</string>
+    <string name="translate_paste_button">Dán link</string>
+    <string name="translate_translated_section">Truyện đã dịch</string>
+    <string name="translate_translated_empty">Chương bạn đã dịch sẽ xuất hiện ở đây.</string>
+</resources>

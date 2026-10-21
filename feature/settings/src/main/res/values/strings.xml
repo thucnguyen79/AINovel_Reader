@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Cài đặt</string>
+    <string name="settings_section_audio">Hiệu ứng âm thanh</string>
+    <string name="settings_section_voice">Giọng đọc</string>
+    <string name="settings_section_system">Cài đặt hệ thống</string>
+    <string name="settings_placeholder_speed">Tốc độ đọc: 1,0 (giai đoạn 2)</string>
+    <string name="settings_placeholder_pitch">Độ cao: 1,0 (giai đoạn 2)</string>
+    <string name="settings_placeholder_voice">Giọng hệ thống / Giọng neural (giai đoạn 2 và 5)</string>
+    <string name="settings_placeholder_system">Hẹn giờ tắt, ngắt dấu phẩy, xoá bộ nhớ tạm, chia sẻ log</string>
+</resources>

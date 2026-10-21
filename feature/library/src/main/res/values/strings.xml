@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="library_title">Tủ sách</string>
+    <string name="library_tab_history">Lịch sử</string>
+    <string name="library_tab_downloads">Tải truyện</string>
+    <string name="library_tab_ebooks">EBook</string>
+    <string name="library_empty">Thư viện trống</string>
+</resources>

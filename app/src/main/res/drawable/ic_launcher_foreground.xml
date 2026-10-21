@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Placeholder launcher icon: an open book with a sound wave. Replace with final artwork later. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group android:scaleX="0.5" android:scaleY="0.5" android:translateX="27" android:translateY="27">
+        <!-- Book -->
+        <path
+            android:fillColor="#F05A5F"
+            android:pathData="M18,22 C30,16 42,16 54,22 L54,84 C42,78 30,78 18,84 Z" />
+        <path
+            android:fillColor="#F58A8E"
+            android:pathData="M54,22 C66,16 78,16 90,22 L90,84 C78,78 66,78 54,84 Z" />
+        <!-- Sound wave -->
+        <path
+            android:strokeColor="#F7F1E3"
+            android:strokeWidth="5"
+            android:strokeLineCap="round"
+            android:pathData="M30,50 L30,56 M40,44 L40,62 M50,38 L50,68 M60,44 L60,62 M70,50 L70,56" />
+    </group>
+</vector>

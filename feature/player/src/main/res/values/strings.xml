@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="player_nothing_playing">Chưa phát truyện nào</string>
+    <string name="player_hint">Dán link truyện ở Trang chủ để bắt đầu nghe</string>
+    <string name="player_play">Phát</string>
+    <string name="player_previous_chapter">Chương trước</string>
+    <string name="player_next_chapter">Chương sau</string>
+</resources>

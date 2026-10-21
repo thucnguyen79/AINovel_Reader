@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_paste_link_hint">Dán link truyện hoặc link chương</string>
+    <string name="home_paste_link">Dán link truyện</string>
+    <string name="home_search">Tìm kiếm</string>
+    <string name="home_supported_sites">Website hỗ trợ</string>
+    <string name="home_supported_sites_placeholder">Danh sách website sẽ hiển thị ở đây sau khi hoàn thành source engine (giai đoạn 1).</string>
+</resources>
