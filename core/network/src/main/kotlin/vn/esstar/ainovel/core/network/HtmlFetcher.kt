@@ -9,8 +9,10 @@ import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.Call
 import okhttp3.Callback
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 
 data class FetchedPage(
@@ -35,6 +37,14 @@ enum class FetchMode {
     }
 }
 
+enum class FetchMethod {
+    GET, POST;
+
+    companion object {
+        fun parse(value: String?): FetchMethod = if (value.equals("POST", ignoreCase = true)) POST else GET
+    }
+}
+
 data class FetchOptions(
     val headers: Map<String, String> = emptyMap(),
     val charsetHint: String? = null,
@@ -42,6 +52,9 @@ data class FetchOptions(
     /** CSS selector the WebView waits for before returning the DOM (JS-rendered content). */
     val waitFor: String? = null,
     val timeoutMs: Long = DEFAULT_WEBVIEW_TIMEOUT_MS,
+    val method: FetchMethod = FetchMethod.GET,
+    /** Form-urlencoded body sent when [method] is POST (empty form when null). */
+    val body: String? = null,
 ) {
     companion object {
         const val DEFAULT_WEBVIEW_TIMEOUT_MS = 25_000L
@@ -56,7 +69,21 @@ interface HtmlFetcher {
      */
     suspend fun get(url: String, headers: Map<String, String> = emptyMap(), charsetHint: String? = null): FetchedPage
 
-    suspend fun fetch(url: String, options: FetchOptions): FetchedPage = get(url, options.headers, options.charsetHint)
+    /**
+     * Submits [body] as an `application/x-www-form-urlencoded` POST and returns the response like [get].
+     * Fetchers that cannot submit forms (the WebView) throw [UnsupportedOperationException].
+     */
+    suspend fun post(
+        url: String,
+        body: String,
+        headers: Map<String, String> = emptyMap(),
+        charsetHint: String? = null,
+    ): FetchedPage = throw UnsupportedOperationException("POST is not supported by ${this::class.simpleName}")
+
+    suspend fun fetch(url: String, options: FetchOptions): FetchedPage = when (options.method) {
+        FetchMethod.GET -> get(url, options.headers, options.charsetHint)
+        FetchMethod.POST -> post(url, options.body.orEmpty(), options.headers, options.charsetHint)
+    }
 }
 
 @Singleton
@@ -64,11 +91,21 @@ class OkHttpHtmlFetcher @Inject constructor(
     private val client: OkHttpClient,
 ) : HtmlFetcher {
 
-    override suspend fun get(url: String, headers: Map<String, String>, charsetHint: String?): FetchedPage {
-        val request = Request.Builder().url(url).apply {
-            headers.forEach { (k, v) -> header(k, v) }
-        }.build()
-        client.newCall(request).await().use { response ->
+    override suspend fun get(url: String, headers: Map<String, String>, charsetHint: String?): FetchedPage =
+        execute(url, charsetHint) { Request.Builder().url(url).applyHeaders(headers).build() }
+
+    override suspend fun post(url: String, body: String, headers: Map<String, String>, charsetHint: String?): FetchedPage =
+        execute(url, charsetHint) {
+            // The body is already form-encoded by the rule template; send it verbatim with the form content type.
+            Request.Builder().url(url).applyHeaders(headers).post(body.toRequestBody(FORM_URLENCODED)).build()
+        }
+
+    private fun Request.Builder.applyHeaders(headers: Map<String, String>): Request.Builder = apply {
+        headers.forEach { (k, v) -> header(k, v) }
+    }
+
+    private suspend fun execute(url: String, charsetHint: String?, request: () -> Request): FetchedPage {
+        client.newCall(request()).await().use { response ->
             if (!response.isSuccessful) throw HttpException(response.code, url)
             val body = response.body
             val bytes = body.bytes()
@@ -85,6 +122,10 @@ class OkHttpHtmlFetcher @Inject constructor(
     }
 
     private fun safeCharset(name: String): Charset? = runCatching { Charset.forName(name) }.getOrNull()
+
+    private companion object {
+        val FORM_URLENCODED = "application/x-www-form-urlencoded; charset=UTF-8".toMediaType()
+    }
 }
 
 /** Reads the charset declared in the HTML head (`<meta charset>` or `http-equiv`), if any. */

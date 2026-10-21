@@ -1,0 +1,48 @@
+{
+  "id": "nhatruyen",
+  "name": "Nhã Truyện",
+  "baseUrl": "https://nhatruyen.site",
+  "hosts": ["nhatruyen.site"],
+  "lang": "vi",
+  "fetch": { "mode": "http" },
+  "urls": {
+    "chapter": "^https?://[^/]+/truyen/[a-z0-9-]+/chuong-[^/]+/?$",
+    "book": "^https?://[^/]+/truyen/[a-z0-9-]+/?$"
+  },
+  "search": {
+    "url": "{base}/?s={query}",
+    "list": "article.entry-card:has(h2.entry-title a[href*=/truyen/])",
+    "title": "h2.entry-title a@text",
+    "link": "h2.entry-title a@href",
+    "cover": "img.wp-post-image@src",
+    "next": "a.next@href"
+  },
+  "book": {
+    "title": "h1.nt-main-title@text",
+    "author": "div.nt-meta-short a[href*=/tac-gia/]@text",
+    "cover": "div.nt-cover img@src",
+    "description": "div.nt-description div.desc-content@html",
+    "status": "div.nt-meta-short span.status-label@text",
+    "genres": "div.nt-meta-short a[href*=/the-loai/]@text"
+  },
+  "toc": {
+    "list": "#ajax-chapter-wrapper div.chap-item a",
+    "pageList": "div.chap-item a",
+    "title": "@text|regex:^[^\\p{L}\\p{N}]*(.+)$",
+    "link": "@href",
+    "bookId": "script:containsData(nt_load_chapters)@html|regex:parent_id',\\s*(\\d+)",
+    "totalPages": "#nt-jump-input@max",
+    "pageUrl": "{base}/wp-admin/admin-ajax.php",
+    "pageMethod": "POST",
+    "pageBody": "action=nt_load_chapters&parent_id={bookId}&page={page}"
+  },
+  "chapter": {
+    "title": "h1.page-title@text",
+    "content": "article div.entry-content",
+    "remove": ["script", "style", "iframe", "ins", "div[id^=ads]", ".ads"],
+    "removeLines": ["nhatruyen\\.site"],
+    "bookUrl": "div.toc-parent-link a@href",
+    "prev": "div.nav-prev a@href",
+    "next": "div.nav-next a@href"
+  }
+}

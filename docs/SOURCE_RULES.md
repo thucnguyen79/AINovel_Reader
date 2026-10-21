@@ -56,14 +56,22 @@ Ví dụ: `h3.truyen-title a@href`, `#total-page@value`, `.info a[itemprop=genre
     "title": "@text", "link": "@href",
     "totalPages": "#total-page@value", // cách 1: biết tổng số trang
     "pageUrl": "{url}/trang-{page}/",  //   -> tải song song các trang 2..N
-                                       //   placeholder: {url} (URL truyện, không có / cuối), {base}, {bookId}, {page}
+                                       //   placeholder: {url} (URL truyện, không có / cuối), {base}, {bookId}, {page},
+                                       //   {bookSlug} (đoạn cuối của {url}), {page0} (= {page} - 1, cho API đếm nhóm từ 0)
     "bookId": "input[name=bid]@value", //   id nội bộ của truyện cho template có {bookId}
     "pageList": "ul li a",             //   selector dùng cho trang 2..N nếu là fragment HTML khác cấu trúc
     "pageJson": "data",                //   nếu trang 2..N là JSON: tên trường chứa HTML (đường dẫn chấm)
     "pageHeaders": { "X-Requested-With": "XMLHttpRequest" },  // header thêm cho trang 2..N
+    "pageMethod": "POST",              //   GET (mặc định) | POST: áp cho mọi trang mục lục tải riêng (trang 1 qua toc.url/book.tocUrl
+                                       //   và trang 2..N). POST luôn đi qua OkHttp vì WebView ẩn không gửi được form.
+    "pageBody": "action=nt_load_chapters&parent_id={bookId}&page={page}",  // body form-urlencoded khi POST, cùng placeholder
+                                       //   với pageUrl ({page} = 1 ở trang đầu); null/rỗng = form rỗng (Madara ajax/chapters/)
     "pageSize": 50, "totalChapters": "span[itemprop=numberOfPages]@text",  // cách 1b: site chỉ cho tổng số chương -> số trang = ceil(tổng/pageSize)
     "jsonItems": "chapters", "jsonTitle": "title",            // cách 1c: trang 2..N là JSON mảng object (vnthuquan)
-    "jsonLink": "{url}/chuong-{chuongId}",                    //   URL chương ghép từ {url}, {base} và {tên trường}
+                                       //   jsonTitle là tên trường hoặc template trên các trường ("Chương {chapter_number}")
+    "jsonLink": "{url}/chuong-{chuongId}",                    //   URL chương ghép từ {url}, {base}, {bookSlug} và {tên trường}
+                                       //   cách 1d: toàn bộ mục lục là JSON -> thêm "url" trỏ tới trang 1 của API (có thể dùng
+                                       //   {bookId}); totalPages/totalChapters và bookId đọc từ trang truyện, bỏ "list"
     "next": "css link trang sau",      // cách 2: lần theo link "sau" đến khi hết
     "reverse": false,                  // true nếu site liệt kê chương mới nhất trước
     "maxPages": 500
@@ -124,11 +132,15 @@ Công cụ trong `tools/sources/` (Python 3, cần `beautifulsoup4` + `lxml`; đ
 | `tieuthuyet` | tieuthuyet.vn | `?page_chapter=N`, 15 chương/trang | Theme truyenfull biến thể; nội dung `div.chapter-content#dynamic-content` |
 | `ranwenapp`, `tycqxs` | ranwenapp.com, tycqxs.net (zh) | `{url}/index_N.html`, 100 chương/trang; tổng trang từ "1/8" | Chương chia nhiều phần `xxx_2.html`: dùng `chapter.nextPage` ghép lại; chỉ dùng https (viết lại `http://`); meta `og:novel:*` cho tác giả/trạng thái |
 | `256wx` | 256wx.org (zh) | Một trang; mỗi "chương" là một trang `/read/{id}/N.html` (第N页) | Site không chia chương thật; bỏ khối `div.page` trong nội dung |
+| `nhatruyen` | nhatruyen.site | WordPress: 50 chương đầu inline, trang 2..N `POST wp-admin/admin-ajax.php` body `action=nt_load_chapters&parent_id={bookId}&page=N`; tổng trang từ `#nt-jump-input@max`, id truyện đọc từ JS `formData.append('parent_id', N)` | Tiêu đề chương có emoji ☀️ đầu dòng, bỏ bằng regex `^[^\p{L}\p{N}]*(.+)$` |
+| `truyenchu` | truyenchu.net | Theme Madara: toàn bộ mục lục qua `POST {url}/ajax/chapters/` (form rỗng) làm trang 1, liệt kê mới → cũ (`reverse`) | GET cùng URL chỉ trả trang HTML thường; tìm kiếm `?s=&post_type=wp-manga`; tiêu đề chương lấy từ breadcrumb |
+| `sstruyen`, `truyensac` | sstruyen.pics, truyensac.buzz | Next.js: 50 chương đầu trong HTML (`nav[aria-label="Danh sách chương"]`), trang sau JSON `https://api.<host>/novels/{bookId}/chapters?page=N&limit=50&sort=asc` (`jsonItems`); `novelId` đọc từ payload RSC trong `<script>`, tổng chương từ `span[itemprop=numberOfPages]` | URL chương ghép `{base}/doc-truyen/{bookSlug}-{slug}-{id}`; tiêu đề chương từ `og:description`; API cần UA trình duyệt (curl mặc định bị 403); trang tìm kiếm hai site khác template |
+| `bientruyen` | bientruyen.com (viết lại sang www) | Toàn bộ mục lục JSON `/api/story-chapters/{storyId}?group={page0}&perGroup=50&pagination=number` (`toc.url` + `jsonItems`), `storyId` (UUID) trong payload RSC, số trang từ option cuối "Ch.251–258" + `pageSize` 50 | API trả tiêu đề gốc tiếng Trung nên `jsonTitle` = `Chương {chapter_number}`; chương VIP (từ 31) không đọc được; không có tác giả, không có tìm kiếm |
 
 ### Site đã khảo sát (22/10/2026) nhưng chưa làm rule
 
-- **Mục lục nạp bằng JS/API riêng, HTML tĩnh chỉ có vài chục chương**: sstruyen.pics + truyensac.buzz (Next.js, nút phân trang client-side, `?page=` bị bỏ qua), bientruyen.com, metruyenchu.co, truyenc.net, zuminovel.com, vtruyenchu.org, truyenfast.com, wikicv.org, truyendichfull.site, docfull.vip, dichtienghoa.net, truyen-h.com, sitruyencv.com, chivi.app, 10sto.com. Cần bắt API bằng trình duyệt (CDP) hoặc mode `webview` biết bấm trang.
-- **Mục lục nạp bằng POST** (`admin-ajax.php` hoặc Madara `ajax/chapters`): nhatruyen.site, truyenchu.net, plnovel.com, gaumeoteam.com, xtruyen.net. Engine mới chỉ GET; cần thêm `pageMethod`/`pageBody`.
+- **Mục lục nạp bằng JS/API riêng, HTML tĩnh chỉ có vài chục chương**: metruyenchu.co, truyenc.net, zuminovel.com, vtruyenchu.org, truyenfast.com, wikicv.org, truyendichfull.site, docfull.vip, dichtienghoa.net, truyen-h.com, sitruyencv.com, chivi.app, 10sto.com. Cách đã dùng cho sstruyen/truyensac/bientruyen (22/10/2026): tải các chunk `_next/static/chunks/*.js` của trang truyện, grep `fetch(`/`chapters` để tìm API JSON, rồi mô tả bằng `jsonItems` (+ `toc.url` nếu cả trang 1 cũng là JSON); id truyện thường nằm trong payload RSC (`script:containsData(...)@html|regex:`).
+- **Mục lục nạp bằng POST** (`admin-ajax.php` hoặc Madara `ajax/chapters`): gaumeoteam.com, xtruyen.net (chưa làm); plnovel.com đang trả HTTP 500 phía server ("PHP installation appears to be missing the MySQL extension", kiểm tra 22/10/2026) nên chưa khảo sát được, thử lại sau. Engine đã hỗ trợ `pageMethod`/`pageBody` (xem nhatruyen, truyenchu).
 - **Nội dung chương mã hoá bằng JS**: truyentronbo.com (`data-compressed`), docln.sbs (`data-c`); thungtruyen.com đòi "xác minh nhanh". Cần `webview` và chọn đúng selector sau khi giải mã.
 - **Mục lục theo quyển/tập, nhiều trang lồng nhau**: valvrareteam.net (light novel), docln.sbs.
 - **Chặn bot / Cloudflare / không mở được từ server**: wattpad.com, truyenyy.co, sstruyen.net, zingtruyen.store, lacatruyen.vip, loppytoon.com, truyenhdc.com, vietnamthuquan.eu (ngắt kết nối); truyencn.com, inkitt.com, teenfic.net, vip.audiotruyenfull.org, caytruyen.site, giatocvuongtai.com, webtruyendich.com (403); mọi blog `*.wordpress.com` (Cloudflare "Checking your browser"); msvtruyen.com, truyencom.com, metruyenhot.com (lỗi TLS).
@@ -141,6 +153,7 @@ Công cụ trong `tools/sources/` (Python 3, cần `beautifulsoup4` + `lxml`; đ
 `document.readyState === "complete"` và selector `waitFor` xuất hiện (tối đa `timeoutMs`, mặc định 25 giây), và trả
 `document.documentElement.outerHTML`. Cookie trang đặt (WAF, xác minh trình duyệt) được chép sang cookie jar của OkHttp cùng host.
 Mỗi lúc chỉ một trang; chậm hơn HTTP vài giây nên chỉ bật cho phần cần (`book`, `toc` hay `chapter`), không bật cho cả rule nếu không bắt buộc.
+Trang mục lục khai báo `pageMethod: POST` luôn được tải bằng OkHttp (`HtmlFetcher.post`, body form-urlencoded) kể cả khi rule ở mode `webview`, vì WebView ẩn không gửi được form; cookie WebView đã chép sang OkHttp nên request POST vẫn qua được WAF đã xác minh.
 `fetch.headers["User-Agent"]` đổi được UA của WebView (kèm Client Hints desktop khi UA là Windows/Mac); WebView ẩn được layout 1280x1024 để JS kiểm tra bề rộng không coi là mobile.
 Lưu ý `waitFor` chạy bằng `document.querySelector` nên giá trị thuộc tính có dấu `:` phải đặt trong ngoặc kép (`meta[property="og:title"]`).
 Cookie của WebView dùng chung cả tiến trình (trình duyệt trong app và fetcher), nên site đã "nhớ" bản mobile ở trình duyệt sẽ trả bản mobile cho fetcher; rule 17k vì vậy viết theo h5.

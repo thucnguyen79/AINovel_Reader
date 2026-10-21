@@ -13,8 +13,13 @@ class RoutingHtmlFetcher @Inject constructor(
     override suspend fun get(url: String, headers: Map<String, String>, charsetHint: String?): FetchedPage =
         http.get(url, headers, charsetHint)
 
-    override suspend fun fetch(url: String, options: FetchOptions): FetchedPage = when (options.mode) {
-        FetchMode.HTTP -> http.get(url, options.headers, options.charsetHint)
-        FetchMode.WEBVIEW -> webView.get(url, options)
+    override suspend fun post(url: String, body: String, headers: Map<String, String>, charsetHint: String?): FetchedPage =
+        http.post(url, body, headers, charsetHint)
+
+    override suspend fun fetch(url: String, options: FetchOptions): FetchedPage = when {
+        // A hidden WebView cannot submit a form body: AJAX TOC endpoints are POSTed over OkHttp even in webview rules.
+        options.method == FetchMethod.POST -> http.post(url, options.body.orEmpty(), options.headers, options.charsetHint)
+        options.mode == FetchMode.WEBVIEW -> webView.get(url, options)
+        else -> http.get(url, options.headers, options.charsetHint)
     }
 }

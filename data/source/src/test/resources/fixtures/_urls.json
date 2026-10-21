@@ -84,5 +84,36 @@
  "256wx": {
   "book": "https://www.256wx.org/read/163772/",
   "chapter": "https://www.256wx.org/read/163772/2.html"
+ },
+ "nhatruyen": {
+  "book": "https://nhatruyen.site/truyen/thanh-son/",
+  "toc2": "https://nhatruyen.site/wp-admin/admin-ajax.php",
+  "chapter": "https://nhatruyen.site/truyen/thanh-son/chuong-1-ve-khong/",
+  "search": "https://nhatruyen.site/?s=thanh+son"
+ },
+ "truyenchu": {
+  "book": "https://truyenchu.net/truyen/con-duong-ba-chu/",
+  "toc": "https://truyenchu.net/truyen/con-duong-ba-chu/ajax/chapters/",
+  "chapter": "https://truyenchu.net/truyen/con-duong-ba-chu/chuong-1/",
+  "search": "https://truyenchu.net/?s=ba+chu&post_type=wp-manga"
+ },
+ "sstruyen": {
+  "book": "https://sstruyen.pics/truyen/con-duong-ba-chu",
+  "toc2": "https://api.sstruyen.pics/novels/26472/chapters?page=2&limit=50&sort=asc",
+  "chapter": "https://sstruyen.pics/doc-truyen/con-duong-ba-chu-chuong-2-2853504",
+  "chapter_first": "https://sstruyen.pics/doc-truyen/con-duong-ba-chu-chuong-1-2853499",
+  "search": "https://sstruyen.pics/tim-kiem?keyword=ba+chu"
+ },
+ "truyensac": {
+  "book": "https://truyensac.buzz/truyen/am-hoa-cam-ky",
+  "toc2": "https://api.truyensac.buzz/novels/7037/chapters?page=2&limit=50&sort=asc",
+  "chapter": "https://truyensac.buzz/doc-truyen/am-hoa-cam-ky-chuong-1-442424",
+  "search": "https://truyensac.buzz/tim-kiem?keyword=cam+ky"
+ },
+ "bientruyen": {
+  "book": "https://www.bientruyen.com/truyen/benh-kieu-tong-tai-de-ta-sung",
+  "toc": "https://www.bientruyen.com/api/story-chapters/3929dd4f-fbb9-498f-a2fb-a4a733b9e93e?group=0&perGroup=50&pagination=number",
+  "toc2": "https://www.bientruyen.com/api/story-chapters/3929dd4f-fbb9-498f-a2fb-a4a733b9e93e?group=1&perGroup=50&pagination=number",
+  "chapter": "https://www.bientruyen.com/truyen/benh-kieu-tong-tai-de-ta-sung/chuong/1"
  }
 }

@@ -112,7 +112,7 @@ class RuleParser(private val rule: SourceRule) {
         val titleSel = t.title.toSelector()
         val linkSel = t.link.toSelector()
         val listSel = if (fragment && t.pageList != null) t.pageList else t.list
-        val chapters = doc.select(listSel).mapNotNull { el ->
+        val chapters = if (listSel.isBlank()) emptyList() else doc.select(listSel).mapNotNull { el ->
             val url = linkSel.first(el) ?: return@mapNotNull null
             val title = titleSel.first(el) ?: url
             url to title
@@ -143,11 +143,14 @@ class RuleParser(private val rule: SourceRule) {
         val linkTemplate = t.jsonLink ?: throw SourceParseException("Rule ${rule.id} has no toc.jsonLink")
         val chapters = items.mapIndexedNotNull { i, item ->
             val obj = item as? JsonObject ?: return@mapIndexedNotNull null
-            var link = linkTemplate
-                .replace("{url}", bookUrl.substringBefore('?').substringBefore('#').trimEnd('/'))
-                .replace("{base}", rule.baseUrl.trimEnd('/'))
-            for ((key, value) in obj) link = link.replace("{$key}", (value as? JsonPrimitive)?.contentOrNull ?: "")
-            val title = (obj[t.jsonTitle] as? JsonPrimitive)?.contentOrNull?.trim().orEmpty().ifEmpty { link }
+            var link = expand(linkTemplate, bookUrl)
+            var title = if ('{' in t.jsonTitle) t.jsonTitle else (obj[t.jsonTitle] as? JsonPrimitive)?.contentOrNull.orEmpty()
+            for ((key, value) in obj) {
+                val text = (value as? JsonPrimitive)?.contentOrNull ?: ""
+                link = link.replace("{$key}", text)
+                title = title.replace("{$key}", text)
+            }
+            title = title.trim().ifEmpty { link }
             FetchedChapter(index = startIndex + i, title = title, url = link)
         }
         return ParsedTocPage(chapters = chapters, nextUrl = null, totalPages = null)
@@ -161,16 +164,31 @@ class RuleParser(private val rule: SourceRule) {
     fun tocBookId(html: String, pageUrl: String): String? = rule.toc.bookId?.let { parse(html, pageUrl).first(it) }
 
     /** TOC URL from [TocRule.url] for a book page URL, or null when the rule has no template. */
-    fun tocUrl(bookUrl: String): String? = rule.toc.url
-        ?.replace("{url}", bookUrl.substringBefore('?').substringBefore('#').trimEnd('/'))
-        ?.replace("{base}", rule.baseUrl.trimEnd('/'))
+    fun tocUrl(bookUrl: String, bookId: String? = null): String? = rule.toc.url?.let { expand(it, bookUrl, bookId = bookId) }
 
     /** Builds the URL of TOC page [page] (1-based) from the template, when the rule has one. */
-    fun tocPageUrl(bookUrl: String, page: Int, bookId: String? = null): String? = rule.toc.pageUrl
-        ?.replace("{url}", bookUrl.trimEnd('/'))
-        ?.replace("{base}", rule.baseUrl.trimEnd('/'))
-        ?.replace("{bookId}", bookId ?: "")
-        ?.replace("{page}", page.toString())
+    fun tocPageUrl(bookUrl: String, page: Int, bookId: String? = null): String? =
+        rule.toc.pageUrl?.let { expand(it, bookUrl, page, bookId) }
+
+    /** Form body of TOC page [page] from [TocRule.pageBody] (same placeholders as [tocPageUrl]), or null without one. */
+    fun tocPageBody(bookUrl: String, page: Int, bookId: String? = null): String? =
+        rule.toc.pageBody?.let { expand(it, bookUrl, page, bookId) }
+
+    /**
+     * Fills the placeholders shared by `toc.url`, `toc.pageUrl`, `toc.pageBody` and `toc.jsonLink`:
+     * `{url}` (book URL without query/fragment/trailing slash), `{base}`, `{bookSlug}` (last path segment of `{url}`),
+     * `{bookId}`, `{page}` (1-based) and `{page0}` (0-based, for APIs that count groups from zero).
+     */
+    private fun expand(template: String, bookUrl: String, page: Int? = null, bookId: String? = null): String {
+        val cleanUrl = bookUrl.substringBefore('?').substringBefore('#').trimEnd('/')
+        var out = template
+            .replace("{url}", cleanUrl)
+            .replace("{base}", rule.baseUrl.trimEnd('/'))
+            .replace("{bookSlug}", cleanUrl.substringAfterLast('/'))
+            .replace("{bookId}", bookId ?: "")
+        if (page != null) out = out.replace("{page}", page.toString()).replace("{page0}", (page - 1).toString())
+        return out
+    }
 
     /** Extracts the HTML fragment from a JSON TOC page using [TocRule.pageJson] (dot path). */
     fun tocHtmlFromJson(body: String): String {

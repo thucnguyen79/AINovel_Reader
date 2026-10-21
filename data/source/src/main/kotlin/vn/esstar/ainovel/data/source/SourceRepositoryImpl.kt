@@ -11,8 +11,10 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import vn.esstar.ainovel.core.common.di.AppDispatcher
 import vn.esstar.ainovel.core.common.di.Dispatcher
+import vn.esstar.ainovel.core.network.FetchMethod
 import vn.esstar.ainovel.core.network.FetchMode
 import vn.esstar.ainovel.core.network.FetchOptions
+import vn.esstar.ainovel.core.network.FetchedPage
 import vn.esstar.ainovel.core.network.HtmlFetcher
 import vn.esstar.ainovel.data.source.model.SourceRule
 import vn.esstar.ainovel.data.source.parser.RuleParser
@@ -53,9 +55,15 @@ class SourceRepositoryImpl @Inject constructor(
         val bookPage = fetcher.fetch(url, rule.options(rule.book.mode, rule.book.waitFor))
         val info = parser.parseBookInfo(bookPage.html, bookPage.finalUrl)
 
-        val tocUrl = info.tocUrl ?: parser.tocUrl(bookPage.finalUrl) ?: bookPage.finalUrl
-        val firstTocHtml = if (tocUrl == bookPage.finalUrl) bookPage.html else fetcher.fetch(tocUrl, rule.tocOptions()).html
-        val chapters = fetchAllTocPages(rule, parser, tocUrl, firstTocHtml)
+        // The book id (for POST bodies / page URLs) usually sits on the book page; a separate TOC page may carry it too.
+        val bookId = parser.tocBookId(bookPage.html, bookPage.finalUrl)
+        val tocUrl = info.tocUrl ?: parser.tocUrl(bookPage.finalUrl, bookId) ?: bookPage.finalUrl
+        val firstTocHtml = if (tocUrl == bookPage.finalUrl) {
+            bookPage.html
+        } else {
+            fetcher.fetch(tocUrl, rule.tocPageOptions(parser.tocPageBody(tocUrl, 1, bookId))).html
+        }
+        val chapters = fetchAllTocPages(rule, parser, bookPage, tocUrl, firstTocHtml, bookId)
         if (chapters.isEmpty()) throw SourceParseException("No chapters found at $tocUrl")
 
         FetchedBook(
@@ -75,25 +83,34 @@ class SourceRepositoryImpl @Inject constructor(
     private suspend fun fetchAllTocPages(
         rule: SourceRule,
         parser: RuleParser,
+        bookPage: FetchedPage,
         tocUrl: String,
         firstHtml: String,
+        knownBookId: String?,
     ): List<FetchedChapter> {
-        val first = parser.parseTocPage(firstHtml, tocUrl)
+        val bookUrl = bookPage.finalUrl
+        val first = if (rule.toc.jsonItems != null && tocUrl != bookUrl) {
+            // Whole TOC served as JSON: page 1 comes from toc.url, the page count from the book page.
+            val meta = parser.parseTocPage(bookPage.html, bookUrl)
+            parser.parseTocJson(firstHtml, bookUrl).copy(totalPages = meta.totalPages)
+        } else {
+            parser.parseTocPage(firstHtml, tocUrl)
+        }
         val pages = mutableListOf(first.chapters)
         val totalPages = first.totalPages
 
         if (totalPages != null && totalPages > 1 && rule.toc.pageUrl != null) {
             // Known page count: fetch the remaining pages concurrently (bounded).
-            val bookId = parser.tocBookId(firstHtml, tocUrl)
-            val headers = rule.fetch.headers + rule.toc.pageHeaders
+            val bookId = knownBookId ?: parser.tocBookId(firstHtml, tocUrl)
             val limit = Semaphore(MAX_CONCURRENT_TOC_FETCHES)
             val rest = coroutineScope {
                 (2..minOf(totalPages, rule.toc.maxPages)).map { page ->
                     async {
                         limit.withPermit {
                             val pageUrl = parser.tocPageUrl(tocUrl, page, bookId) ?: return@withPermit emptyList()
-                            val body = fetcher.fetch(pageUrl, rule.tocOptions(headers)).html
-                            if (rule.toc.jsonItems != null) return@withPermit parser.parseTocJson(body, tocUrl).chapters
+                            val options = rule.tocPageOptions(parser.tocPageBody(tocUrl, page, bookId))
+                            val body = fetcher.fetch(pageUrl, options).html
+                            if (rule.toc.jsonItems != null) return@withPermit parser.parseTocJson(body, bookUrl).chapters
                             val isFragment = rule.toc.pageJson != null || rule.toc.pageList != null
                             val html = if (rule.toc.pageJson != null) parser.tocHtmlFromJson(body) else body
                             parser.parseTocPage(html, pageUrl, fragment = isFragment).chapters
@@ -189,3 +206,9 @@ private fun SourceRule.options(mode: String?, waitFor: String?, headers: Map<Str
 )
 
 private fun SourceRule.tocOptions(headers: Map<String, String> = fetch.headers): FetchOptions = options(toc.mode, toc.waitFor, headers)
+
+/** Options for TOC pages fetched apart from the book page: extra page headers, and the POST body when the rule POSTs. */
+private fun SourceRule.tocPageOptions(body: String?): FetchOptions = tocOptions(fetch.headers + toc.pageHeaders).copy(
+    method = FetchMethod.parse(toc.pageMethod),
+    body = body,
+)

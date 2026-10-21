@@ -12,8 +12,9 @@ import vn.esstar.ainovel.data.source.parser.RuleParser
  * recorded `expect.json`, so every rule under `fixtures/` is covered by one data-driven test.
  *
  * `fixtures/_urls.json` maps each rule id to the page URLs of its fixtures:
- * `book` (book.html), `toc2` (toc_page2.html or toc_page2.json), `chapter` / `chapter_first` /
- * `chapter_part2` (same-named .html) and `search` (search.html).
+ * `book` (book.html), `toc` (toc.html or toc.json: the first TOC page when the rule fetches it apart from the
+ * book page, e.g. a POSTed Madara `ajax/chapters/` fragment or a JSON API), `toc2` (toc_page2.html or toc_page2.json),
+ * `chapter` / `chapter_first` / `chapter_part2` (same-named .html) and `search` (search.html).
  */
 object RuleProbe {
     private val json = Json { ignoreUnknownKeys = true }
@@ -57,15 +58,26 @@ object RuleProbe {
                 put("book.tocUrl", info.tocUrl)
             }
             guard("toc") {
-                val toc = parser.parseTocPage(bookHtml, bookUrl)
+                val tocHtml = fixture("toc.html")
+                val tocJson = fixture("toc.json")
+                val tocUrl = pages["toc"]
                 val bookId = parser.tocBookId(bookHtml, bookUrl)
+                val meta = parser.parseTocPage(bookHtml, bookUrl)
+                val url = tocUrl ?: bookUrl
+                val toc = when {
+                    tocJson != null && tocUrl != null -> parser.parseTocJson(tocJson, bookUrl).copy(totalPages = meta.totalPages)
+                    tocHtml != null && tocUrl != null -> parser.parseTocPage(tocHtml, tocUrl)
+                    else -> meta
+                }
+                put("toc.url", parser.tocUrl(bookUrl, bookId))
                 put("toc.count", toc.chapters.size)
                 put("toc.totalPages", toc.totalPages)
                 put("toc.next", toc.nextUrl)
                 put("toc.first", toc.chapters.firstOrNull()?.let { "${it.title} | ${it.url}" })
                 put("toc.last", toc.chapters.lastOrNull()?.let { "${it.title} | ${it.url}" })
                 put("toc.bookId", bookId)
-                put("toc.page2Url", parser.tocPageUrl(bookUrl, 2, bookId))
+                put("toc.page2Url", parser.tocPageUrl(url, 2, bookId))
+                put("toc.page2Body", parser.tocPageBody(url, 2, bookId))
             }
         }
         val page2Html = fixture("toc_page2.html")

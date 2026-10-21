@@ -1,0 +1,50 @@
+{
+  "id": "sstruyen",
+  "name": "SSTruyện",
+  "baseUrl": "https://sstruyen.pics",
+  "hosts": ["sstruyen.pics"],
+  "lang": "vi",
+  "fetch": { "mode": "http" },
+  "urls": {
+    "chapter": "^https?://[^/]+/doc-truyen/[a-z0-9-]+-\\d+/?$",
+    "book": "^https?://[^/]+/truyen/[a-z0-9-]+/?$"
+  },
+  "search": {
+    "url": "{base}/tim-kiem?keyword={query}",
+    "list": "a[itemprop=hasPart][href*=/truyen/]",
+    "title": "p[itemprop=name]@text",
+    "link": "@href",
+    "author": "div[itemprop=author] span[itemprop=name]@text",
+    "cover": "div[itemprop=image] img@data-src",
+    "latestChapter": "span[itemprop=dateModified]@text"
+  },
+  "book": {
+    "title": "h1[itemprop=name]@text",
+    "author": "a[itemprop=author]@text",
+    "cover": "img[itemprop=image]@src",
+    "description": "p[itemprop=description]@html",
+    "status": "span[itemprop=bookFormat]@text",
+    "genres": "a[itemprop=genre]@text"
+  },
+  "toc": {
+    "list": "nav[aria-label=\"Danh sách chương\"] li a[itemprop=url]",
+    "title": "span[itemprop=name]@text",
+    "link": "@href",
+    "bookId": "script:containsData(novelId)@html|regex:novelId\\\\\":(\\d+)",
+    "pageSize": 50,
+    "totalChapters": "span[itemprop=numberOfPages]@text",
+    "pageUrl": "https://api.sstruyen.pics/novels/{bookId}/chapters?page={page}&limit=50&sort=asc",
+    "jsonItems": "chapters",
+    "jsonTitle": "name",
+    "jsonLink": "{base}/doc-truyen/{bookSlug}-{slug}-{id}"
+  },
+  "chapter": {
+    "title": "meta[property=og:description]@content|regex:^Đọc (.+?) của bộ truyện",
+    "content": "div.prose",
+    "remove": ["script", "style", "iframe", "ins", "div.text-center"],
+    "removeLines": ["sstruyen", "^Nếu truyện không hiện chữ"],
+    "bookUrl": "a[href*=#list-chapter]@href|regex:^(.*?)#",
+    "prev": "a:has(button[aria-label=\"Chương trước\"]), a[aria-label=\"Chương trước\"]@href",
+    "next": "a:has(button[aria-label=\"Chương tiếp theo\"]), a[aria-label=\"Chương tiếp theo\"]@href"
+  }
+}

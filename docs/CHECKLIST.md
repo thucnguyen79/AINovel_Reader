@@ -136,8 +136,12 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [x] Engine: `toc.pageSize`+`totalChapters` (tính số trang từ tổng chương), `toc.jsonItems/jsonTitle/jsonLink` (mục lục JSON), `chapter.nextPage` (ghép chương chia nhiều trang)
 - [x] Test dữ liệu: `RuleProbe` + `RuleDumpTest` + `record_expect.py` + `SiteFixturesTest` (mọi rule có fixture đều được so với `expect.json`), `SourceRepositoryPagingTest`
 - [x] Thử trên máy: hatduahau (249 chương, 11 trang) và ranwenapp (725 chương, 8 trang, chương 3 phần) mở và đọc được
-- [ ] sstruyen/truyensac, bientruyen, metruyenchu.co…: mục lục nạp JS → cần bắt API hoặc webview bấm trang
-- [ ] nhatruyen, truyenchu.net (Madara), plnovel: mục lục qua POST → thêm `pageMethod`/`pageBody`
+- [x] Engine (22/10/2026): `toc.pageMethod`/`pageBody` (trang mục lục POST form-urlencoded), `HtmlFetcher.post` + `RoutingHtmlFetcher` ép POST qua OkHttp; placeholder `{bookSlug}`, `{page0}`; `jsonTitle` dạng template; mục lục toàn JSON (`toc.url` + `jsonItems`); `Selector` bỏ link `href="#"` kể cả khi đã resolve
+- [x] Rule POST: nhatruyen (admin-ajax `nt_load_chapters`, 14 trang), truyenchu (Madara `ajax/chapters/`, 3.751 chương một lần); plnovel.com đang lỗi 500 phía server (thiếu mysqli) nên chưa làm, thử lại sau
+- [x] Rule Next.js: sstruyen + truyensac (API `api.<host>/novels/{id}/chapters`), bientruyen (`/api/story-chapters/{uuid}?group=N`); tìm API bằng cách tải chunk JS và grep `fetch(`
+- [x] Test: `SourceRepositoryPagingTest` (POST trang 2..N với body template, POST trang 1 từ `toc.url` + `reverse`, mục lục JSON toàn phần), `RuleProbe` nhận thêm fixture `toc.html`/`toc.json`; 5 fixture + expect.json mới
+- [ ] Thử nhatruyen / truyenchu / sstruyen / bientruyen trên máy OPPO (chưa cắm máy khi làm)
+- [ ] metruyenchu.co, truyenc.net, gaumeoteam.com…: còn lại trong "chưa làm rule" của `docs/SOURCE_RULES.md`
 - [ ] truyentronbo, docln: nội dung chương mã hoá → webview
 - [ ] Nhạc nền khi nghe (P2): trộn file nhạc người dùng chọn ở âm lượng thấp dưới giọng TTS (ExoPlayer thứ hai, ducking)
 

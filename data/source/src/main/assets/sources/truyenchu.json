@@ -1,0 +1,47 @@
+{
+  "id": "truyenchu",
+  "name": "Truyện Chữ",
+  "baseUrl": "https://truyenchu.net",
+  "hosts": ["truyenchu.net"],
+  "lang": "vi",
+  "fetch": { "mode": "http" },
+  "urls": {
+    "chapter": "^https?://[^/]+/truyen/[a-z0-9-]+/chuong-[^/]+/?$",
+    "book": "^https?://[^/]+/truyen/[a-z0-9-]+/?$"
+  },
+  "search": {
+    "url": "{base}/?s={query}&post_type=wp-manga",
+    "list": "div.c-tabs-item__content",
+    "title": "div.post-title h3 a@text",
+    "link": "div.post-title h3 a@href",
+    "author": "div.mg_author div.summary-content a@text",
+    "cover": "div.tab-thumb img@src",
+    "latestChapter": "div.latest-chap span.chapter a@text",
+    "next": "div.nav-previous a@href"
+  },
+  "book": {
+    "title": "div.post-title h1@text",
+    "author": "div.author-content a@text",
+    "cover": "div.summary_image img@src",
+    "description": "div.manga-excerpt@html",
+    "status": "div.post-status div.post-content_item:has(h5:containsOwn(Tình trạng)) div.summary-content@text",
+    "genres": "div.genres-content a@text"
+  },
+  "toc": {
+    "url": "{url}/ajax/chapters/",
+    "pageMethod": "POST",
+    "list": "li.wp-manga-chapter a",
+    "title": "@text",
+    "link": "@href",
+    "reverse": true
+  },
+  "chapter": {
+    "title": "ol.breadcrumb li.active@text",
+    "content": "div.reading-content div.text-left",
+    "remove": ["script", "style", "iframe", "ins", "#text-chapter-toolbar", "div[id^=ads]", ".ads"],
+    "removeLines": ["truyenchu\\.net"],
+    "bookUrl": "ol.breadcrumb li:nth-child(2) a@href",
+    "prev": "a.btn.prev_page@href",
+    "next": "a.btn.next_page@href"
+  }
+}

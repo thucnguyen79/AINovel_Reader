@@ -32,10 +32,15 @@ data class Selector(
             "html" -> element.html()
             else -> {
                 val isUrl = attr in URL_ATTRS || attr.startsWith("data-")
-                val abs = if (isUrl) element.absUrl(attr) else ""
-                val value = abs.ifBlank { element.attr(attr) }
-                // `javascript:` and bare `#` links are not navigable (disabled prev/next buttons).
-                if (isUrl && (value.startsWith("javascript:", ignoreCase = true) || value == "#")) "" else value
+                val raw = element.attr(attr).trim()
+                // `javascript:` and bare `#` links are not navigable (disabled prev/next buttons); Jsoup would
+                // otherwise resolve `#` to `<page url>#`.
+                if (isUrl && (raw.startsWith("javascript:", ignoreCase = true) || raw == "#")) {
+                    ""
+                } else {
+                    val abs = if (isUrl) element.absUrl(attr) else ""
+                    abs.ifBlank { raw }
+                }
             }
         }
         val value = raw.replace(' ', ' ').trim()

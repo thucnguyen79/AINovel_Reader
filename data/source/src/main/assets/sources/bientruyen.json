@@ -1,0 +1,41 @@
+{
+  "id": "bientruyen",
+  "name": "Biển Truyện",
+  "baseUrl": "https://www.bientruyen.com",
+  "hosts": ["bientruyen.com"],
+  "lang": "vi",
+  "fetch": { "mode": "http" },
+  "urls": {
+    "rewrite": [
+      { "pattern": "^https?://bientruyen\\.com/", "replacement": "https://www.bientruyen.com/" }
+    ],
+    "chapter": "^https?://[^/]+/truyen/[a-z0-9-]+/chuong/\\d+/?$",
+    "book": "^https?://[^/]+/truyen/[a-z0-9-]+/?(\\?.*)?$"
+  },
+  "book": {
+    "title": "h1@text",
+    "cover": "meta[property=og:image]@content",
+    "description": "meta[property=og:description]@content",
+    "status": "span:containsOwn(Tình trạng:) ~ span > span@text",
+    "genres": "h1 ~ div a[href^=/the-loai/]@text"
+  },
+  "toc": {
+    "url": "{base}/api/story-chapters/{bookId}?group=0&perGroup=50&pagination=number",
+    "bookId": "script:containsData(storyId)@html|regex:storyId\\\\\":\\\\\"([0-9a-f-]+)",
+    "pageSize": 50,
+    "totalChapters": "select[aria-label=\"Chọn khoảng chương\"] option:last-child@text|regex:–(\\d+)",
+    "pageUrl": "{base}/api/story-chapters/{bookId}?group={page0}&perGroup=50&pagination=number",
+    "jsonItems": "chapters",
+    "jsonTitle": "Chương {chapter_number}",
+    "jsonLink": "{url}/chuong/{chapter_number}"
+  },
+  "chapter": {
+    "title": "h1@text",
+    "content": "div.chapter-content",
+    "remove": ["script", "style", "iframe", "ins", "button"],
+    "removeLines": ["bientruyen\\.com"],
+    "bookUrl": "a:containsOwn(Mục lục)@href|regex:^(.*?)\\?",
+    "prev": "div.grid-cols-3 a:containsOwn(Trước)@href",
+    "next": "div.grid-cols-3 a:containsOwn(Sau)@href"
+  }
+}

@@ -92,7 +92,8 @@ data class TocRule(
      * exists: `{url}` = book URL without query/trailing slash, `{base}` = site base URL.
      */
     val url: String? = null,
-    val list: String,
+    /** Selector of each chapter link on an HTML TOC page. Empty only when the whole TOC is JSON ([url] + [jsonItems]). */
+    val list: String = "",
     val title: String = "@text",
     val link: String = "@href",
     /** Selector of the next TOC page link; followed until it yields nothing. */
@@ -113,6 +114,16 @@ data class TocRule(
     /** Extra headers for pages 2..N (e.g. `X-Requested-With` for AJAX endpoints). */
     val pageHeaders: Map<String, String> = emptyMap(),
     /**
+     * HTTP method of the TOC pages fetched apart from the book page (the first page when [url] / `book.tocUrl`
+     * points elsewhere, and pages 2..N): `GET` (default) or `POST`. POST always goes through OkHttp, never the WebView.
+     */
+    val pageMethod: String = "GET",
+    /**
+     * Form body (`application/x-www-form-urlencoded`) sent with POST TOC pages. Placeholders as in [pageUrl]:
+     * `{url}`, `{base}`, `{bookId}`, `{page}` (1 for the first page). Null or empty sends an empty form.
+     */
+    val pageBody: String? = null,
+    /**
      * When the site exposes the chapter count but not the page count: the number of chapters per TOC page.
      * Total pages = ceil([totalChapters] / pageSize). Ignored when [totalPages] matches.
      */
@@ -121,10 +132,11 @@ data class TocRule(
     val totalChapters: String? = null,
     /**
      * When pages 2..N are JSON arrays of chapter objects: dot path to the array (e.g. `chapters`).
-     * Each item yields a chapter from [jsonTitle] and [jsonLink].
+     * Each item yields a chapter from [jsonTitle] and [jsonLink]. When [url] is also set, page 1 is JSON too
+     * (fetched from [url]; [totalPages] / [totalChapters] and [bookId] are then read from the book page).
      */
     val jsonItems: String? = null,
-    /** Field of a JSON item holding the chapter title. */
+    /** Field of a JSON item holding the chapter title, or a template over its fields (`Chương {chapter_number}`). */
     val jsonTitle: String = "title",
     /** Template of the chapter URL for a JSON item: `{url}`, `{base}` and `{<field>}` placeholders. */
     val jsonLink: String? = null,
