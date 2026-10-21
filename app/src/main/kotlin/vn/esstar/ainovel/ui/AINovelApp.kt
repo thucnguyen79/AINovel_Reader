@@ -1,6 +1,8 @@
 package vn.esstar.ainovel.ui
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -45,6 +47,8 @@ fun AINovelApp() {
     val showBars = currentDestination.isTopLevel()
 
     Scaffold(
+        // Inner screens have their own Scaffold/TopAppBar that handle insets; only the bottom bars live here.
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (showBars) {
                 Column {
@@ -71,7 +75,9 @@ fun AINovelApp() {
         NavHost(
             navController = navController,
             startDestination = HomeRoute,
-            modifier = Modifier.padding(padding),
+            modifier = Modifier
+                .padding(padding)
+                .then(if (showBars) Modifier.statusBarsPadding() else Modifier),
         ) {
             homeScreen(onOpenBook = openBook, onOpenReader = openReader, onOpenBrowser = navController::navigateToBrowser)
             libraryScreen(onOpenBook = openBook, onOpenReader = openReader)

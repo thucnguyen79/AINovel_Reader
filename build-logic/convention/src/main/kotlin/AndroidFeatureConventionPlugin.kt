@@ -10,6 +10,8 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
         with(target) {
             pluginManager.apply("ainovel.android.library.compose")
             pluginManager.apply("ainovel.android.hilt")
+            // Type-safe navigation routes are @Serializable; the compiler plugin must generate their serializers.
+            pluginManager.apply("org.jetbrains.kotlin.plugin.serialization")
 
             dependencies {
                 add("implementation", project(":core:common"))

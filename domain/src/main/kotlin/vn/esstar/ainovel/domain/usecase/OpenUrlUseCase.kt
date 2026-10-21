@@ -28,8 +28,11 @@ class OpenUrlUseCase @Inject constructor(
             UrlKind.BOOK -> OpenUrlResult.BookOpened(importBook(url))
             UrlKind.CHAPTER -> openChapter(url)
             UrlKind.UNKNOWN -> {
-                // Try the chapter page first: it tells us the book URL when it is one.
-                runCatching { openChapter(url) }.getOrElse { OpenUrlResult.BookOpened(importBook(url)) }
+                // Try the chapter page first (it tells us the book URL), then the book page.
+                // A page that is neither (home page, category list) is reported as unsupported.
+                runCatching { openChapter(url) }
+                    .recoverCatching { OpenUrlResult.BookOpened(importBook(url)) }
+                    .getOrElse { OpenUrlResult.Unsupported(url) }
             }
         }
     }

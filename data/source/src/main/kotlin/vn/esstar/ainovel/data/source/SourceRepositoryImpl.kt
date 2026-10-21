@@ -14,6 +14,7 @@ import vn.esstar.ainovel.core.common.di.Dispatcher
 import vn.esstar.ainovel.core.network.HtmlFetcher
 import vn.esstar.ainovel.data.source.model.SourceRule
 import vn.esstar.ainovel.data.source.parser.RuleParser
+import vn.esstar.ainovel.data.source.parser.SourceParseException
 import vn.esstar.ainovel.data.source.registry.SourceRegistry
 import vn.esstar.ainovel.domain.model.FetchedBook
 import vn.esstar.ainovel.domain.model.FetchedChapter
@@ -52,6 +53,7 @@ class SourceRepositoryImpl @Inject constructor(
         val tocUrl = info.tocUrl ?: bookPage.finalUrl
         val firstTocHtml = if (tocUrl == bookPage.finalUrl) bookPage.html else fetcher.get(tocUrl, rule.fetch.headers).html
         val chapters = fetchAllTocPages(rule, parser, tocUrl, firstTocHtml)
+        if (chapters.isEmpty()) throw SourceParseException("No chapters found at $tocUrl")
 
         FetchedBook(
             sourceId = SourceId(rule.id),

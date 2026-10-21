@@ -110,6 +110,20 @@ class TruyenfullRuleTest {
     }
 
     @Test
+    fun `home page is rejected as a book page`() {
+        val url = "https://truyenfull.live/"
+        val html = Fixtures.html("truyenfull", "home.html")
+        assertEquals(UrlKind.UNKNOWN, parser.classify(url))
+        try {
+            parser.parseBookInfo(html, url)
+            org.junit.Assert.fail("expected SourceParseException")
+        } catch (expected: vn.esstar.ainovel.data.source.parser.SourceParseException) {
+            // ok
+        }
+        assertTrue(parser.parseTocPage(html, url).chapters.isEmpty())
+    }
+
+    @Test
     fun `every bundled rule deserializes`() {
         val rules = Fixtures.allRules()
         assertTrue(rules.isNotEmpty())

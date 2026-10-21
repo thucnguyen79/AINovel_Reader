@@ -10,7 +10,7 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [x] GitHub Actions: lint + test + APK debug
 - [x] Build debug từ terminal, unit test chạy
 - [x] git init, commit đầu tiên
-- [ ] Cài APK lên máy thật và chụp màn hình (chờ thiết bị)
+- [x] Cài APK lên máy thật và chụp màn hình (OPPO CPH2357, Android 14, 21/10/2026)
 
 ## Giai đoạn 1 – Source engine + Reader (bắt đầu 21/10/2026)
 ### Epic 1.1 Rule engine (`data/source`)
@@ -35,7 +35,7 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 ### Epic 1.4 Chất lượng
 - [x] Build + unit test xanh, cập nhật checklist, commit, push
 - [ ] Thêm 4 site Việt tiếp theo (metruyenchu, wikidich, tvtruyen, xtruyen) kèm fixture
-- [ ] Kiểm tra trên máy thật: dán link truyenfull, đọc, lịch sử, WebView (chờ thiết bị)
+- [x] Kiểm tra trên máy thật: dán link truyenfull, đọc, lịch sử, WebView (đã sửa 4 lỗi phát hiện: thiếu serializer route, inset cộng đôi, trang chủ bị nhập thành truyện, popup quảng cáo chặn chạm trong WebView)
 - [ ] Tài liệu `docs/SOURCE_RULES.md` (đã viết) cập nhật khi thêm `json:` / mode `webview`
 
 ## Giai đoạn 2 – Audio player

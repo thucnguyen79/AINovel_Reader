@@ -77,7 +77,8 @@ class RuleParser(private val rule: SourceRule) {
         val doc = parse(html, pageUrl)
         val b = rule.book
         return ParsedBookInfo(
-            title = doc.first(b.title) ?: doc.title().ifBlank { pageUrl },
+            title = doc.first(b.title)
+                ?: throw SourceParseException("Title selector '${b.title}' matched nothing at $pageUrl (not a book page?)"),
             author = doc.first(b.author),
             coverUrl = doc.first(b.cover),
             description = doc.first(b.description)?.let(::htmlToPlainText),

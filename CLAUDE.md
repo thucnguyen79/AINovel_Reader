@@ -29,6 +29,12 @@ D:\Android\Sdk\platform-tools\adb.exe logcat -d -s AINovel:V AndroidRuntime:E
 ```
 Build lần đầu hoặc sau khi đổi dependency có thể mất vài phút: chạy nền và chờ thông báo.
 
+## Thiết bị test
+- OPPO CPH2357 (Android 14, 1080x2412, DPR 3). Màn hình tự khoá sau 30 giây và shell không được đổi cài đặt (OPPO chặn `settings put`, `svc power`); trước mỗi chuỗi thao tác adb hãy kiểm tra `dumpsys window | grep isKeyguardShowing` và nhờ người dùng mở khoá nếu cần. Nên bật "Giữ màn hình luôn bật khi sạc" trong Tuỳ chọn nhà phát triển.
+- Toạ độ `input tap` tính theo pixel thật (1080x2412); ảnh chụp đọc bằng Read hiển thị thu nhỏ, nhân 1,21.
+- `uiautomator dump` ghi ra `/sdcard/window_dump.xml`.
+- Gỡ lỗi WebView: bản debug đã bật `setWebContentsDebuggingEnabled`; `adb forward tcp:9222 localabstract:webview_devtools_remote_<pid>` rồi dùng script CDP (xem lịch sử phiên 21/10/2026) để chạy JS trong trang.
+
 ## Cấu trúc module (Gradle path -> package `vn.esstar.ainovel.<path>`)
 - `app` – Application, MainActivity, điều hướng 4 tab + mini-player.
 - `core/common` (dispatchers, AppResult), `core/designsystem` (theme, component), `core/network` (OkHttp, DoH, Jsoup, WebView fetcher), `core/database` (Room), `core/datastore` (settings), `core/storage` (bố cục file).

@@ -1,7 +1,9 @@
 package vn.esstar.ainovel.feature.browser
 
 import android.annotation.SuppressLint
+import android.content.pm.ApplicationInfo
 import android.graphics.Bitmap
+import android.net.Uri
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -48,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import timber.log.Timber
 import vn.esstar.ainovel.domain.model.UrlKind
 
 @Composable
@@ -96,6 +99,9 @@ internal fun BrowserScreen(
     var canGoBack by remember { mutableStateOf(false) }
 
     val webView = remember {
+        // Allow chrome://inspect on debuggable builds only.
+        val debuggable = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+        if (debuggable) WebView.setWebContentsDebuggingEnabled(true)
         WebView(context).apply {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
@@ -104,16 +110,26 @@ internal fun BrowserScreen(
             settings.builtInZoomControls = true
             settings.displayZoomControls = false
             webViewClient = object : WebViewClient() {
-                override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = false
+                /** Blocks main-frame navigation to other domains (ad pop-unders); redirects are allowed. */
+                override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                    if (!request.isForMainFrame || request.isRedirect) return false
+                    val target = request.url
+                    val current = view.url?.let(Uri::parse)
+                    val sameSite = current == null || BrowserOverlayCleaner.sameRegistrableDomain(current.host, target.host)
+                    if (!sameSite) Timber.i("Blocked cross-site navigation to %s", target)
+                    return !sameSite
+                }
 
                 override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
                     onUrlChanged(url)
                     canGoBack = view.canGoBack()
+                    view.evaluateJavascript(BrowserOverlayCleaner.SCRIPT, null)
                 }
 
                 override fun onPageFinished(view: WebView, url: String) {
                     onUrlChanged(url)
                     canGoBack = view.canGoBack()
+                    view.evaluateJavascript(BrowserOverlayCleaner.SCRIPT, null)
                 }
             }
             webChromeClient = object : WebChromeClient() {
