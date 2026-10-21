@@ -45,7 +45,12 @@ class RuleParser(private val rule: SourceRule) {
 
     fun parse(html: String, baseUrl: String): Document = Jsoup.parse(html, baseUrl)
 
-    fun classify(url: String): UrlKind {
+    /** Canonical form of [url] after the rule's rewrites (mobile host → desktop host, tracking query dropped). */
+    fun canonicalUrl(url: String): String =
+        rule.urls.rewrite.fold(url) { acc, r -> Regex(r.pattern).replace(acc, r.replacement) }
+
+    fun classify(rawUrl: String): UrlKind {
+        val url = canonicalUrl(rawUrl)
         val chapterRx = rule.urls.chapter?.let(::Regex)
         val bookRx = rule.urls.book?.let(::Regex)
         return when {
@@ -120,6 +125,11 @@ class RuleParser(private val rule: SourceRule) {
 
     /** Site-internal book id read from the book/TOC page, when the rule declares one. */
     fun tocBookId(html: String, pageUrl: String): String? = rule.toc.bookId?.let { parse(html, pageUrl).first(it) }
+
+    /** TOC URL from [TocRule.url] for a book page URL, or null when the rule has no template. */
+    fun tocUrl(bookUrl: String): String? = rule.toc.url
+        ?.replace("{url}", bookUrl.substringBefore('?').substringBefore('#').trimEnd('/'))
+        ?.replace("{base}", rule.baseUrl.trimEnd('/'))
 
     /** Builds the URL of TOC page [page] (1-based) from the template, when the rule has one. */
     fun tocPageUrl(bookUrl: String, page: Int, bookId: String? = null): String? = rule.toc.pageUrl

@@ -31,8 +31,11 @@ data class Selector(
             "ownText" -> element.ownText()
             "html" -> element.html()
             else -> {
-                val abs = if (attr in URL_ATTRS || attr.startsWith("data-")) element.absUrl(attr) else ""
-                abs.ifBlank { element.attr(attr) }
+                val isUrl = attr in URL_ATTRS || attr.startsWith("data-")
+                val abs = if (isUrl) element.absUrl(attr) else ""
+                val value = abs.ifBlank { element.attr(attr) }
+                // `javascript:` and bare `#` links are not navigable (disabled prev/next buttons).
+                if (isUrl && (value.startsWith("javascript:", ignoreCase = true) || value == "#")) "" else value
             }
         }
         val value = raw.replace(' ', ' ').trim()

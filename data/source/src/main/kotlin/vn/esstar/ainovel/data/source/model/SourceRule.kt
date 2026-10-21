@@ -23,10 +23,13 @@ data class SourceRule(
 
 @Serializable
 data class FetchRule(
-    /** `http` (OkHttp), `webview` (render JS first) or `webview-cf` (wait for Cloudflare). */
+    /** `http` (OkHttp) or `webview` (hidden WebView, JS runs first). Parts may override with their own `mode`. */
     val mode: String = "http",
     val headers: Map<String, String> = emptyMap(),
     val charset: String? = null,
+    /** CSS selector the WebView waits for before returning the DOM; parts may override. */
+    val waitFor: String? = null,
+    val timeoutMs: Long? = null,
 )
 
 /** Regexes (matched with `containsMatchIn`) that tell book URLs and chapter URLs apart. */
@@ -34,10 +37,23 @@ data class FetchRule(
 data class UrlPatterns(
     val book: String? = null,
     val chapter: String? = null,
+    /** Applied in order before classifying/fetching, e.g. mobile host → desktop host, strip tracking query. */
+    val rewrite: List<UrlRewrite> = emptyList(),
+)
+
+@Serializable
+data class UrlRewrite(
+    /** Kotlin regex matched against the whole URL (`containsMatchIn`). */
+    val pattern: String,
+    /** Replacement; `$1` refers to capture groups. */
+    val replacement: String,
 )
 
 @Serializable
 data class SearchRule(
+    /** Overrides `fetch.mode` / `fetch.waitFor` for this part only. */
+    val mode: String? = null,
+    val waitFor: String? = null,
     /** Template with `{base}` and `{query}` placeholders. */
     val url: String,
     /** Charset used to URL-encode `{query}` (e.g. `GBK` for jjwxc); default UTF-8. */
@@ -53,6 +69,9 @@ data class SearchRule(
 
 @Serializable
 data class BookRule(
+    /** Overrides `fetch.mode` / `fetch.waitFor` for this part only. */
+    val mode: String? = null,
+    val waitFor: String? = null,
     val title: String,
     val author: String? = null,
     val cover: String? = null,
@@ -65,6 +84,14 @@ data class BookRule(
 
 @Serializable
 data class TocRule(
+    /** Overrides `fetch.mode` / `fetch.waitFor` for this part only. */
+    val mode: String? = null,
+    val waitFor: String? = null,
+    /**
+     * Template of the TOC page URL when it differs from the book page and no `book.tocUrl` selector
+     * exists: `{url}` = book URL without query/trailing slash, `{base}` = site base URL.
+     */
+    val url: String? = null,
     val list: String,
     val title: String = "@text",
     val link: String = "@href",
@@ -93,6 +120,9 @@ data class TocRule(
 
 @Serializable
 data class ChapterRule(
+    /** Overrides `fetch.mode` / `fetch.waitFor` for this part only. */
+    val mode: String? = null,
+    val waitFor: String? = null,
     val title: String? = null,
     val content: String,
     /** CSS selectors removed from the content element before extracting text. */

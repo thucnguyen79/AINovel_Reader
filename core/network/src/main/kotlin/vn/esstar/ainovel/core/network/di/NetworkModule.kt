@@ -6,6 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
 import okhttp3.Cookie
@@ -14,15 +15,15 @@ import okhttp3.HttpUrl
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import vn.esstar.ainovel.core.network.HtmlFetcher
-import vn.esstar.ainovel.core.network.OkHttpHtmlFetcher
+import vn.esstar.ainovel.core.network.NetworkConfig
+import vn.esstar.ainovel.core.network.RoutingHtmlFetcher
 import vn.esstar.ainovel.core.network.SwitchableDns
 
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    const val DEFAULT_USER_AGENT =
-        "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36"
+    const val DEFAULT_USER_AGENT = NetworkConfig.USER_AGENT
 
     @Provides
     @Singleton
@@ -34,13 +35,13 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(dns: SwitchableDns): OkHttpClient = OkHttpClient.Builder()
+    fun provideOkHttpClient(dns: SwitchableDns, cookieJar: InMemoryCookieJar): OkHttpClient = OkHttpClient.Builder()
         .dns(dns)
         .connectTimeout(20, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .followRedirects(true)
         .followSslRedirects(true)
-        .cookieJar(InMemoryCookieJar())
+        .cookieJar(cookieJar)
         .addInterceptor(UserAgentInterceptor(DEFAULT_USER_AGENT))
         .build()
 }
@@ -49,7 +50,7 @@ object NetworkModule {
 @InstallIn(SingletonComponent::class)
 abstract class NetworkBindings {
     @Binds
-    abstract fun bindHtmlFetcher(impl: OkHttpHtmlFetcher): HtmlFetcher
+    abstract fun bindHtmlFetcher(impl: RoutingHtmlFetcher): HtmlFetcher
 }
 
 /** Adds a browser-like User-Agent unless the request already set one. */
@@ -62,7 +63,8 @@ class UserAgentInterceptor(private val userAgent: String) : Interceptor {
 }
 
 /** Keeps session cookies per host for the life of the process (enough for most story sites). */
-class InMemoryCookieJar : CookieJar {
+@Singleton
+class InMemoryCookieJar @Inject constructor() : CookieJar {
     private val store = HashMap<String, MutableList<Cookie>>()
 
     @Synchronized
@@ -72,6 +74,16 @@ class InMemoryCookieJar : CookieJar {
             list.removeAll { it.name == c.name && it.domain == c.domain && it.path == c.path }
             list.add(c)
         }
+    }
+
+    /** Imports a `Cookie` request header (as WebView's CookieManager reports it) for [url]'s host. */
+    fun saveRawCookies(url: HttpUrl, cookieHeader: String) {
+        val cookies = cookieHeader.split(';').mapNotNull { part ->
+            val pair = part.trim()
+            if ('=' !in pair) return@mapNotNull null
+            Cookie.parse(url, pair)
+        }
+        if (cookies.isNotEmpty()) saveFromResponse(url, cookies)
     }
 
     @Synchronized

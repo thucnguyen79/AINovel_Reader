@@ -23,13 +23,40 @@ data class FetchedPage(
 
 class HttpException(val code: Int, val url: String) : IOException("HTTP $code for $url")
 
-/** Fetches a web page as text. Implementations: OkHttp now, WebView-backed later for JS-heavy sites. */
+enum class FetchMode {
+    HTTP, WEBVIEW;
+
+    companion object {
+        /** `http` (default), `webview`, or the legacy alias `webview-cf`. */
+        fun parse(value: String?): FetchMode = when (value?.lowercase()) {
+            "webview", "webview-cf" -> WEBVIEW
+            else -> HTTP
+        }
+    }
+}
+
+data class FetchOptions(
+    val headers: Map<String, String> = emptyMap(),
+    val charsetHint: String? = null,
+    val mode: FetchMode = FetchMode.HTTP,
+    /** CSS selector the WebView waits for before returning the DOM (JS-rendered content). */
+    val waitFor: String? = null,
+    val timeoutMs: Long = DEFAULT_WEBVIEW_TIMEOUT_MS,
+) {
+    companion object {
+        const val DEFAULT_WEBVIEW_TIMEOUT_MS = 25_000L
+    }
+}
+
+/** Fetches a web page as text: OkHttp by default, a hidden WebView when the rule asks for `webview`. */
 interface HtmlFetcher {
     /**
      * @param charsetHint charset from the source rule, used when neither the HTTP header nor the HTML
      *   declares one (Chinese sites often serve GBK/GB18030 without a header).
      */
     suspend fun get(url: String, headers: Map<String, String> = emptyMap(), charsetHint: String? = null): FetchedPage
+
+    suspend fun fetch(url: String, options: FetchOptions): FetchedPage = get(url, options.headers, options.charsetHint)
 }
 
 @Singleton

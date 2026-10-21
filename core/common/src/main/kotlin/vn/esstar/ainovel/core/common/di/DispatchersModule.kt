@@ -15,7 +15,7 @@ import kotlinx.coroutines.SupervisorJob
 @Retention(AnnotationRetention.RUNTIME)
 annotation class Dispatcher(val dispatcher: AppDispatcher)
 
-enum class AppDispatcher { Default, IO }
+enum class AppDispatcher { Default, IO, Main }
 
 @Qualifier
 @Retention(AnnotationRetention.RUNTIME)
@@ -32,6 +32,10 @@ object DispatchersModule {
     @Provides
     @Dispatcher(AppDispatcher.Default)
     fun providesDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Default
+
+    @Provides
+    @Dispatcher(AppDispatcher.Main)
+    fun providesMainDispatcher(): CoroutineDispatcher = Dispatchers.Main.immediate
 
     @Provides
     @Singleton

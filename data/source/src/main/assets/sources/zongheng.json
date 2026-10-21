@@ -1,0 +1,45 @@
+{
+  "id": "zongheng",
+  "name": "纵横中文网",
+  "baseUrl": "https://www.zongheng.com",
+  "hosts": ["zongheng.com"],
+  "lang": "zh",
+  "fetch": {
+    "mode": "http",
+    "headers": { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36" }
+  },
+  "urls": {
+    "rewrite": [
+      { "pattern": "^https?://m\\.zongheng\\.com/book/(\\d+).*$", "replacement": "https://www.zongheng.com/detail/$1" },
+      { "pattern": "^https?://m\\.zongheng\\.com/chapter/(\\d+)/(\\d+).*$", "replacement": "https://read.zongheng.com/chapter/$1/$2.html" }
+    ],
+    "chapter": "zongheng\\.com/chapter/\\d+/\\d+\\.html",
+    "book": "zongheng\\.com/detail/\\d+"
+  },
+  "book": {
+    "mode": "webview",
+    "waitFor": ".detail-work-info--introduction, .chapter-list--item",
+    "title": ".book-info--title span@text",
+    "author": ".author-info--name@text",
+    "cover": ".book-info--coverImage-img@src",
+    "description": ".detail-work-info--introduction@html",
+    "status": ".book-info--tags .serialStatus@text",
+    "genres": ".book-info--tags .cateFineId@text"
+  },
+  "toc": {
+    "mode": "webview",
+    "waitFor": ".chapter-list--item",
+    "url": "{url}?tabsName=catalogue",
+    "list": ".detail-catalog a.chapter-list--item",
+    "title": ".chapter-list--item-main@text",
+    "link": "@href"
+  },
+  "chapter": {
+    "title": ".reader-box .title_txtbox@text",
+    "content": ".reader-content .content",
+    "remove": ["script", "style"],
+    "bookUrl": "a[href*=/detail/]@href",
+    "prev": "a:containsOwn(上一章)@href",
+    "next": "a:containsOwn(下一章)@href"
+  }
+}

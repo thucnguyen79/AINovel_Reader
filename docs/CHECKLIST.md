@@ -80,7 +80,10 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [x] Fetcher hỗ trợ charset: sniff `<meta charset>`, GBK/GB2312 → GB18030, `search.queryCharset` để mã hoá từ khoá
 - [x] `52shuku` (52shuku.net) + fixture + test
 - [x] `jjwxc` (jjwxc.net, GB18030) + fixture + test
-- [ ] `zongheng`, `ixdzs8`, `17k`: cần mode `webview` (danh sách chương render bằng JS / chống bot) – ghi trong SOURCE_RULES
+- [x] Fetcher mode `webview` (`WebViewHtmlFetcher`, `RoutingHtmlFetcher`, `fetch.waitFor`, ghi đè mode theo phần, chép cookie sang OkHttp)
+- [x] `zongheng` (book/toc webview, chương HTTP), `ixdzs8` (chương webview), `17k` (bản h5, toàn bộ webview) + fixture DOM đã render + test
+- [x] `urls.rewrite` viết lại link mobile (m.zongheng, www/m.17k) về host rule hiểu; `toc.url` mẫu URL mục lục
+- [x] Kiểm tra trên máy 21/10/2026: mở sách + chương 1 của cả ba site từ tab Dịch truyện / trình duyệt trong app
 ### Epic 4.4 Tab Dịch truyện
 - [x] Dán link truyện Trung (dùng chung `OpenUrlUseCase`), chip site Trung, danh sách "Truyện đã dịch" từ lịch sử
 - [x] Chọn chế độ mặc định, nhập / thay / gỡ từ điển

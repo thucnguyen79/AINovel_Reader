@@ -25,9 +25,14 @@ Ví dụ: `h3.truyen-title a@href`, `#total-page@value`, `.info a[itemprop=genre
   "baseUrl": "https://truyenfull.live",
   "hosts": ["truyenfull.live", "truyenfull.vn"],   // khớp host (bỏ www., m.) và subdomain
   "lang": "vi",
-  "fetch": { "mode": "http", "headers": {}, "charset": null },   // mode: http | webview | webview-cf
+  "fetch": { "mode": "http", "headers": {}, "charset": null,   // mode: http (OkHttp) | webview (WebView ẩn, chạy JS)
+             "waitFor": null, "timeoutMs": 25000 },            // waitFor: selector CSS WebView chờ xuất hiện rồi mới trả DOM
                                        // charset: gợi ý khi header/meta không nói (vd "GB18030"); fetcher tự sniff <meta charset>
+                                       // search/book/toc/chapter có thể ghi đè riêng bằng "mode" và "waitFor" của phần đó
   "urls": {                            // regex (containsMatchIn) để phân loại URL
+    "rewrite": [                       // (tuỳ chọn) viết lại URL trước khi phân loại/tải: host mobile -> host chuẩn, bỏ query theo dõi
+      { "pattern": "^https?://m\\.site\\.com/", "replacement": "https://www.site.com/" }
+    ],
     "chapter": "/chuong-\\d+",
     "book": "^https?://[^/]+/[^/]+/?$"
   },
@@ -46,6 +51,7 @@ Ví dụ: `h3.truyen-title a@href`, `#total-page@value`, `.info a[itemprop=genre
     "tocUrl": "… (nếu danh sách chương ở trang khác)"
   },
   "toc": {
+    "url": "{url}?tabsName=catalogue",  // (tuỳ chọn) mẫu URL mục lục khi không có book.tocUrl; {url} = URL truyện bỏ query
     "list": "css của từng link chương",
     "title": "@text", "link": "@href",
     "totalPages": "#total-page@value", // cách 1: biết tổng số trang
@@ -91,16 +97,24 @@ Ví dụ: `h3.truyen-title a@href`, `#total-page@value`, `.info a[itemprop=genre
 | `tvtruyen` | tvtruyen.space (tvtruyen.com chuyển hướng) | `?page=N`, 50 chương/trang, tổng số trang lấy từ phân trang | Trang truyện ~300 KB |
 | `52shuku` | 52shuku.net (zh) | `ul.list li.mulu a` một trang | Tìm kiếm `/so/search.php?q=`; tiêu đề kết quả có số thứ tự, lọc bằng regex |
 | `jjwxc` | jjwxc.net (zh, GB18030) | `tr[itemprop=chapter] a[itemprop=url]` một trang; chương khoá (VIP) không có link nên bị bỏ qua | Tìm kiếm cần `queryCharset: GBK`; nội dung `.noveltext`, bỏ "作者有话要说" |
+| `zongheng` | zongheng.com (zh) | Trang `detail/{id}?tabsName=catalogue` render bằng JS: `book`/`toc` dùng `webview`, chờ `.chapter-list--item`; chương ở `read.zongheng.com` tải bằng HTTP | Giới thiệu chỉ có ở tab mặc định nên chờ `.detail-work-info--introduction` |
+| `ixdzs8` | ixdzs8.com (zh) | Trang sách tĩnh, `div.clist ul.u-chapter li a` đủ 448 chương | Trang chương có bước "正在验证浏览器" bằng JS nên `chapter.mode = webview`, chờ `article.page-content p` |
+| `17k` | h5.17k.com (zh; link www/m được viết lại sang h5) | `book/{id}.html` (thông tin) + `list/{id}.html` (mục lục `dl.listCont dd a.name`, nạp bằng XHR) | WAF Aliyun chặn HTTP thường và luôn đẩy WebView về bản h5, nên rule viết theo h5: toàn bộ `webview`; tựa/tác giả lấy từ `og:title` |
 
 Chưa hỗ trợ: **xtruyen.net** (theme Madara tuỳ biến: nội dung chương và danh sách chương nạp bằng `admin-ajax.php` có nonce, tìm kiếm là ứng dụng JS). Cần mode `webview` hoặc giải mã API; để lại cho giai đoạn sau.
 
-Site Trung đã khảo sát (21/10/2026) nhưng chưa làm rule vì HTML tĩnh không đủ:
-- **zongheng.com**: danh sách chương render bằng JS, API JSON trả 404 khi gọi ngoài trình duyệt.
-- **ixdzs8.com**: trang xác minh trình duyệt bằng JS trước khi trả nội dung.
-- **17k.com**: WAF Aliyun chặn request không có cookie từ trình duyệt.
-Cả ba cần `fetch.mode: webview` (tải trang bằng WebView ẩn rồi lấy DOM); sẽ làm khi fetcher có mode này.
+## Mode `webview`
+
+`WebViewHtmlFetcher` (core/network) tải trang trong một WebView ẩn (JS bật, không tải ảnh), chờ `onPageFinished`, rồi poll đến khi
+`document.readyState === "complete"` và selector `waitFor` xuất hiện (tối đa `timeoutMs`, mặc định 25 giây), và trả
+`document.documentElement.outerHTML`. Cookie trang đặt (WAF, xác minh trình duyệt) được chép sang cookie jar của OkHttp cùng host.
+Mỗi lúc chỉ một trang; chậm hơn HTTP vài giây nên chỉ bật cho phần cần (`book`, `toc` hay `chapter`), không bật cho cả rule nếu không bắt buộc.
+`fetch.headers["User-Agent"]` đổi được UA của WebView (kèm Client Hints desktop khi UA là Windows/Mac); WebView ẩn được layout 1280x1024 để JS kiểm tra bề rộng không coi là mobile.
+Lưu ý `waitFor` chạy bằng `document.querySelector` nên giá trị thuộc tính có dấu `:` phải đặt trong ngoặc kép (`meta[property="og:title"]`).
+Cookie của WebView dùng chung cả tiến trình (trình duyệt trong app và fetcher), nên site đã "nhớ" bản mobile ở trình duyệt sẽ trả bản mobile cho fetcher; rule 17k vì vậy viết theo h5.
+Fixture của các site này là DOM đã render, lấy từ trình duyệt thật.
 
 ## Giới hạn hiện tại
 
-- Chưa có mode `webview` trong fetcher (WebView mới chỉ là trình duyệt trong app).
+- Mode `webview` chạy tuần tự một trang một lúc và không phát hiện CAPTCHA; site hiện CAPTCHA thật vẫn thất bại.
 - Chưa cập nhật rule từ xa; rule chỉ nằm trong assets.

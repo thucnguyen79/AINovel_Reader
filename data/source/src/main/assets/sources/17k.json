@@ -1,0 +1,38 @@
+{
+  "id": "17k",
+  "name": "17K小说网",
+  "baseUrl": "https://h5.17k.com",
+  "hosts": ["17k.com"],
+  "lang": "zh",
+  "fetch": { "mode": "webview" },
+  "urls": {
+    "rewrite": [
+      { "pattern": "^https?://(www|m)\\.17k\\.com/", "replacement": "https://h5.17k.com/" },
+      { "pattern": "^(https?://h5\\.17k\\.com/(?:book|list|chapter)/[\\d/]+\\.html)[?#].*$", "replacement": "$1" }
+    ],
+    "chapter": "h5\\.17k\\.com/chapter/\\d+/\\d+\\.html",
+    "book": "h5\\.17k\\.com/(book|list)/\\d+\\.html"
+  },
+  "book": {
+    "waitFor": ".bookinfo .title, dl.listCont",
+    "title": "meta[property=og:title]@content|regex:《(.+?)》",
+    "author": "meta[property=og:title]@content|regex:》(.+?)著",
+    "cover": "meta[property=og:image]@content",
+    "description": "#demo_show_con@html",
+    "tocUrl": "a.list[href*=/list/]@href"
+  },
+  "toc": {
+    "waitFor": "dl.listCont dd a.name",
+    "list": "dl.listCont dd a.name",
+    "title": "@text",
+    "link": "@href"
+  },
+  "chapter": {
+    "waitFor": "#Context article p",
+    "title": "#Context article p.h1@text",
+    "content": "#Context article",
+    "remove": ["script", "style", "p.h1"],
+    "removeLines": ["17K小说网", "17K客户端"],
+    "bookUrl": "meta[property=og:url]@content"
+  }
+}

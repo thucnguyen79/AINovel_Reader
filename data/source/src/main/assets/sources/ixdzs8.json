@@ -1,0 +1,35 @@
+{
+  "id": "ixdzs8",
+  "name": "爱下电子书",
+  "baseUrl": "https://ixdzs8.com",
+  "hosts": ["ixdzs8.com", "ixdzs8.tw"],
+  "lang": "zh",
+  "fetch": { "mode": "http" },
+  "urls": {
+    "chapter": "/read/\\d+/p\\d+\\.html",
+    "book": "/read/\\d+/?$"
+  },
+  "book": {
+    "title": "div.n-text h1@text",
+    "author": "a.bauthor@text",
+    "cover": "div.n-img img@src",
+    "description": "p#intro@html",
+    "status": "span.lz@text",
+    "genres": "a.nsort@text"
+  },
+  "toc": {
+    "list": "div.clist ul.u-chapter li a",
+    "title": "@text",
+    "link": "@href"
+  },
+  "chapter": {
+    "mode": "webview",
+    "waitFor": "article.page-content p",
+    "title": "h1.page-d-name@text",
+    "content": "article.page-content section",
+    "remove": ["script", "style"],
+    "bookUrl": "#read-more a[href~=/read/\\d+/$]@href",
+    "prev": "a.chapter-pre@href",
+    "next": "a.chapter-next@href"
+  }
+}
