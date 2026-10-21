@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -24,9 +25,12 @@ import vn.esstar.ainovel.feature.browser.navigateToBrowser
 import vn.esstar.ainovel.feature.home.HomeRoute
 import vn.esstar.ainovel.feature.home.homeScreen
 import vn.esstar.ainovel.feature.home.navigateToHome
+import vn.esstar.ainovel.feature.library.bookDetailScreen
 import vn.esstar.ainovel.feature.library.libraryScreen
+import vn.esstar.ainovel.feature.library.navigateToBookDetail
 import vn.esstar.ainovel.feature.library.navigateToLibrary
 import vn.esstar.ainovel.feature.player.MiniPlayer
+import vn.esstar.ainovel.feature.reader.navigateToReader
 import vn.esstar.ainovel.feature.reader.readerScreen
 import vn.esstar.ainovel.feature.settings.navigateToSettings
 import vn.esstar.ainovel.feature.settings.settingsScreen
@@ -60,22 +64,27 @@ fun AINovelApp() {
             }
         },
     ) { padding ->
+        val openBook: (Long) -> Unit = { navController.navigateToBookDetail(it) }
+        val openReader: (Long, Long) -> Unit = { bookId, chapterId -> navController.navigateToReader(bookId, chapterId) }
+        val back: () -> Unit = { navController.popBackStack() }
+
         NavHost(
             navController = navController,
             startDestination = HomeRoute,
             modifier = Modifier.padding(padding),
         ) {
-            homeScreen(onOpenUrl = navController::navigateToBrowser)
-            libraryScreen()
+            homeScreen(onOpenBook = openBook, onOpenReader = openReader, onOpenBrowser = navController::navigateToBrowser)
+            libraryScreen(onOpenBook = openBook, onOpenReader = openReader)
             translateScreen()
             settingsScreen()
-            browserScreen()
-            readerScreen()
+            bookDetailScreen(onBack = back, onOpenReader = openReader)
+            browserScreen(onBack = back, onOpenBook = openBook, onOpenReader = openReader)
+            readerScreen(onBack = back)
         }
     }
 }
 
-private fun androidx.navigation.NavController.navigateToTopLevel(destination: TopLevelDestination) {
+private fun NavController.navigateToTopLevel(destination: TopLevelDestination) {
     val options = navOptions {
         popUpTo(graph.findStartDestination().id) { saveState = true }
         launchSingleTop = true

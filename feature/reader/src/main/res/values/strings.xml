@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="reader_placeholder">Trình đọc: truyện %1$d, chương %2$d (giai đoạn 1)</string>
+    <string name="reader_back">Quay lại</string>
+    <string name="reader_loading">Đang tải chương…</string>
+    <string name="reader_error">Không tải được nội dung chương.</string>
+    <string name="reader_retry">Thử lại</string>
+    <string name="reader_prev_chapter">Chương trước</string>
+    <string name="reader_next_chapter">Chương sau</string>
+    <string name="reader_last_chapter">Đã hết chương mới nhất.</string>
+    <string name="reader_chapters">Danh sách chương</string>
+    <string name="reader_font_smaller">Giảm cỡ chữ</string>
+    <string name="reader_font_larger">Tăng cỡ chữ</string>
 </resources>

@@ -5,4 +5,24 @@
     <string name="library_tab_downloads">Tải truyện</string>
     <string name="library_tab_ebooks">EBook</string>
     <string name="library_empty">Thư viện trống</string>
+    <string name="library_history_empty">Chưa có lịch sử</string>
+    <string name="library_history_hint">Truyện bạn đã đọc hoặc nghe sẽ xuất hiện ở đây.</string>
+    <string name="library_downloads_empty">Chưa tải truyện nào</string>
+    <string name="library_downloads_hint">Tính năng tải cả bộ truyện sẽ có ở giai đoạn 3.</string>
+    <string name="library_ebook_hint">Nhập sách EPUB, PDF, TXT, ZIP để đọc và nghe offline (giai đoạn 5).</string>
+    <string name="library_last_read_at">Lần cuối: %1$s</string>
+    <string name="library_remove_history">Xoá khỏi lịch sử</string>
+
+    <string name="action_back">Quay lại</string>
+    <string name="detail_favorite">Yêu thích</string>
+    <string name="detail_refresh">Cập nhật danh sách chương</string>
+    <string name="detail_refresh_failed">Không cập nhật được danh sách chương.</string>
+    <string name="detail_chapter_count">%1$d chương</string>
+    <string name="detail_read_from_start">Đọc từ đầu</string>
+    <string name="detail_continue">Đọc tiếp chương %1$d</string>
+    <string name="detail_sort_asc">Cũ → mới</string>
+    <string name="detail_sort_desc">Mới → cũ</string>
+    <string name="detail_chapters">Danh sách chương</string>
+    <string name="detail_cached">Đã lưu</string>
+    <string name="detail_downloaded">Đã tải</string>
 </resources>

@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="home_paste_link_hint">Dán link truyện hoặc link chương</string>
+    <string name="home_paste_link_hint">Dán link truyện hoặc nhập tên truyện</string>
     <string name="home_paste_link">Dán link truyện</string>
     <string name="home_search">Tìm kiếm</string>
+    <string name="home_clear">Xoá</string>
     <string name="home_supported_sites">Website hỗ trợ</string>
-    <string name="home_supported_sites_placeholder">Danh sách website sẽ hiển thị ở đây sau khi hoàn thành source engine (giai đoạn 1).</string>
+    <string name="home_supported_sites_empty">Chưa nạp được danh sách website.</string>
+    <string name="home_results_for">Kết quả cho “%1$s”</string>
+    <string name="home_no_results">Không tìm thấy truyện nào.</string>
+    <string name="home_msg_unsupported">Website này chưa được hỗ trợ, mở bằng trình duyệt trong app.</string>
+    <string name="home_msg_open_failed">Không mở được link. Kiểm tra mạng hoặc thử lại.</string>
+    <string name="home_msg_search_failed">Tìm kiếm thất bại.</string>
+    <string name="home_msg_empty_input">Hãy dán link hoặc nhập tên truyện.</string>
+    <string name="home_msg_clipboard_empty">Bộ nhớ tạm không có nội dung.</string>
 </resources>

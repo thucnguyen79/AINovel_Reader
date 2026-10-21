@@ -1,0 +1,46 @@
+{
+  "id": "truyenfull",
+  "name": "Truyện Full",
+  "baseUrl": "https://truyenfull.live",
+  "hosts": ["truyenfull.live", "truyenfull.vn", "truyenfull.vision", "truyenfull.io", "truyenfull.tv"],
+  "lang": "vi",
+  "fetch": { "mode": "http" },
+  "urls": {
+    "chapter": "^https?://[^/]+/[^/]+/(chuong|quyen)-[^/]+/?$",
+    "book": "^https?://[^/]+/[^/]+/?$"
+  },
+  "search": {
+    "url": "{base}/tim-kiem/?tukhoa={query}",
+    "list": "#list-page .list-truyen .row[itemtype]",
+    "title": "h3.truyen-title a@text",
+    "link": "h3.truyen-title a@href",
+    "author": "span.author@ownText",
+    "cover": "div[data-image]@data-image",
+    "latestChapter": ".text-info a@text",
+    "next": "ul.pagination a:has(span.sr-only:containsOwn(Trang tiếp))@href"
+  },
+  "book": {
+    "title": "h3.title[itemprop=name]@text",
+    "author": "a[itemprop=author]@text",
+    "cover": ".info-holder .book img@src",
+    "description": ".desc-text@html",
+    "status": ".info .text-primary@text",
+    "genres": ".info a[itemprop=genre]@text"
+  },
+  "toc": {
+    "list": "#list-chapter ul.list-chapter li a",
+    "title": "@text",
+    "link": "@href",
+    "totalPages": "#total-page@value",
+    "pageUrl": "{url}trang-{page}/"
+  },
+  "chapter": {
+    "title": "a.chapter-title@text",
+    "content": "#chapter-c",
+    "remove": ["script", "style", "iframe", "ins", "div[id^=ads]", ".ads-reminder", ".ads-unlock-container", ".ads-holder"],
+    "removeLines": ["^(truyen ?full|truyenfull)", "truyenfull\\.(vn|live|vision)", "^Bạn đang đọc truyện tại"],
+    "bookUrl": "a.truyen-title@href",
+    "prev": "#prev_chap@href",
+    "next": "#next_chap@href"
+  }
+}

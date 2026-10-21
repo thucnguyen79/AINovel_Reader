@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="browser_placeholder">Trình duyệt trong app sẽ mở: %1$s (giai đoạn 1)</string>
+    <string name="browser_back">Quay lại</string>
+    <string name="browser_reload">Tải lại</string>
+    <string name="browser_supported">Nguồn: %1$s</string>
+    <string name="browser_not_supported">Website chưa được hỗ trợ</string>
+    <string name="browser_read_chapter">Đọc chương này</string>
+    <string name="browser_open_book">Mở truyện này</string>
+    <string name="browser_open_page">Thử mở trang</string>
+    <string name="browser_unsupported">Trang này không phải trang truyện hoặc chương được hỗ trợ.</string>
+    <string name="browser_open_failed">Không đọc được trang này.</string>
 </resources>
