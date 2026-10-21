@@ -2,6 +2,8 @@ package vn.esstar.ainovel.feature.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,35 +38,49 @@ import vn.esstar.ainovel.core.datastore.TtsPrefs
 import vn.esstar.ainovel.core.designsystem.component.AINovelCard
 import vn.esstar.ainovel.core.designsystem.component.SectionTitle
 import vn.esstar.ainovel.tts.api.TtsVoice
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.OutlinedButton
+import vn.esstar.ainovel.core.datastore.DohMode
+import vn.esstar.ainovel.domain.model.StorageInfo
 
 @Composable
 internal fun SettingsRoute(viewModel: SettingsViewModel = hiltViewModel()) {
     val prefs by viewModel.prefs.collectAsStateWithLifecycle()
     val voices by viewModel.voices.collectAsStateWithLifecycle()
     val engineAvailable by viewModel.engineAvailable.collectAsStateWithLifecycle()
+    val dohMode by viewModel.dohMode.collectAsStateWithLifecycle()
+    val storage by viewModel.storage.collectAsStateWithLifecycle()
     SettingsScreen(
         prefs = prefs,
         voices = voices,
         engineAvailable = engineAvailable,
+        dohMode = dohMode,
+        storage = storage,
         onVoice = viewModel::setVoice,
         onSpeed = viewModel::setSpeed,
         onPitch = viewModel::setPitch,
         onBreakAtComma = viewModel::setBreakAtComma,
         onStableMode = viewModel::setStableMode,
+        onDohMode = viewModel::setDohMode,
+        onClearCaches = viewModel::clearCaches,
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 internal fun SettingsScreen(
     prefs: TtsPrefs,
     voices: List<TtsVoice>,
     engineAvailable: Boolean,
+    dohMode: DohMode,
+    storage: StorageInfo?,
     onVoice: (TtsVoice?) -> Unit,
     onSpeed: (Float) -> Unit,
     onPitch: (Float) -> Unit,
     onBreakAtComma: (Boolean) -> Unit,
     onStableMode: (Boolean) -> Unit,
+    onDohMode: (DohMode) -> Unit,
+    onClearCaches: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -125,7 +141,64 @@ internal fun SettingsScreen(
                 onChecked = onStableMode,
             )
         }
+
+        SectionTitle(stringResource(R.string.settings_section_network))
+        AINovelCard(modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.settings_doh), style = MaterialTheme.typography.bodyLarge)
+            Text(
+                stringResource(R.string.settings_doh_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            FlowRow(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                DohMode.entries.forEach { mode ->
+                    FilterChip(
+                        selected = dohMode == mode,
+                        onClick = { onDohMode(mode) },
+                        label = {
+                            Text(
+                                stringResource(
+                                    when (mode) {
+                                        DohMode.SYSTEM -> R.string.settings_doh_system
+                                        DohMode.GOOGLE -> R.string.settings_doh_google
+                                        DohMode.CLOUDFLARE -> R.string.settings_doh_cloudflare
+                                    },
+                                ),
+                            )
+                        },
+                    )
+                }
+            }
+        }
+
+        SectionTitle(stringResource(R.string.settings_section_storage))
+        AINovelCard(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                stringResource(
+                    R.string.settings_storage_summary,
+                    formatBytes(storage?.chapterBytes ?: 0),
+                    formatBytes(storage?.audioCacheBytes ?: 0),
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            OutlinedButton(onClick = onClearCaches, modifier = Modifier.padding(top = 8.dp)) {
+                Text(stringResource(R.string.settings_clear_cache))
+            }
+            Text(
+                stringResource(R.string.settings_clear_cache_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
     }
+}
+
+private fun formatBytes(bytes: Long): String = when {
+    bytes >= 1L shl 30 -> String.format(Locale.US, "%.1f GB", bytes / (1L shl 30).toDouble())
+    bytes >= 1L shl 20 -> String.format(Locale.US, "%.1f MB", bytes / (1L shl 20).toDouble())
+    bytes >= 1L shl 10 -> String.format(Locale.US, "%.0f KB", bytes / (1L shl 10).toDouble())
+    else -> "$bytes B"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

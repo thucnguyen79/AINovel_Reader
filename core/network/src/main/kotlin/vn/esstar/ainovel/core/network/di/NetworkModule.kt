@@ -15,6 +15,7 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import vn.esstar.ainovel.core.network.HtmlFetcher
 import vn.esstar.ainovel.core.network.OkHttpHtmlFetcher
+import vn.esstar.ainovel.core.network.SwitchableDns
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -33,7 +34,8 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
+    fun provideOkHttpClient(dns: SwitchableDns): OkHttpClient = OkHttpClient.Builder()
+        .dns(dns)
         .connectTimeout(20, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .followRedirects(true)

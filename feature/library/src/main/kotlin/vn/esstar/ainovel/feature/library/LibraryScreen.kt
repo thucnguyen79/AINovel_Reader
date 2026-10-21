@@ -38,6 +38,12 @@ import vn.esstar.ainovel.core.designsystem.component.AINovelCard
 import vn.esstar.ainovel.core.designsystem.component.EmptyState
 import vn.esstar.ainovel.domain.model.HistoryEntry
 import vn.esstar.ainovel.core.designsystem.component.BookCover
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import vn.esstar.ainovel.domain.model.BookDownloadInfo
 
 @Composable
 internal fun LibraryRoute(
@@ -46,20 +52,27 @@ internal fun LibraryRoute(
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
     val history by viewModel.history.collectAsStateWithLifecycle()
+    val downloaded by viewModel.downloadedBooks.collectAsStateWithLifecycle()
     LibraryScreen(
         history = history,
+        downloaded = downloaded,
         onOpenBook = onOpenBook,
         onOpenReader = onOpenReader,
         onRemoveHistory = viewModel::removeFromHistory,
+        onCancelDownload = viewModel::cancelDownload,
+        onDeleteDownloaded = viewModel::deleteDownloaded,
     )
 }
 
 @Composable
 internal fun LibraryScreen(
     history: List<HistoryEntry>,
+    downloaded: List<BookDownloadInfo>,
     onOpenBook: (Long) -> Unit,
     onOpenReader: (Long, Long) -> Unit,
     onRemoveHistory: (Long) -> Unit,
+    onCancelDownload: (Long) -> Unit,
+    onDeleteDownloaded: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val tabs = listOf(
@@ -85,10 +98,7 @@ internal fun LibraryScreen(
         }
         when (selected) {
             0 -> HistoryTab(history, onOpenBook, onOpenReader, onRemoveHistory)
-            1 -> EmptyState(
-                title = stringResource(R.string.library_downloads_empty),
-                description = stringResource(R.string.library_downloads_hint),
-            )
+            1 -> DownloadsTab(downloaded, onOpenBook, onCancelDownload, onDeleteDownloaded)
             else -> EmptyState(
                 title = stringResource(R.string.library_empty),
                 description = stringResource(R.string.library_ebook_hint),
@@ -127,6 +137,81 @@ private fun HistoryTab(
             )
         }
     }
+}
+
+@Composable
+private fun DownloadsTab(
+    books: List<BookDownloadInfo>,
+    onOpenBook: (Long) -> Unit,
+    onCancelDownload: (Long) -> Unit,
+    onDeleteDownloaded: (Long) -> Unit,
+) {
+    if (books.isEmpty()) {
+        EmptyState(
+            title = stringResource(R.string.library_downloads_empty),
+            description = stringResource(R.string.library_downloads_hint),
+        )
+        return
+    }
+    var confirmDelete by remember { mutableStateOf<BookDownloadInfo?>(null) }
+    LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        items(books, key = { it.book.id }) { info ->
+            AINovelCard(modifier = Modifier.fillMaxWidth().clickable { onOpenBook(info.book.id) }, contentPadding = PaddingValues(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    BookCover(url = info.book.coverUrl, refererUrl = info.book.url, modifier = Modifier.size(width = 52.dp, height = 72.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(info.book.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(
+                            stringResource(R.string.library_download_summary, info.downloadedCount, info.chapterCount, formatBytes(info.sizeBytes)),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        if (info.cachedCount > info.downloadedCount) {
+                            Text(
+                                stringResource(R.string.library_cached_summary, info.cachedCount - info.downloadedCount),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    IconButton(onClick = { confirmDelete = info }) {
+                        Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.library_delete_downloaded))
+                    }
+                }
+                info.activeJob?.let { job ->
+                    Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                stringResource(R.string.download_progress, job.completed, job.total),
+                                style = MaterialTheme.typography.labelMedium,
+                            )
+                            LinearProgressIndicator(progress = { job.progress }, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
+                        }
+                        TextButton(onClick = { onCancelDownload(job.id) }) { Text(stringResource(R.string.download_cancel)) }
+                    }
+                }
+            }
+        }
+    }
+    confirmDelete?.let { info ->
+        AlertDialog(
+            onDismissRequest = { confirmDelete = null },
+            title = { Text(stringResource(R.string.library_delete_downloaded)) },
+            text = { Text(stringResource(R.string.library_delete_confirm, info.book.title)) },
+            confirmButton = {
+                TextButton(onClick = { onDeleteDownloaded(info.book.id); confirmDelete = null }) { Text(stringResource(R.string.library_delete)) }
+            },
+            dismissButton = { TextButton(onClick = { confirmDelete = null }) { Text(stringResource(R.string.library_keep)) } },
+        )
+    }
+}
+
+internal fun formatBytes(bytes: Long): String = when {
+    bytes >= 1L shl 30 -> String.format(java.util.Locale.US, "%.1f GB", bytes / (1L shl 30).toDouble())
+    bytes >= 1L shl 20 -> String.format(java.util.Locale.US, "%.1f MB", bytes / (1L shl 20).toDouble())
+    bytes >= 1L shl 10 -> String.format(java.util.Locale.US, "%.0f KB", bytes / (1L shl 10).toDouble())
+    else -> "$bytes B"
 }
 
 @Composable

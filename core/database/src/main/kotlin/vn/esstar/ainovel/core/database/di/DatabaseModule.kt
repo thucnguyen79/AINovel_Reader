@@ -28,4 +28,6 @@ object DatabaseModule {
     @Provides fun provideReadingProgressDao(db: AINovelDatabase) = db.readingProgressDao()
 
     @Provides fun provideHistoryDao(db: AINovelDatabase) = db.historyDao()
+
+    @Provides fun provideDownloadDao(db: AINovelDatabase) = db.downloadDao()
 }

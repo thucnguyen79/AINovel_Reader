@@ -51,6 +51,9 @@ import vn.esstar.ainovel.feature.library.R
 import vn.esstar.ainovel.core.designsystem.component.BookCover
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material3.TextButton
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 
 @Composable
 internal fun BookDetailRoute(
@@ -68,6 +71,8 @@ internal fun BookDetailRoute(
         onToggleFavorite = viewModel::toggleFavorite,
         onOpenChapter = { onOpenReader(viewModel.bookId, it.id) },
         onListen = { if (viewModel.listen()) onOpenPlayer() },
+        onDownload = viewModel::startDownload,
+        onCancelDownload = viewModel::cancelDownload,
     )
 }
 
@@ -80,9 +85,12 @@ internal fun BookDetailScreen(
     onToggleFavorite: () -> Unit,
     onOpenChapter: (Chapter) -> Unit,
     onListen: () -> Unit,
+    onDownload: (fromIndex: Int, count: Int) -> Unit,
+    onCancelDownload: () -> Unit,
 ) {
     val book = state.book
     var descending by rememberSaveable { mutableStateOf(false) }
+    var showDownload by rememberSaveable { mutableStateOf(false) }
     val listState = rememberLazyListState()
 
     Scaffold(
@@ -95,6 +103,9 @@ internal fun BookDetailScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { showDownload = true }, enabled = book != null && state.chapters.isNotEmpty() && state.activeDownload == null) {
+                        Icon(Icons.Default.Download, contentDescription = stringResource(R.string.download_title))
+                    }
                     IconButton(onClick = onToggleFavorite, enabled = book != null) {
                         Icon(
                             if (book?.isFavorite == true) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
@@ -120,6 +131,28 @@ internal fun BookDetailScreen(
         ) {
             item {
                 if (state.isRefreshing) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                state.activeDownload?.let { job ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                stringResource(R.string.download_progress, job.completed, job.total),
+                                style = MaterialTheme.typography.labelLarge,
+                            )
+                            LinearProgressIndicator(progress = { job.progress }, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
+                        }
+                        TextButton(onClick = onCancelDownload) { Text(stringResource(R.string.download_cancel)) }
+                    }
+                }
+                if (state.downloadRejected) {
+                    Text(
+                        stringResource(R.string.download_rejected),
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
+                }
                 Row(modifier = Modifier.padding(16.dp)) {
                     BookCover(
                         url = book.coverUrl,
@@ -228,6 +261,19 @@ internal fun BookDetailScreen(
                 HorizontalDivider()
             }
             item { Spacer(Modifier.height(8.dp)) }
+        }
+    }
+
+    if (showDownload && book != null) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(onDismissRequest = { showDownload = false }, sheetState = sheetState) {
+            DownloadSheet(
+                bookTitle = book.title,
+                chapterCount = state.chapters.size,
+                continueIndex = state.continueChapter?.index,
+                onDownload = { from, count -> showDownload = false; onDownload(from, count) },
+                onDismiss = { showDownload = false },
+            )
         }
     }
 }

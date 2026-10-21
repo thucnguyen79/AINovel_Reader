@@ -13,4 +13,14 @@
     <string name="settings_break_comma">Ngắt dấu phẩy</string>
     <string name="settings_stable_mode">Tăng cường ổn định âm thanh</string>
     <string name="settings_stable_mode_hint">Tổng hợp trước nhiều câu hơn trước khi phát, tốn thời gian chờ ban đầu.</string>
+    <string name="settings_section_network">Mạng</string>
+    <string name="settings_doh">DNS qua HTTPS</string>
+    <string name="settings_doh_hint">Bật khi website tải chậm hoặc bị chặn bởi nhà mạng.</string>
+    <string name="settings_doh_system">Hệ thống</string>
+    <string name="settings_doh_google">Google DNS</string>
+    <string name="settings_doh_cloudflare">Cloudflare</string>
+    <string name="settings_section_storage">Bộ nhớ</string>
+    <string name="settings_storage_summary">Nội dung chương: %1$s · Audio tạm: %2$s</string>
+    <string name="settings_clear_cache">Xoá bộ nhớ tạm</string>
+    <string name="settings_clear_cache_hint">Xoá audio đã tổng hợp và chương lưu tạm khi đọc. Chương đã tải về chủ động vẫn được giữ.</string>
 </resources>

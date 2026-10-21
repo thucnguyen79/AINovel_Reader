@@ -6,6 +6,7 @@ plugins {
 
 dependencies {
     implementation(projects.core.common)
+    implementation(projects.core.datastore)
     api(libs.okhttp)
     api(libs.okhttp.dnsoverhttps)
     implementation(libs.okhttp.logging)

@@ -8,7 +8,7 @@
     <string name="library_history_empty">Chưa có lịch sử</string>
     <string name="library_history_hint">Truyện bạn đã đọc hoặc nghe sẽ xuất hiện ở đây.</string>
     <string name="library_downloads_empty">Chưa tải truyện nào</string>
-    <string name="library_downloads_hint">Tính năng tải cả bộ truyện sẽ có ở giai đoạn 3.</string>
+    <string name="library_downloads_hint">Mở một truyện và bấm biểu tượng tải ở góc trên để tải chương về đọc offline.</string>
     <string name="library_ebook_hint">Nhập sách EPUB, PDF, TXT, ZIP để đọc và nghe offline (giai đoạn 5).</string>
     <string name="library_last_read_at">Lần cuối: %1$s</string>
     <string name="library_remove_history">Xoá khỏi lịch sử</string>
@@ -26,4 +26,22 @@
     <string name="detail_chapters">Danh sách chương</string>
     <string name="detail_cached">Đã lưu</string>
     <string name="detail_downloaded">Đã tải</string>
+
+    <string name="download_title">Tải truyện</string>
+    <string name="download_from">Bắt đầu từ</string>
+    <string name="download_from_start">Chương đầu</string>
+    <string name="download_from_current">Chương %1$d (đang đọc)</string>
+    <string name="download_count">Số chương</string>
+    <string name="download_all_remaining">Tất cả (%1$d)</string>
+    <string name="download_warning">App tải lần lượt từng chương và tự nghỉ giữa các chương để website không chặn. Tải nhiều chương sẽ mất vài phút, bạn có thể tắt app, việc tải vẫn chạy nền.</string>
+    <string name="download_confirm">Tải %1$d chương</string>
+    <string name="download_cancel">Huỷ</string>
+    <string name="download_progress">Đang tải %1$d / %2$d chương</string>
+    <string name="download_rejected">Truyện này đang có lượt tải khác, hãy chờ xong hoặc huỷ trước.</string>
+    <string name="library_download_summary">%1$d / %2$d chương đã tải · %3$s</string>
+    <string name="library_cached_summary">%1$d chương lưu tạm khi đọc</string>
+    <string name="library_delete_downloaded">Xoá dữ liệu đã tải</string>
+    <string name="library_delete_confirm">Xoá nội dung chương đã tải của “%1$s”? Truyện và tiến độ đọc vẫn được giữ.</string>
+    <string name="library_delete">Xoá</string>
+    <string name="library_keep">Giữ lại</string>
 </resources>

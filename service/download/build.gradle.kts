@@ -5,9 +5,10 @@ plugins {
 
 dependencies {
     implementation(projects.core.common)
+    implementation(projects.core.database)
+    implementation(projects.core.storage)
+    implementation(projects.core.network)
     implementation(projects.domain)
-    implementation(projects.data.library)
-    implementation(projects.data.source)
     api(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.hilt.work)
     ksp(libs.androidx.hilt.compiler)

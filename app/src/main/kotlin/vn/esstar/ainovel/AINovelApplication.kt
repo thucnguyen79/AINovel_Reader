@@ -9,6 +9,11 @@ import coil3.SingletonImageLoader
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.crossfade
 import okhttp3.OkHttpClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import vn.esstar.ainovel.core.common.di.ApplicationScope
+import vn.esstar.ainovel.core.datastore.NetworkPreferences
+import vn.esstar.ainovel.core.network.SwitchableDns
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 import timber.log.Timber
@@ -22,6 +27,16 @@ class AINovelApplication : Application(), Configuration.Provider, SingletonImage
     @Inject
     lateinit var okHttpClient: OkHttpClient
 
+    @Inject
+    lateinit var switchableDns: SwitchableDns
+
+    @Inject
+    lateinit var networkPreferences: NetworkPreferences
+
+    @Inject
+    @ApplicationScope
+    lateinit var appScope: CoroutineScope
+
     /** Covers are loaded through the same OkHttp client as pages, so they carry the browser User-Agent. */
     override fun newImageLoader(context: PlatformContext): ImageLoader =
         ImageLoader.Builder(context)
@@ -33,6 +48,9 @@ class AINovelApplication : Application(), Configuration.Provider, SingletonImage
         super.onCreate()
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
+        }
+        appScope.launch {
+            networkPreferences.dohMode.collect { switchableDns.mode = it }
         }
     }
 

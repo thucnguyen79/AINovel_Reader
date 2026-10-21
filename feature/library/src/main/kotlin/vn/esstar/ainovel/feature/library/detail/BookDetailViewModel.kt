@@ -21,6 +21,8 @@ import vn.esstar.ainovel.domain.repository.LibraryRepository
 import vn.esstar.ainovel.domain.repository.SourceRepository
 import vn.esstar.ainovel.feature.library.BookDetailRoute
 import vn.esstar.ainovel.domain.playback.PlaybackController
+import vn.esstar.ainovel.domain.model.DownloadJob
+import vn.esstar.ainovel.domain.repository.DownloadRepository
 
 data class BookDetailUiState(
     val book: Book? = null,
@@ -28,6 +30,8 @@ data class BookDetailUiState(
     val progress: ReadingPosition? = null,
     val isRefreshing: Boolean = false,
     val refreshFailed: Boolean = false,
+    val activeDownload: DownloadJob? = null,
+    val downloadRejected: Boolean = false,
 ) {
     val continueChapter: Chapter? get() = progress?.let { p -> chapters.firstOrNull { it.id == p.chapterId } }
 }
@@ -38,6 +42,7 @@ class BookDetailViewModel @Inject constructor(
     private val library: LibraryRepository,
     private val sources: SourceRepository,
     private val playback: PlaybackController,
+    private val downloads: DownloadRepository,
 ) : ViewModel() {
 
     val bookId: Long = savedStateHandle.toRoute<BookDetailRoute>().bookId
@@ -50,8 +55,9 @@ class BookDetailViewModel @Inject constructor(
         library.observeChapters(bookId),
         progress,
         transient,
-    ) { book, chapters, progress, t ->
-        t.copy(book = book, chapters = chapters, progress = progress)
+        downloads.observeActiveJob(bookId),
+    ) { book, chapters, progress, t, job ->
+        t.copy(book = book, chapters = chapters, progress = progress, activeDownload = job)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), BookDetailUiState())
 
     init {
@@ -80,6 +86,18 @@ class BookDetailViewModel @Inject constructor(
         val paragraph = s.progress?.takeIf { it.chapterId == chapter.id }?.sentenceIndex ?: 0
         playback.play(bookId, chapter.id, paragraph)
         return true
+    }
+
+    fun startDownload(fromIndex: Int, count: Int) {
+        viewModelScope.launch {
+            val job = downloads.enqueue(bookId, fromIndex, count)
+            transient.update { it.copy(downloadRejected = job == null) }
+        }
+    }
+
+    fun cancelDownload() {
+        val job = state.value.activeDownload ?: return
+        viewModelScope.launch { downloads.cancel(job.id) }
     }
 
     fun toggleFavorite() {

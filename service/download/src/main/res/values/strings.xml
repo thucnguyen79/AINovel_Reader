@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="download_channel_name">Tải truyện</string>
+    <string name="download_channel_description">Tiến độ tải chương để đọc offline</string>
+    <string name="download_notification_title">Đang tải: %1$s</string>
+    <string name="download_notification_progress">%1$d / %2$d chương</string>
+    <string name="download_notification_done">Đã tải xong %1$d chương</string>
+    <string name="download_notification_partial">Đã tải %1$d chương, lỗi %2$d chương</string>
+    <string name="download_cancel">Huỷ</string>
+</resources>

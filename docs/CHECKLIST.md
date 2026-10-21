@@ -54,11 +54,12 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [ ] Hẹn giờ tắt: đã code, chưa đo trên máy
 - [x] Quyền POST_NOTIFICATIONS: đã được cấp trên máy test, thông báo hiển thị
 
-## Giai đoạn 3 – Tải truyện & offline
-- [ ] WorkManager download, chọn khoảng chương, thông báo tiến độ
-- [ ] Tab Tải truyện, quản lý dung lượng
-- [ ] DNS-over-HTTPS
-- [ ] Sao lưu / khôi phục ZIP
+## Giai đoạn 3 – Tải truyện & offline (bắt đầu 21/10/2026)
+- [x] `ChapterDownloadWorker` (Hilt, foreground dataSync, nghỉ 0,9–1,6 s giữa chương, backoff 429/403, retry 3 lần) + bảng `downloads` (Room v2 auto-migration); sheet chọn từ chương đầu / đang đọc và 30 / 100 / 300 / tất cả; thông báo tiến độ + hoàn tất; đã tải thử 30 chương truyenfull trên máy (~1,5 s/chương)
+- [x] Tab Tải truyện: số chương đã tải / lưu tạm, dung lượng, tiến độ + huỷ, xoá dữ liệu đã tải; Cài đặt: tổng dung lượng chương + audio, nút xoá bộ nhớ tạm
+- [x] DNS-over-HTTPS (Hệ thống / Google / Cloudflare) qua `SwitchableDns` cho OkHttp, có fallback; WebView không dùng DoH (giới hạn WebView)
+- [ ] Sao lưu / khôi phục ZIP (chưa làm)
+- [ ] Tải trước audio N chương kế tiếp khi sạc / Wi-Fi (P1, chưa làm)
 
 ## Giai đoạn 4 – Dịch truyện offline
 - [ ] Convert engine (trie, Names / VietPhrase / Hán Việt / luật nhân) + test
