@@ -23,4 +23,15 @@
     <string name="settings_storage_summary">Nội dung chương: %1$s · Audio tạm: %2$s</string>
     <string name="settings_clear_cache">Xoá bộ nhớ tạm</string>
     <string name="settings_clear_cache_hint">Xoá audio đã tổng hợp và chương lưu tạm khi đọc. Chương đã tải về chủ động vẫn được giữ.</string>
+    <string name="settings_section_neural">Giọng AI offline (neural)</string>
+    <string name="settings_neural_hint">Giọng tiếng Việt tự nhiên chạy ngay trên máy bằng sherpa-onnx và model Piper (miễn phí, mã nguồn mở). Tải model một lần qua Wi-Fi rồi dùng offline; chọn giọng ở mục “Giọng đọc” hoặc bấm Dùng.</string>
+    <string name="settings_neural_size">Chưa tải · %1$s</string>
+    <string name="settings_neural_downloading">Đang tải… %1$d%%</string>
+    <string name="settings_neural_ready">Đã tải, sẵn sàng</string>
+    <string name="settings_neural_in_use">Đang dùng giọng này</string>
+    <string name="settings_neural_failed">Tải thất bại. %1$s</string>
+    <string name="settings_neural_download">Tải model</string>
+    <string name="settings_neural_cancel">Huỷ</string>
+    <string name="settings_neural_use">Dùng</string>
+    <string name="settings_neural_delete">Xoá</string>
 </resources>

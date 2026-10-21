@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import vn.esstar.ainovel.domain.model.Book
 import vn.esstar.ainovel.domain.model.Chapter
 import vn.esstar.ainovel.domain.model.ChapterContent
+import vn.esstar.ainovel.domain.model.ChapterText
 import vn.esstar.ainovel.domain.model.FetchedBook
 import vn.esstar.ainovel.domain.model.HistoryEntry
 import vn.esstar.ainovel.domain.model.ReadingMode
@@ -13,6 +14,17 @@ import vn.esstar.ainovel.domain.model.ReadingPosition
 interface LibraryRepository {
     /** Inserts or updates a book and its chapter list; returns the local book id. */
     suspend fun upsertBook(fetched: FetchedBook): Long
+
+    /**
+     * Stores a book whose chapter text is already known (ebook import). [book].chapters is ignored;
+     * chapter URLs are generated. Returns the local book id.
+     */
+    suspend fun importLocalBook(book: FetchedBook, chapters: List<ChapterText>): Long
+
+    /** Deletes a book with its chapters, progress, history and cached text. */
+    suspend fun deleteBook(bookId: Long)
+
+    suspend fun setCover(bookId: Long, coverUrl: String?)
 
     suspend fun getBook(bookId: Long): Book?
     fun observeBook(bookId: Long): Flow<Book?>

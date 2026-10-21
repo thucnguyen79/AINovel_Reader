@@ -21,6 +21,7 @@ class AppStorage @Inject constructor(@ApplicationContext context: Context) {
     val audioCache: File = File(context.cacheDir, "audio")
     val models: File = File(root, "models")
     val dictionaries: File = File(root, "dicts")
+    val covers: File = File(root, "covers")
     val logs: File = File(root, "logs")
 
     fun relativize(file: File): String = file.relativeTo(root).path.replace(File.separatorChar, '/')

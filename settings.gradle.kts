@@ -16,6 +16,9 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
+        // sherpa-onnx Android AAR (Apache-2.0) fetched from GitHub Releases by tools/sherpa/fetch_sherpa_aar.py;
+        // the binary is git-ignored, only the POM is committed.
+        maven { url = uri("third_party/m2") }
         google {
             content {
                 includeGroupByRegex("com\\.android.*")
@@ -53,6 +56,7 @@ include(":data:translate")
 // tts
 include(":tts:api")
 include(":tts:system")
+include(":tts:neural")
 
 // feature
 include(":feature:home")

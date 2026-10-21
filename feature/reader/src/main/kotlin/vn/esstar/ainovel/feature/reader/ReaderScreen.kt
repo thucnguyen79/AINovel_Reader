@@ -3,7 +3,9 @@ package vn.esstar.ainovel.feature.reader
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -207,6 +209,7 @@ internal fun ReaderScreen(
                 onNext = onNext,
                 onTap = { chromeVisible = !chromeVisible },
                 onWordTap = { selectedWord = it },
+                playingParagraph = state.playingParagraph,
                 modifier = Modifier.padding(padding),
             )
         }
@@ -250,9 +253,11 @@ private fun ChapterBody(
     onNext: () -> Unit,
     onTap: () -> Unit,
     onWordTap: (TextToken) -> Unit,
+    playingParagraph: Int,
     modifier: Modifier = Modifier,
 ) {
     val fontSize = prefs.fontSizeSp.sp
+    val highlight = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
     val lineHeight = (prefs.fontSizeSp * prefs.lineHeight).sp
     LazyColumn(
         state = listState,
@@ -270,16 +275,23 @@ private fun ChapterBody(
         }
         itemsIndexed(paragraphs, key = { i, _ -> i }) { index, paragraph ->
             val paragraphTokens = tokens?.getOrNull(index)
-            if (paragraphTokens != null && paragraphTokens.isNotEmpty()) {
-                TokenParagraph(
-                    tokens = paragraphTokens,
-                    fontSize = fontSize,
-                    lineHeight = lineHeight,
-                    onWordTap = onWordTap,
-                    onTap = onTap,
-                )
+            val rowModifier = if (index == playingParagraph) {
+                Modifier.fillMaxWidth().background(highlight, RoundedCornerShape(6.dp)).padding(horizontal = 4.dp, vertical = 2.dp)
             } else {
-                Text(text = paragraph, fontSize = fontSize, lineHeight = lineHeight, color = MaterialTheme.colorScheme.onBackground)
+                Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp)
+            }
+            Box(modifier = rowModifier) {
+                if (paragraphTokens != null && paragraphTokens.isNotEmpty()) {
+                    TokenParagraph(
+                        tokens = paragraphTokens,
+                        fontSize = fontSize,
+                        lineHeight = lineHeight,
+                        onWordTap = onWordTap,
+                        onTap = onTap,
+                    )
+                } else {
+                    Text(text = paragraph, fontSize = fontSize, lineHeight = lineHeight, color = MaterialTheme.colorScheme.onBackground)
+                }
             }
         }
         item(key = "end") {

@@ -24,6 +24,9 @@ biometric = "1.1.0"
 browser = "1.10.0"
 webkit = "1.17.1"
 mlkitTranslate = "17.0.3"
+pdfbox = "2.0.27.0"
+commonsCompress = "1.28.0"
+sherpaOnnx = "1.13.8"
 documentfile = "1.1.0"
 materialIcons = "1.7.8"
 
@@ -54,6 +57,9 @@ androidx-biometric = { group = "androidx.biometric", name = "biometric", version
 androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "browser" }
 androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
 mlkit-translate = { group = "com.google.mlkit", name = "translate", version.ref = "mlkitTranslate" }
+pdfbox-android = { group = "com.tom-roush", name = "pdfbox-android", version.ref = "pdfbox" }
+commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commonsCompress" }
+sherpa-onnx-android = { group = "com.k2fsa.sherpa.onnx", name = "sherpa-onnx-android", version.ref = "sherpaOnnx" }
 androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
 
 # Compose

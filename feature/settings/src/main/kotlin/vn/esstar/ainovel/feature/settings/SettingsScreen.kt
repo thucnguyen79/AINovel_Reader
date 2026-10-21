@@ -38,6 +38,12 @@ import vn.esstar.ainovel.core.datastore.TtsPrefs
 import vn.esstar.ainovel.core.designsystem.component.AINovelCard
 import vn.esstar.ainovel.core.designsystem.component.SectionTitle
 import vn.esstar.ainovel.tts.api.TtsVoice
+import vn.esstar.ainovel.tts.api.VoiceModelState
+import vn.esstar.ainovel.tts.api.VoiceModelStatus
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedButton
 import vn.esstar.ainovel.core.datastore.DohMode
@@ -48,14 +54,20 @@ internal fun SettingsRoute(viewModel: SettingsViewModel = hiltViewModel()) {
     val prefs by viewModel.prefs.collectAsStateWithLifecycle()
     val voices by viewModel.voices.collectAsStateWithLifecycle()
     val engineAvailable by viewModel.engineAvailable.collectAsStateWithLifecycle()
+    val neuralModels by viewModel.neuralModels.collectAsStateWithLifecycle()
     val dohMode by viewModel.dohMode.collectAsStateWithLifecycle()
     val storage by viewModel.storage.collectAsStateWithLifecycle()
     SettingsScreen(
         prefs = prefs,
         voices = voices,
         engineAvailable = engineAvailable,
+        neuralModels = neuralModels,
         dohMode = dohMode,
         storage = storage,
+        onDownloadModel = viewModel::downloadModel,
+        onCancelModel = viewModel::cancelModel,
+        onDeleteModel = viewModel::deleteModel,
+        onUseModel = viewModel::useModel,
         onVoice = viewModel::setVoice,
         onSpeed = viewModel::setSpeed,
         onPitch = viewModel::setPitch,
@@ -72,8 +84,13 @@ internal fun SettingsScreen(
     prefs: TtsPrefs,
     voices: List<TtsVoice>,
     engineAvailable: Boolean,
+    neuralModels: List<VoiceModelStatus>,
     dohMode: DohMode,
     storage: StorageInfo?,
+    onDownloadModel: (String) -> Unit,
+    onCancelModel: (String) -> Unit,
+    onDeleteModel: (String) -> Unit,
+    onUseModel: (String) -> Unit,
     onVoice: (TtsVoice?) -> Unit,
     onSpeed: (Float) -> Unit,
     onPitch: (Float) -> Unit,
@@ -122,6 +139,26 @@ internal fun SettingsScreen(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+        }
+
+        SectionTitle(stringResource(R.string.settings_section_neural))
+        AINovelCard(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                stringResource(R.string.settings_neural_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            neuralModels.forEach { status ->
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                NeuralModelRow(
+                    status = status,
+                    selected = prefs.voiceId == status.voiceId,
+                    onDownload = { onDownloadModel(status.model.id) },
+                    onCancel = { onCancelModel(status.model.id) },
+                    onDelete = { onDeleteModel(status.model.id) },
+                    onUse = { onUseModel(status.model.id) },
                 )
             }
         }
@@ -190,6 +227,50 @@ internal fun SettingsScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp),
             )
+        }
+    }
+}
+
+@Composable
+private fun NeuralModelRow(
+    status: VoiceModelStatus,
+    selected: Boolean,
+    onDownload: () -> Unit,
+    onCancel: () -> Unit,
+    onDelete: () -> Unit,
+    onUse: () -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(status.model.displayName, style = MaterialTheme.typography.titleSmall)
+        Text(
+            status.model.description,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        val detail = when (status.state) {
+            VoiceModelState.NOT_DOWNLOADED -> stringResource(R.string.settings_neural_size, formatBytes(status.model.sizeBytes))
+            VoiceModelState.DOWNLOADING -> stringResource(R.string.settings_neural_downloading, (status.progress * 100).toInt())
+            VoiceModelState.READY -> if (selected) stringResource(R.string.settings_neural_in_use) else stringResource(R.string.settings_neural_ready)
+            VoiceModelState.FAILED -> stringResource(R.string.settings_neural_failed, status.error ?: "")
+        }
+        Text(
+            detail,
+            style = MaterialTheme.typography.bodySmall,
+            color = if (status.state == VoiceModelState.FAILED) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+        if (status.state == VoiceModelState.DOWNLOADING) {
+            LinearProgressIndicator(progress = { status.progress }, modifier = Modifier.fillMaxWidth().padding(top = 6.dp))
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 4.dp)) {
+            when (status.state) {
+                VoiceModelState.NOT_DOWNLOADED, VoiceModelState.FAILED -> TextButton(onClick = onDownload) { Text(stringResource(R.string.settings_neural_download)) }
+                VoiceModelState.DOWNLOADING -> TextButton(onClick = onCancel) { Text(stringResource(R.string.settings_neural_cancel)) }
+                VoiceModelState.READY -> {
+                    if (!selected) TextButton(onClick = onUse) { Text(stringResource(R.string.settings_neural_use)) }
+                    TextButton(onClick = onDelete) { Text(stringResource(R.string.settings_neural_delete)) }
+                }
+            }
         }
     }
 }

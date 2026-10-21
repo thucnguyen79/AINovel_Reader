@@ -9,7 +9,16 @@
     <string name="library_history_hint">Truyện bạn đã đọc hoặc nghe sẽ xuất hiện ở đây.</string>
     <string name="library_downloads_empty">Chưa tải truyện nào</string>
     <string name="library_downloads_hint">Mở một truyện và bấm biểu tượng tải ở góc trên để tải chương về đọc offline.</string>
-    <string name="library_ebook_hint">Nhập sách EPUB, PDF, TXT, ZIP để đọc và nghe offline (giai đoạn 5).</string>
+    <string name="library_ebook_hint">Nhập sách EPUB, PDF, TXT hoặc ZIP chứa TXT từ bộ nhớ máy, hoặc từ link tải trực tiếp / Google Drive. Sách tiếng Trung được convert như truyện web.</string>
+    <string name="library_ebook_empty">Chưa có ebook</string>
+    <string name="library_import_file">Nhập file</string>
+    <string name="library_import_url">Nhập từ link</string>
+    <string name="library_import_url_hint">Dán link tải trực tiếp (.epub, .txt, .pdf, .zip) hoặc link chia sẻ Google Drive của file.</string>
+    <string name="library_import_go">Tải và nhập</string>
+    <string name="library_import_failed">Không nhập được sách. %1$s</string>
+    <string name="library_ebook_summary">%1$s · %2$s · %3$s</string>
+    <string name="library_ebook_delete">Xoá ebook</string>
+    <string name="library_ebook_delete_confirm">Xoá “%1$s” khỏi tủ sách cùng toàn bộ nội dung và tiến độ đọc?</string>
     <string name="library_last_read_at">Lần cuối: %1$s</string>
     <string name="library_remove_history">Xoá khỏi lịch sử</string>
 

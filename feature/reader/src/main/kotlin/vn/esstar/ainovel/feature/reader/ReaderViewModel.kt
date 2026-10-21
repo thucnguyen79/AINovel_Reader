@@ -40,6 +40,8 @@ data class ReaderUiState(
     val translateMode: TranslateMode? = null,
     /** Glossary entries that apply to this book (global ones included). */
     val glossary: List<GlossaryEntry> = emptyList(),
+    /** Paragraph the player is reading aloud in the chapter shown, or -1. */
+    val playingParagraph: Int = -1,
     /** Paragraph index + pixel offset to restore when [content] changes. */
     val restoreIndex: Int = 0,
     val restoreOffset: Int = 0,
@@ -71,6 +73,14 @@ class ReaderViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             readerPreferences.prefs.collect { p -> _state.update { it.copy(prefs = p) } }
+        }
+        viewModelScope.launch {
+            playback.state.collect { pb ->
+                _state.update { s ->
+                    val idx = if (pb.isActive && pb.chapterId == s.currentChapter?.id) pb.paragraphIndex else -1
+                    if (idx == s.playingParagraph) s else s.copy(playingParagraph = idx)
+                }
+            }
         }
         viewModelScope.launch {
             val book = library.getBook(bookId)

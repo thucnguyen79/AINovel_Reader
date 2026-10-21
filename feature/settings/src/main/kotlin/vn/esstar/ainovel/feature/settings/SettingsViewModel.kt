@@ -14,6 +14,12 @@ import vn.esstar.ainovel.core.datastore.TtsPreferences
 import vn.esstar.ainovel.core.datastore.TtsPrefs
 import vn.esstar.ainovel.tts.api.TtsEngine
 import vn.esstar.ainovel.tts.api.TtsVoice
+import vn.esstar.ainovel.tts.api.VoiceModelManager
+import vn.esstar.ainovel.tts.api.VoiceModelState
+import vn.esstar.ainovel.tts.api.VoiceModelStatus
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import vn.esstar.ainovel.core.datastore.DohMode
 import vn.esstar.ainovel.core.datastore.NetworkPreferences
 import vn.esstar.ainovel.domain.model.StorageInfo
@@ -25,7 +31,25 @@ class SettingsViewModel @Inject constructor(
     private val engine: TtsEngine,
     private val networkPreferences: NetworkPreferences,
     private val downloads: DownloadRepository,
+    private val voiceModels: VoiceModelManager,
 ) : ViewModel() {
+
+    val neuralModels: StateFlow<List<VoiceModelStatus>> = voiceModels.models
+
+    fun downloadModel(id: String) = viewModelScope.launch { voiceModels.download(id) }
+    fun cancelModel(id: String) = viewModelScope.launch { voiceModels.cancelDownload(id) }
+    fun deleteModel(id: String) = viewModelScope.launch {
+        voiceModels.delete(id)
+        if (prefs.value.voiceId == VoiceModelStatus.voiceIdFor(id)) ttsPreferences.setVoice("system", null)
+        reloadVoices()
+    }
+
+    /** Selects a downloaded neural voice. */
+    fun useModel(id: String) = viewModelScope.launch { ttsPreferences.setVoice("neural", VoiceModelStatus.voiceIdFor(id)) }
+
+    private suspend fun reloadVoices() {
+        _voices.value = runCatching { engine.voices() }.onFailure { Timber.e(it) }.getOrDefault(emptyList())
+    }
 
     val dohMode: StateFlow<DohMode> = networkPreferences.dohMode
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DohMode.SYSTEM)
@@ -57,7 +81,11 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val ok = runCatching { engine.initialize() }.getOrDefault(false)
             _engineAvailable.value = ok
-            if (ok) _voices.value = runCatching { engine.voices() }.onFailure { Timber.e(it) }.getOrDefault(emptyList())
+            if (ok) reloadVoices()
+        }
+        viewModelScope.launch {
+            // A model that just finished downloading becomes a selectable voice.
+            voiceModels.models.map { list -> list.count { it.state == VoiceModelState.READY } }.distinctUntilChanged().collect { reloadVoices() }
         }
     }
 

@@ -12,6 +12,8 @@ android {
         versionCode = 1
         versionName = "0.1.0"
         vectorDrawables.useSupportLibrary = true
+        // sherpa-onnx/onnxruntime native libs: real phones only (x86 emulators are not a target).
+        ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
     }
 
     buildTypes {
@@ -48,6 +50,7 @@ dependencies {
     implementation(projects.data.translate)
     implementation(projects.tts.api)
     implementation(projects.tts.system)
+    implementation(projects.tts.neural)
     implementation(projects.feature.home)
     implementation(projects.feature.browser)
     implementation(projects.feature.reader)

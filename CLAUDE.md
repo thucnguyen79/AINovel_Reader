@@ -14,6 +14,7 @@ Kế hoạch đầy đủ: `docs/PLAN.md`. Mọi quyết định kiến trúc m�
 - JDK 21: `D:\Tools\jdk-21.0.11+10` (biến `JAVA_HOME` đã trỏ sẵn). Android SDK: `D:\Android\Sdk` (platform 34–37, build-tools 36.0.0). adb: `D:\Android\Sdk\platform-tools\adb.exe`.
 - Gradle wrapper 9.6.0, AGP 9.4.1 (Kotlin tích hợp sẵn, KHÔNG apply `org.jetbrains.kotlin.android`), Kotlin 2.4.21, KSP 2.3.12.
 - Không có Android Studio trên máy. Mọi thao tác chạy từ terminal.
+- sherpa-onnx AAR (50 MB) không nằm trong git: sau khi clone chạy `python tools/sherpa/fetch_sherpa_aar.py` một lần (tải vào `third_party/m2`, xem ADR-007).
 
 ## Lệnh thường dùng (chạy tại thư mục gốc, PowerShell)
 ```
@@ -41,7 +42,7 @@ Build lần đầu hoặc sau khi đổi dependency có thể mất vài phút: 
 - `core/common` (dispatchers, AppResult), `core/designsystem` (theme, component), `core/network` (OkHttp, DoH, Jsoup, WebView fetcher), `core/database` (Room), `core/datastore` (settings), `core/storage` (bố cục file).
 - `domain` – model và use case thuần Kotlin (JVM, không Android).
 - `data/source` (rule engine nguồn truyện), `data/library`, `data/ebook`, `data/translate` (convert engine, ML Kit, LlmProvider BYOK).
-- `tts/api` (JVM: TtsEngine, TextSegmenter, TextNormalizer, AudioCache), `tts/system` (Android TextToSpeech), sau này `tts/neural`, `tts/online`.
+- `tts/api` (JVM: TtsEngine, TextSegmenter, TextNormalizer, AudioCache, VoiceModelManager), `tts/system` (Android TextToSpeech), `tts/neural` (sherpa-onnx + model Piper, CompositeTtsEngine là binding TtsEngine), sau này `tts/online`.
 - `feature/*` – màn hình Compose + ViewModel: home, browser, reader, player, library, translate, settings.
 - `service/playback` (Media3 MediaSessionService), `service/download` (WorkManager).
 

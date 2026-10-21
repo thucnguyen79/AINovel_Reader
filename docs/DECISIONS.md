@@ -2,6 +2,16 @@
 
 Mỗi mục: bối cảnh, quyết định, hệ quả. Mới nhất ở trên.
 
+## ADR-007 (2026-10-21): Giọng neural bằng sherpa-onnx AAR tải từ GitHub, model Piper tải theo yêu cầu
+- Bối cảnh: sherpa-onnx không có bản ổn định trên Maven Central vào thời điểm này; bản master đã bỏ `dataDir` (espeak-ng) và yêu cầu phonemize bên ngoài, trong khi model Piper tiếng Việt cần espeak-ng. AAR chính thức ~50 MB (4 ABI) không nên commit vào git.
+- Quyết định: dùng AAR `sherpa-onnx-1.13.8.aar` (còn hỗ trợ `dataDir`) qua repo Maven cục bộ `third_party/m2` (chỉ commit POM; `tools/sherpa/fetch_sherpa_aar.py` tải AAR, git-ignore). App chỉ đóng gói `arm64-v8a` và `armeabi-v7a`. Model tải từ release `tts-models` dưới dạng tar.bz2 (giải nén bằng commons-compress), lưu `files/models/tts/<id>/`, đánh dấu `.ready`. `CompositeTtsEngine` thay binding `TtsEngine` và định tuyến theo voice id `neural:<model>`; giọng hệ thống vẫn là mặc định. Piper bỏ qua chữ số nên engine neural đọc số bằng `VietnameseNumberSpeller`.
+- Hệ quả: người mới clone phải chạy script tải AAR trước khi build; nâng phiên bản sherpa-onnx phải kiểm tra lại API Kotlin (đặc biệt `dataDir`). APK debug tăng ~30 MB; bản phát hành nên dùng App Bundle để tách ABI.
+
+## ADR-008 (2026-10-21): Ebook lưu như sách thường với nội dung chương có sẵn
+- Bối cảnh: Reader, player, dịch và tải offline đều làm việc trên `books`/`chapters` + `ChapterStore`; ebook cần dùng lại toàn bộ.
+- Quyết định: ebook là một `BookEntity` với `source_id = "ebook"`, URL giả `ebook://<uuid>`, chương `ebook://<uuid>/<i>` có `content_path` ngay khi nhập; bảng `ebooks` chỉ giữ metadata file. Parser thuần JVM (java.util.zip + Jsoup cho EPUB, pdfbox-android cho PDF) để unit test được bằng fixture tạo trong test. Không giữ file gốc sau khi nhập.
+- Hệ quả: `SourceRepository` không bao giờ được gọi cho ebook (nội dung luôn có sẵn); xoá ebook = xoá sách. MOBI/AZW3 chưa hỗ trợ.
+
 ## ADR-006 (2026-10-21): Luật nhân trên token, glossary theo bộ, ML Kit là chế độ tuỳ chọn
 - Bối cảnh: convert thuần khớp dài nhất cho ra trật tự Hán ("X của Y" ngược), không cho người đọc sửa tên riêng, và một số người muốn câu tự nhiên hơn dù sai tên.
 - Quyết định: (1) engine trả `ConvertedToken` (nguồn, đích, nghĩa khác); luật nhân kiểu QuickTranslator (`{0}的{1}={1} của {0}`) chạy trên chuỗi token sau khi tra từ điển, nhiều lượt, luật dài nhất thắng, kết quả luật có thể làm placeholder cho luật khác; không áp luật trong chế độ Hán Việt. (2) Glossary lưu trong Room (`glossary`, `book_id` null = toàn cục), được ghép vào engine theo từng lần convert và thắng mọi từ điển; Reader hiện sheet chọn nghĩa khi chạm từ. (3) ML Kit Translation (on-device, miễn phí, không key) là chế độ thứ tư; model chỉ tải khi người dùng bấm, có nút xoá; không có model thì tự quay về Convert. ML Kit không có ánh xạ từ nên không hỗ trợ chạm từ / glossary.

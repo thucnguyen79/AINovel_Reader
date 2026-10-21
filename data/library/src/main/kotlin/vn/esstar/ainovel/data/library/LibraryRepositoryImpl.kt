@@ -16,6 +16,7 @@ import vn.esstar.ainovel.core.storage.ChapterStore
 import vn.esstar.ainovel.domain.model.Book
 import vn.esstar.ainovel.domain.model.Chapter
 import vn.esstar.ainovel.domain.model.ChapterContent
+import vn.esstar.ainovel.domain.model.ChapterText
 import vn.esstar.ainovel.domain.model.FetchedBook
 import vn.esstar.ainovel.domain.model.HistoryEntry
 import vn.esstar.ainovel.domain.model.ReadingMode
@@ -56,6 +57,31 @@ class LibraryRepositoryImpl @Inject constructor(
         }
         chapterDao.sync(bookId, fetched.chapters.map { ChapterEntity(bookId = bookId, index = it.index, title = it.title, url = it.url) })
         return bookId
+    }
+
+    override suspend fun importLocalBook(book: FetchedBook, chapters: List<ChapterText>): Long {
+        val now = System.currentTimeMillis()
+        val bookId = bookDao.insertIgnore(book.toEntity(now)).takeIf { it > 0 }
+            ?: checkNotNull(bookDao.getByUrl(book.url)).id
+        val entities = chapters.mapIndexed { i, c -> ChapterEntity(bookId = bookId, index = i, title = c.title, url = "${book.url}/$i") }
+        chapterDao.insertIgnore(entities)
+        val stored = chapterDao.getByBook(bookId).associateBy { it.index }
+        chapters.forEachIndexed { i, c ->
+            val entity = stored[i] ?: return@forEachIndexed
+            val path = chapterStore.write(bookId, entity.id, c.paragraphs)
+            chapterDao.setContentPath(entity.id, path)
+        }
+        return bookId
+    }
+
+    override suspend fun deleteBook(bookId: Long) {
+        chapterStore.deleteBook(bookId)
+        bookDao.delete(bookId)
+    }
+
+    override suspend fun setCover(bookId: Long, coverUrl: String?) {
+        val existing = bookDao.getById(bookId) ?: return
+        bookDao.update(existing.copy(coverUrl = coverUrl, updatedAt = System.currentTimeMillis()))
     }
 
     override suspend fun getBook(bookId: Long): Book? = bookDao.getById(bookId)?.toDomain(chapterDao.countByBook(bookId))

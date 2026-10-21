@@ -91,10 +91,22 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [x] ML Kit zh → vi: chế độ "Dịch máy", model tải theo yêu cầu (Wi-Fi) trong tab Dịch truyện, xoá được; thiếu model thì tự quay về Convert
 - [x] Kiểm tra trên máy thật 21/10/2026: mở jjwxc (GB18030) từ tab Dịch truyện, đổi Convert / Hán Việt / Nguyên văn trong Reader, nhập Names.txt + VietPhrase.txt qua SAF, nghe chương bằng văn bản đã convert
 
-## Giai đoạn 5 – Ebook + giọng neural
-- [ ] Nhập EPUB / TXT / ZIP / PDF, URL / Google Drive
-- [ ] sherpa-onnx + quản lý model Piper vi_VN
-- [ ] Highlight câu đang đọc
+## Giai đoạn 5 – Ebook + giọng neural (bắt đầu 21/10/2026)
+### Epic 5.1 Nhập ebook (`data/ebook`)
+- [x] Parser thuần JVM + unit test: EPUB 2/3 (container → OPF → spine, tiêu đề từ NCX/nav, ảnh bìa), TXT (tách chương theo tiêu đề Việt/Trung, cắt phần khi không có tiêu đề, tự nhận UTF-8/UTF-16/GB18030), ZIP chứa TXT (sắp xếp tự nhiên), PDF chữ (pdfbox-android, nối dòng bị ngắt)
+- [x] `EbookRepository`: nhập từ SAF hoặc link tải trực tiếp / Google Drive, lưu thành sách `source_id = ebook` với nội dung chương sẵn, bảng `ebooks` (Room v4), ảnh bìa trong `files/covers`
+- [x] Tab EBook: nút Nhập file / Nhập từ link, danh sách, xoá; mở sách như truyện web (đọc, nghe, dịch nếu tiếng Trung)
+- [ ] MOBI / AZW3 (không có thư viện miễn phí gọn; để sau)
+- [ ] Mở file từ app khác (intent ACTION_VIEW) – để sau
+### Epic 5.2 Giọng neural (`tts/neural`)
+- [x] sherpa-onnx 1.13.8 (AAR từ GitHub Releases, repo Maven cục bộ `third_party/m2`, script `tools/sherpa/fetch_sherpa_aar.py`)
+- [x] `NeuralModelManager`: 3 model Piper vi_VN (VAIS1000 medium, 25hours low, VIVOS x_low), tải tiếp tục được, giải nén tar.bz2, trạng thái/tiến độ, xoá
+- [x] `NeuralTtsEngine` (VITS + espeak-ng-data, đọc số bằng chữ) và `CompositeTtsEngine` chọn engine theo voice id `neural:<model>`
+- [x] Cài đặt: mục "Giọng AI offline" tải / dùng / xoá model; giọng neural xuất hiện trong danh sách giọng
+- [x] Kiểm tra trên máy 21/10/2026: nhập EPUB 5 chương, tải VIVOS (20 giây), nghe bằng giọng neural, highlight đoạn đang đọc
+### Epic 5.3 Reader
+- [x] Highlight đoạn đang được đọc (theo `PlaybackState.paragraphIndex`) khi chương đang mở trùng chương đang phát
+- [ ] Highlight từng câu và tự cuộn theo (cần offset câu trong đoạn)
 
 ## Giai đoạn 6 – Hoàn thiện & phát hành
 - [ ] Nhạc nền, khoá màn hình, chia sẻ log

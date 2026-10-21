@@ -37,6 +37,18 @@ import java.util.Date
 import vn.esstar.ainovel.core.designsystem.component.AINovelCard
 import vn.esstar.ainovel.core.designsystem.component.EmptyState
 import vn.esstar.ainovel.domain.model.HistoryEntry
+import vn.esstar.ainovel.domain.model.EbookInfo
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 import vn.esstar.ainovel.core.designsystem.component.BookCover
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.LinearProgressIndicator
@@ -53,14 +65,32 @@ internal fun LibraryRoute(
 ) {
     val history by viewModel.history.collectAsStateWithLifecycle()
     val downloaded by viewModel.downloadedBooks.collectAsStateWithLifecycle()
+    val ebooks by viewModel.ebookList.collectAsStateWithLifecycle()
+    val importing by viewModel.importing.collectAsStateWithLifecycle()
+    val snackbar = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is LibraryEvent.OpenBook -> onOpenBook(event.bookId)
+                is LibraryEvent.ImportFailed -> snackbar.showSnackbar(context.getString(R.string.library_import_failed, event.reason ?: ""))
+            }
+        }
+    }
     LibraryScreen(
         history = history,
         downloaded = downloaded,
+        ebooks = ebooks,
+        importing = importing,
+        snackbar = snackbar,
         onOpenBook = onOpenBook,
         onOpenReader = onOpenReader,
         onRemoveHistory = viewModel::removeFromHistory,
         onCancelDownload = viewModel::cancelDownload,
         onDeleteDownloaded = viewModel::deleteDownloaded,
+        onImportEbook = viewModel::importEbook,
+        onImportEbookUrl = viewModel::importEbookFromUrl,
+        onDeleteEbook = viewModel::deleteEbook,
     )
 }
 
@@ -68,11 +98,17 @@ internal fun LibraryRoute(
 internal fun LibraryScreen(
     history: List<HistoryEntry>,
     downloaded: List<BookDownloadInfo>,
+    ebooks: List<EbookInfo>,
+    importing: Boolean,
+    snackbar: SnackbarHostState,
     onOpenBook: (Long) -> Unit,
     onOpenReader: (Long, Long) -> Unit,
     onRemoveHistory: (Long) -> Unit,
     onCancelDownload: (Long) -> Unit,
     onDeleteDownloaded: (Long) -> Unit,
+    onImportEbook: (uri: String) -> Unit,
+    onImportEbookUrl: (url: String) -> Unit,
+    onDeleteEbook: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val tabs = listOf(
@@ -96,14 +132,111 @@ internal fun LibraryScreen(
                 FilterChip(selected = selected == index, onClick = { selected = index }, label = { Text(label) })
             }
         }
-        when (selected) {
-            0 -> HistoryTab(history, onOpenBook, onOpenReader, onRemoveHistory)
-            1 -> DownloadsTab(downloaded, onOpenBook, onCancelDownload, onDeleteDownloaded)
-            else -> EmptyState(
-                title = stringResource(R.string.library_empty),
+        Box(modifier = Modifier.weight(1f)) {
+            when (selected) {
+                0 -> HistoryTab(history, onOpenBook, onOpenReader, onRemoveHistory)
+                1 -> DownloadsTab(downloaded, onOpenBook, onCancelDownload, onDeleteDownloaded)
+                else -> EbookTab(ebooks, importing, onOpenBook, onImportEbook, onImportEbookUrl, onDeleteEbook)
+            }
+        }
+        SnackbarHost(hostState = snackbar)
+    }
+}
+
+@Composable
+private fun EbookTab(
+    ebooks: List<EbookInfo>,
+    importing: Boolean,
+    onOpenBook: (Long) -> Unit,
+    onImport: (String) -> Unit,
+    onImportUrl: (String) -> Unit,
+    onDelete: (Long) -> Unit,
+) {
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) onImport(uri.toString())
+    }
+    var showUrl by remember { mutableStateOf(false) }
+    var confirmDelete by remember { mutableStateOf<EbookInfo?>(null) }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Button(
+                onClick = { picker.launch(arrayOf("application/epub+zip", "application/pdf", "text/plain", "application/zip", "application/x-zip-compressed", "application/octet-stream")) },
+                enabled = !importing,
+                modifier = Modifier.weight(1f),
+            ) {
+                if (importing) {
+                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                    Spacer(Modifier.width(6.dp))
+                }
+                Text(stringResource(R.string.library_import_file))
+            }
+            OutlinedButton(onClick = { showUrl = true }, enabled = !importing, modifier = Modifier.weight(1f)) {
+                Text(stringResource(R.string.library_import_url))
+            }
+        }
+        if (ebooks.isEmpty()) {
+            EmptyState(
+                title = stringResource(R.string.library_ebook_empty),
                 description = stringResource(R.string.library_ebook_hint),
             )
+        } else {
+            LazyColumn(
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                items(ebooks, key = { it.book.id }) { info ->
+                    AINovelCard(modifier = Modifier.fillMaxWidth().clickable { onOpenBook(info.book.id) }, contentPadding = PaddingValues(12.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            BookCover(url = info.book.coverUrl, refererUrl = null, modifier = Modifier.size(width = 52.dp, height = 72.dp))
+                            Spacer(Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(info.book.title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                info.book.author?.let { Text(it, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                                Text(
+                                    stringResource(R.string.library_ebook_summary, info.format.uppercase(), formatBytes(info.sizeBytes), info.fileName),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                            IconButton(onClick = { confirmDelete = info }) {
+                                Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.library_ebook_delete))
+                            }
+                        }
+                    }
+                }
+            }
         }
+    }
+
+    if (showUrl) {
+        var url by remember { mutableStateOf("") }
+        AlertDialog(
+            onDismissRequest = { showUrl = false },
+            title = { Text(stringResource(R.string.library_import_url)) },
+            text = {
+                Column {
+                    Text(stringResource(R.string.library_import_url_hint), style = MaterialTheme.typography.bodySmall)
+                    OutlinedTextField(value = url, onValueChange = { url = it }, singleLine = true, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
+                }
+            },
+            confirmButton = { TextButton(onClick = { showUrl = false; onImportUrl(url) }, enabled = url.isNotBlank()) { Text(stringResource(R.string.library_import_go)) } },
+            dismissButton = { TextButton(onClick = { showUrl = false }) { Text(stringResource(R.string.download_cancel)) } },
+        )
+    }
+    confirmDelete?.let { info ->
+        AlertDialog(
+            onDismissRequest = { confirmDelete = null },
+            title = { Text(stringResource(R.string.library_ebook_delete)) },
+            text = { Text(stringResource(R.string.library_ebook_delete_confirm, info.book.title)) },
+            confirmButton = { TextButton(onClick = { onDelete(info.book.id); confirmDelete = null }) { Text(stringResource(R.string.library_delete)) } },
+            dismissButton = { TextButton(onClick = { confirmDelete = null }) { Text(stringResource(R.string.library_keep)) } },
+        )
     }
 }
 

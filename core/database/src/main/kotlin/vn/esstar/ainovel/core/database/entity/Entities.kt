@@ -99,3 +99,23 @@ data class GlossaryEntity(
     val target: String,
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
 )
+
+/** One row per imported ebook; the book itself lives in `books` with source_id = "ebook". */
+@Entity(
+    tableName = "ebooks",
+    foreignKeys = [
+        ForeignKey(entity = BookEntity::class, parentColumns = ["id"], childColumns = ["book_id"], onDelete = ForeignKey.CASCADE),
+    ],
+)
+data class EbookEntity(
+    @PrimaryKey @ColumnInfo(name = "book_id") val bookId: Long,
+    val format: String,
+    @ColumnInfo(name = "file_name") val fileName: String,
+    @ColumnInfo(name = "size_bytes") val sizeBytes: Long,
+    @ColumnInfo(name = "imported_at") val importedAt: Long,
+)
+
+data class EbookWithBook(
+    @Embedded val ebook: EbookEntity,
+    @Embedded(prefix = "b_") val book: BookEntity,
+)

@@ -32,4 +32,6 @@ object DatabaseModule {
     @Provides fun provideDownloadDao(db: AINovelDatabase) = db.downloadDao()
 
     @Provides fun provideGlossaryDao(db: AINovelDatabase) = db.glossaryDao()
+
+    @Provides fun provideEbookDao(db: AINovelDatabase) = db.ebookDao()
 }

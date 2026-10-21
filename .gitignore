@@ -30,3 +30,6 @@ secrets.properties
 /shot*.png
 /tools/out/
 /logs/
+
+# sherpa-onnx AAR is downloaded, not committed (50 MB)
+third_party/m2/**/*.aar
