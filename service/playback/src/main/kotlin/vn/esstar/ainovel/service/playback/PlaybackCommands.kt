@@ -23,6 +23,8 @@ object PlaybackCommands {
     const val EXTRA_SEGMENT_INDEX = "segmentIndex"
     const val EXTRA_SEGMENT_COUNT = "segmentCount"
     const val EXTRA_PARAGRAPH_INDEX = "paragraphIndex"
+    const val EXTRA_SEGMENT_START = "segmentStart"
+    const val EXTRA_SEGMENT_END = "segmentEnd"
 
     // Session extras
     const val SESSION_ERROR = "error"

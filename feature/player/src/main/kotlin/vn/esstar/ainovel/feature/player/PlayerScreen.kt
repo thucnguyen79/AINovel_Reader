@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.FastForward
@@ -73,6 +74,7 @@ import vn.esstar.ainovel.domain.playback.PlaybackState
 @Composable
 internal fun PlayerRoute(
     onBack: () -> Unit,
+    onOpenReader: (Long, Long) -> Unit,
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -93,6 +95,11 @@ internal fun PlayerRoute(
         onSleepTimer = viewModel::setSleepTimer,
         onStop = { viewModel.stop(); onBack() },
         onPlayChapter = viewModel::playChapter,
+        onOpenReader = {
+            val bookId = state.bookId
+            val chapterId = state.chapterId
+            if (bookId != null && chapterId != null) onOpenReader(bookId, chapterId)
+        },
     )
 }
 
@@ -116,6 +123,7 @@ internal fun PlayerScreen(
     onSleepTimer: (Int) -> Unit,
     onStop: () -> Unit,
     onPlayChapter: (Chapter) -> Unit,
+    onOpenReader: () -> Unit = {},
 ) {
     var showChapters by rememberSaveable { mutableStateOf(false) }
     var showSleepMenu by remember { mutableStateOf(false) }
@@ -130,6 +138,9 @@ internal fun PlayerScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = onOpenReader, enabled = state.isActive) {
+                        Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = stringResource(R.string.player_open_text))
+                    }
                     IconButton(onClick = onStop, enabled = state.isActive) {
                         Icon(Icons.Default.Stop, contentDescription = stringResource(R.string.player_stop))
                     }

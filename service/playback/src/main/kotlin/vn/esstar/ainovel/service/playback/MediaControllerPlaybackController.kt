@@ -113,6 +113,8 @@ class MediaControllerPlaybackController @Inject constructor(
                 segmentIndex = extras.getInt(PlaybackCommands.EXTRA_SEGMENT_INDEX),
                 segmentCount = extras.getInt(PlaybackCommands.EXTRA_SEGMENT_COUNT),
                 paragraphIndex = extras.getInt(PlaybackCommands.EXTRA_PARAGRAPH_INDEX),
+                segmentStart = extras.getInt(PlaybackCommands.EXTRA_SEGMENT_START),
+                segmentEnd = extras.getInt(PlaybackCommands.EXTRA_SEGMENT_END),
                 isPlaying = player.isPlaying || (player.playWhenReady && player.playbackState != Player.STATE_ENDED),
                 isBuffering = buffering,
                 speed = player.playbackParameters.speed,

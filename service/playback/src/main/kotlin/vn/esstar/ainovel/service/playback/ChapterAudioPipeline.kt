@@ -113,8 +113,9 @@ class ChapterAudioPipeline(
             _status.update { it.copy(error = PlaybackError.CHAPTER_LOAD_FAILED) }
             return false
         }
-        val paragraphs = normalizer.normalizeAll(content.paragraphs)
-        val segments = TextSegmenter(breakAtComma = prefs.breakAtComma).segment(paragraphs)
+        // Segment the text exactly as the reader shows it so segment offsets map onto the paragraphs;
+        // normalization for the engine happens per segment below.
+        val segments = TextSegmenter(breakAtComma = prefs.breakAtComma).segment(content.paragraphs)
         currentChapterId = chapter.id
         currentSegments = segments
         if (segments.isEmpty()) {
@@ -133,9 +134,11 @@ class ChapterAudioPipeline(
             if (!scope.isActive) return false
             waitForRoom(prefs.prefetchSegments)
             val segment = segments[i]
-            val key = cache.key(engine.id, params, segment.text)
+            val spoken = normalizer.normalize(segment.text)
+            if (spoken.isBlank() || spoken.none { it.isLetterOrDigit() }) continue
+            val key = cache.key(engine.id, params, spoken)
             val file = cache.existing(key) ?: withContext(io) {
-                when (val r = engine.synthesize(segment.text, params, cache.fileFor(key))) {
+                when (val r = engine.synthesize(spoken, params, cache.fileFor(key))) {
                     is SynthesisResult.Success -> r.file.also { cache.evictIfNeeded() }
                     is SynthesisResult.Failure -> {
                         Timber.w("Synthesis failed (%s) for segment %d", r.reason, i)
@@ -247,6 +250,8 @@ class ChapterAudioPipeline(
             putInt(PlaybackCommands.EXTRA_SEGMENT_INDEX, segment.index)
             putInt(PlaybackCommands.EXTRA_SEGMENT_COUNT, segmentCount)
             putInt(PlaybackCommands.EXTRA_PARAGRAPH_INDEX, segment.paragraphIndex)
+            putInt(PlaybackCommands.EXTRA_SEGMENT_START, segment.start)
+            putInt(PlaybackCommands.EXTRA_SEGMENT_END, segment.end)
         }
         val metadata = MediaMetadata.Builder()
             .setTitle(title)

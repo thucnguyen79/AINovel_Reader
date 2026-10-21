@@ -22,4 +22,5 @@
     <string name="player_error_tts">Không khởi động được giọng đọc. Hãy cài Google Speech Services hoặc chọn giọng khác trong Cài đặt.</string>
     <string name="player_error_chapter">Không tải được nội dung chương.</string>
     <string name="player_error_synthesis">Giọng đọc gặp lỗi liên tục, thử chọn giọng khác.</string>
+    <string name="player_open_text">Mở văn bản</string>
 </resources>

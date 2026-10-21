@@ -33,7 +33,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
@@ -52,8 +56,18 @@ internal fun TokenParagraph(
     lineHeight: TextUnit,
     onWordTap: (TextToken) -> Unit,
     onTap: () -> Unit,
+    highlightRange: IntRange? = null,
+    highlightColor: Color = Color.Transparent,
+    onLongPress: () -> Unit = {},
 ) {
-    val text = remember(tokens) { tokens.joinToString("") { it.text } }
+    val plain = remember(tokens) { tokens.joinToString("") { it.text } }
+    val text = remember(plain, highlightRange, highlightColor) {
+        if (highlightRange == null || highlightRange.isEmpty()) AnnotatedString(plain)
+        else buildAnnotatedString {
+            append(plain)
+            addStyle(SpanStyle(background = highlightColor), highlightRange.first.coerceIn(0, plain.length), (highlightRange.last + 1).coerceIn(0, plain.length))
+        }
+    }
     // Character offset at which each token starts, for mapping a tap back to its token.
     val starts = remember(tokens) {
         IntArray(tokens.size).also { arr ->
@@ -69,7 +83,7 @@ internal fun TokenParagraph(
         color = MaterialTheme.colorScheme.onBackground,
         onTextLayout = { layout = it },
         modifier = Modifier.pointerInput(tokens) {
-            detectTapGestures { position ->
+            detectTapGestures(onLongPress = { onLongPress() }) { position ->
                 val result = layout ?: return@detectTapGestures onTap()
                 val offset = result.getOffsetForPosition(position)
                 val index = starts.indexOfLast { it <= offset }.coerceAtLeast(0)

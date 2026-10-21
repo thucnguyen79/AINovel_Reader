@@ -34,6 +34,7 @@ Build lần đầu hoặc sau khi đổi dependency có thể mất vài phút: 
 - OPPO CPH2357 (Android 14, 1080x2412, DPR 3). Màn hình tự khoá sau 30 giây và shell không được đổi cài đặt (OPPO chặn `settings put`, `svc power`); trước mỗi chuỗi thao tác adb hãy kiểm tra `dumpsys window | grep isKeyguardShowing` và nhờ người dùng mở khoá nếu cần. Nên bật "Giữ màn hình luôn bật khi sạc" trong Tuỳ chọn nhà phát triển.
 - Toạ độ `input tap` tính theo pixel thật (1080x2412); ảnh chụp đọc bằng Read hiển thị thu nhỏ, nhân 1,21.
 - `uiautomator dump` ghi ra `/sdcard/window_dump.xml`.
+- Reader và TTS phải dùng cùng văn bản: `TextSegmenter` chạy trên đoạn hiển thị và trả offset câu; `TextNormalizer` chỉ áp lên từng câu ngay trước khi tổng hợp (không chuẩn hoá cả đoạn trước khi tách, kẻo lệch highlight).
 - Kiểm tra phát nền: `adb shell dumpsys media_session | grep state=` (trạng thái, position, speed, custom actions) và `adb shell dumpsys notification --noredact | grep ainovel`. Toạ độ player: 5 nút ở y≈1565 (x 168 / 333 / 542 / 748 / 916), nút tai nghe trong Reader ở (1000, 203).
 - Gỡ lỗi WebView: bản debug đã bật `setWebContentsDebuggingEnabled`; `adb forward tcp:9222 localabstract:webview_devtools_remote_<pid>` rồi dùng script CDP (xem lịch sử phiên 21/10/2026) để chạy JS trong trang.
 

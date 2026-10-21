@@ -46,4 +46,16 @@ class TextSegmenterTest {
         assertEquals(listOf(0, 3, 3), segments.map { it.paragraphIndex })
         assertEquals(listOf("Đoạn một.", "Đoạn ba.", "Câu hai"), segments.map { it.text })
     }
+
+    @Test
+    fun `segments carry their character range inside the paragraph`() {
+        val paragraph = "  Xin chào.   Bạn khoẻ không?  Tốt!"
+        val segments = TextSegmenter().segment(listOf("", paragraph))
+        assertEquals(listOf("Xin chào.", "Bạn khoẻ không?", "Tốt!"), segments.map { it.text })
+        assertEquals(listOf(1, 1, 1), segments.map { it.paragraphIndex })
+        segments.forEach { assertEquals(it.text, paragraph.substring(it.start, it.end)) }
+        val long = ("Một hai ba bốn năm sáu bảy tám chín mười, ").repeat(8) + "hết."
+        val pieces = TextSegmenter(maxChars = 100).segment(listOf(long))
+        pieces.forEach { assertEquals(it.text, long.substring(it.start, it.end)) }
+    }
 }

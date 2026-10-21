@@ -11,8 +11,8 @@ data object PlayerRoute
 
 fun NavController.navigateToPlayer(navOptions: NavOptions? = null) = navigate(PlayerRoute, navOptions)
 
-fun NavGraphBuilder.playerScreen(onBack: () -> Unit) {
+fun NavGraphBuilder.playerScreen(onBack: () -> Unit, onOpenReader: (bookId: Long, chapterId: Long) -> Unit) {
     composable<PlayerRoute> {
-        PlayerRoute(onBack = onBack)
+        PlayerRoute(onBack = onBack, onOpenReader = onOpenReader)
     }
 }

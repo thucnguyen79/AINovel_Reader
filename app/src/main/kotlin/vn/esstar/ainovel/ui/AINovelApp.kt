@@ -34,6 +34,7 @@ import vn.esstar.ainovel.feature.library.navigateToLibrary
 import vn.esstar.ainovel.feature.player.MiniPlayer
 import vn.esstar.ainovel.feature.player.navigateToPlayer
 import vn.esstar.ainovel.feature.player.playerScreen
+import vn.esstar.ainovel.feature.reader.ReaderRoute
 import vn.esstar.ainovel.feature.reader.navigateToReader
 import vn.esstar.ainovel.feature.reader.readerScreen
 import vn.esstar.ainovel.feature.settings.navigateToSettings
@@ -89,7 +90,13 @@ fun AINovelApp() {
             bookDetailScreen(onBack = back, onOpenReader = openReader, onOpenPlayer = openPlayer)
             browserScreen(onBack = back, onOpenBook = openBook, onOpenReader = openReader, onOpenPlayer = openPlayer)
             readerScreen(onBack = back, onOpenPlayer = openPlayer)
-            playerScreen(onBack = back)
+            playerScreen(
+                onBack = back,
+                onOpenReader = { bookId, chapterId ->
+                    // Replace a reader already on the stack so Back from the text does not bounce through the player.
+                    navController.navigateToReader(bookId, chapterId, navOptions { popUpTo<ReaderRoute> { inclusive = true }; launchSingleTop = true })
+                },
+            )
         }
     }
 }

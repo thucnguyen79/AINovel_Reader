@@ -1,7 +1,15 @@
 package vn.esstar.ainovel.feature.reader
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.DragInteraction
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FabPosition
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -79,6 +87,7 @@ internal fun ReaderRoute(
         state = state,
         onBack = onBack,
         onListen = { firstVisible -> viewModel.listen(firstVisible); onOpenPlayer() },
+        onListenFrom = viewModel::listenFrom,
         onPrev = viewModel::prev,
         onNext = viewModel::next,
         onOpenChapter = { viewModel.open(it.id) },
@@ -91,12 +100,13 @@ internal fun ReaderRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
+@OptIn(ExperimentalMaterial3Api::class, FlowPreview::class, ExperimentalFoundationApi::class)
 @Composable
 internal fun ReaderScreen(
     state: ReaderUiState,
     onBack: () -> Unit,
     onListen: (firstVisibleIndex: Int) -> Unit,
+    onListenFrom: (paragraphIndex: Int) -> Unit,
     onPrev: () -> Unit,
     onNext: () -> Unit,
     onOpenChapter: (Chapter) -> Unit,
@@ -109,6 +119,8 @@ internal fun ReaderScreen(
 ) {
     var showTranslateMenu by remember { mutableStateOf(false) }
     var showGlossary by rememberSaveable { mutableStateOf(false) }
+    // Follow the sentence being read; a manual drag turns it off until the user asks again.
+    var followPlayback by rememberSaveable { mutableStateOf(true) }
     var selectedWord by remember { mutableStateOf<TextToken?>(null) }
     var showChapters by rememberSaveable { mutableStateOf(false) }
     var chromeVisible by rememberSaveable { mutableStateOf(true) }
@@ -123,8 +135,35 @@ internal fun ReaderScreen(
             .debounce(400)
             .collect { (index, offset) -> onScroll(index, offset) }
     }
+    LaunchedEffect(listState) {
+        listState.interactionSource.interactions.collect { if (it is DragInteraction.Start) followPlayback = false }
+    }
+    val titleRows = if ((state.content?.title?.takeIf { it.isNotBlank() } ?: state.currentChapter?.title) != null) 1 else 0
+    LaunchedEffect(state.playingParagraph, state.playingStart, followPlayback, state.content?.chapterId) {
+        val paragraph = state.playingParagraph
+        if (!followPlayback || paragraph < 0 || state.content == null) return@LaunchedEffect
+        val target = paragraph + titleRows
+        val info = listState.layoutInfo
+        val item = info.visibleItemsInfo.firstOrNull { it.index == target }
+        val viewportTop = info.viewportStartOffset
+        val viewportBottom = info.viewportEndOffset
+        val comfortablyVisible = item != null && item.offset >= viewportTop && item.offset + item.size <= viewportBottom
+        if (!comfortablyVisible) {
+            listState.animateScrollToItem(target, scrollOffset = -(info.viewportSize.height / 4))
+        }
+    }
 
     Scaffold(
+        floatingActionButton = {
+            if (!followPlayback && state.playingParagraph >= 0) {
+                ExtendedFloatingActionButton(
+                    onClick = { followPlayback = true },
+                    icon = { Icon(Icons.Default.Headphones, contentDescription = null) },
+                    text = { Text(stringResource(R.string.reader_follow_playback)) },
+                )
+            }
+        },
+        floatingActionButtonPosition = FabPosition.Center,
         topBar = {
             if (chromeVisible) {
                 TopAppBar(
@@ -209,7 +248,9 @@ internal fun ReaderScreen(
                 onNext = onNext,
                 onTap = { chromeVisible = !chromeVisible },
                 onWordTap = { selectedWord = it },
+                onListenFrom = onListenFrom,
                 playingParagraph = state.playingParagraph,
+                playingRange = if (state.playingEnd > state.playingStart) state.playingStart until state.playingEnd else null,
                 modifier = Modifier.padding(padding),
             )
         }
@@ -253,11 +294,15 @@ private fun ChapterBody(
     onNext: () -> Unit,
     onTap: () -> Unit,
     onWordTap: (TextToken) -> Unit,
+    onListenFrom: (Int) -> Unit,
     playingParagraph: Int,
+    playingRange: IntRange?,
     modifier: Modifier = Modifier,
 ) {
     val fontSize = prefs.fontSizeSp.sp
-    val highlight = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
+    val highlight = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
+    val sentenceHighlight = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f)
+    val onBackground = MaterialTheme.colorScheme.onBackground
     val lineHeight = (prefs.fontSizeSp * prefs.lineHeight).sp
     LazyColumn(
         state = listState,
@@ -275,22 +320,37 @@ private fun ChapterBody(
         }
         itemsIndexed(paragraphs, key = { i, _ -> i }) { index, paragraph ->
             val paragraphTokens = tokens?.getOrNull(index)
-            val rowModifier = if (index == playingParagraph) {
-                Modifier.fillMaxWidth().background(highlight, RoundedCornerShape(6.dp)).padding(horizontal = 4.dp, vertical = 2.dp)
-            } else {
-                Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp)
-            }
+            val isPlaying = index == playingParagraph
+            val range = if (isPlaying) playingRange?.let { r -> r.first.coerceIn(0, paragraph.length) until r.last.plus(1).coerceIn(0, paragraph.length) } else null
+            val rowModifier = (if (isPlaying) Modifier.fillMaxWidth().background(highlight, RoundedCornerShape(6.dp)) else Modifier.fillMaxWidth())
+                .padding(horizontal = 4.dp, vertical = 2.dp)
             Box(modifier = rowModifier) {
                 if (paragraphTokens != null && paragraphTokens.isNotEmpty()) {
                     TokenParagraph(
                         tokens = paragraphTokens,
                         fontSize = fontSize,
                         lineHeight = lineHeight,
+                        highlightRange = range,
+                        highlightColor = sentenceHighlight,
                         onWordTap = onWordTap,
                         onTap = onTap,
+                        onLongPress = { onListenFrom(index) },
                     )
                 } else {
-                    Text(text = paragraph, fontSize = fontSize, lineHeight = lineHeight, color = MaterialTheme.colorScheme.onBackground)
+                    val annotated = remember(paragraph, range, sentenceHighlight) {
+                        if (range == null || range.isEmpty()) AnnotatedString(paragraph)
+                        else buildAnnotatedString {
+                            append(paragraph)
+                            addStyle(SpanStyle(background = sentenceHighlight), range.first, range.last + 1)
+                        }
+                    }
+                    Text(
+                        text = annotated,
+                        fontSize = fontSize,
+                        lineHeight = lineHeight,
+                        color = onBackground,
+                        modifier = Modifier.combinedClickable(onClick = onTap, onLongClick = { onListenFrom(index) }),
+                    )
                 }
             }
         }

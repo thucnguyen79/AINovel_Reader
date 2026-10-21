@@ -106,7 +106,11 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [x] Kiểm tra trên máy 21/10/2026: nhập EPUB 5 chương, tải VIVOS (20 giây), nghe bằng giọng neural, highlight đoạn đang đọc
 ### Epic 5.3 Reader
 - [x] Highlight đoạn đang được đọc (theo `PlaybackState.paragraphIndex`) khi chương đang mở trùng chương đang phát
-- [ ] Highlight từng câu và tự cuộn theo (cần offset câu trong đoạn)
+- [x] Highlight từng câu: `TextSegmenter` tách trên văn bản gốc và giữ `start/end` của câu trong đoạn, chuẩn hoá cho engine theo từng câu; pipeline phát `segmentStart/End` qua MediaItem extras → `PlaybackState`
+- [x] Tự cuộn tới câu đang đọc; kéo tay thì tạm dừng theo dõi, nút "Về câu đang đọc" bật lại
+- [x] Nút tai nghe không phát lại khi chương đang phát (chỉ mở màn hình Đang nghe); nhấn giữ một đoạn để nghe từ đó
+- [x] Màn hình Đang nghe có nút "Mở văn bản" tới đúng chương, thay Reader đang có trên back stack
+- [x] Kiểm tra trên máy 21/10/2026 với truyện truyenfull chương 44
 
 ## Giai đoạn 6 – Hoàn thiện & phát hành
 - [ ] Nhạc nền, khoá màn hình, chia sẻ log

@@ -13,6 +13,9 @@ data class PlaybackState(
     val segmentIndex: Int = 0,
     val segmentCount: Int = 0,
     val paragraphIndex: Int = 0,
+    /** Character range of the segment being spoken inside its paragraph (end exclusive). */
+    val segmentStart: Int = 0,
+    val segmentEnd: Int = 0,
     val isPlaying: Boolean = false,
     /** True while the engine is still synthesizing the segment that should play now. */
     val isBuffering: Boolean = false,

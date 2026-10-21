@@ -26,4 +26,5 @@
     <string name="reader_glossary_empty">Chạm vào một từ trong chương để chọn nghĩa khác hoặc đặt tên riêng.</string>
     <string name="reader_glossary_all_books">Mọi truyện</string>
     <string name="reader_glossary_delete">Xoá</string>
+    <string name="reader_follow_playback">Về câu đang đọc</string>
 </resources>

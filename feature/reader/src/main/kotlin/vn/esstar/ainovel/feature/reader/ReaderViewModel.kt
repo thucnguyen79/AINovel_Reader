@@ -42,6 +42,9 @@ data class ReaderUiState(
     val glossary: List<GlossaryEntry> = emptyList(),
     /** Paragraph the player is reading aloud in the chapter shown, or -1. */
     val playingParagraph: Int = -1,
+    /** Character range of the sentence being spoken inside [playingParagraph]. */
+    val playingStart: Int = 0,
+    val playingEnd: Int = 0,
     /** Paragraph index + pixel offset to restore when [content] changes. */
     val restoreIndex: Int = 0,
     val restoreOffset: Int = 0,
@@ -77,8 +80,12 @@ class ReaderViewModel @Inject constructor(
         viewModelScope.launch {
             playback.state.collect { pb ->
                 _state.update { s ->
-                    val idx = if (pb.isActive && pb.chapterId == s.currentChapter?.id) pb.paragraphIndex else -1
-                    if (idx == s.playingParagraph) s else s.copy(playingParagraph = idx)
+                    val same = pb.isActive && pb.chapterId == s.currentChapter?.id
+                    val idx = if (same) pb.paragraphIndex else -1
+                    val start = if (same) pb.segmentStart else 0
+                    val end = if (same) pb.segmentEnd else 0
+                    if (idx == s.playingParagraph && start == s.playingStart && end == s.playingEnd) s
+                    else s.copy(playingParagraph = idx, playingStart = start, playingEnd = end)
                 }
             }
         }
@@ -150,11 +157,20 @@ class ReaderViewModel @Inject constructor(
         }
     }
 
-    /** Starts reading aloud from the paragraph currently at the top of the screen. */
+    /**
+     * Starts reading aloud from the paragraph currently at the top of the screen. When this chapter is
+     * already playing nothing is restarted; the caller just opens the player.
+     */
     fun listen(firstVisibleIndex: Int) {
-        val chapter = _state.value.currentChapter ?: return
+        if (_state.value.playingParagraph >= 0) return
         // Item 0 of the list is the title row, so paragraph index = list index - 1.
-        playback.play(bookId, chapter.id, (firstVisibleIndex - 1).coerceAtLeast(0))
+        listenFrom((firstVisibleIndex - 1).coerceAtLeast(0))
+    }
+
+    /** Long-press on a paragraph: read aloud from there. */
+    fun listenFrom(paragraphIndex: Int) {
+        val chapter = _state.value.currentChapter ?: return
+        playback.play(bookId, chapter.id, paragraphIndex.coerceAtLeast(0))
     }
 
     /** Switches Convert / Hán Việt / Nguyên văn for Chinese books and reloads the current chapter. */
