@@ -1,0 +1,50 @@
+{
+  "id": "xalosach",
+  "name": "Xa Lộ Sách",
+  "baseUrl": "https://xalosach.com",
+  "hosts": [
+    "xalosach.com"
+  ],
+  "lang": "vi",
+  "fetch": {
+    "mode": "http"
+  },
+  "urls": {
+    "chapter": "^https?://[^/]+/doc-truyen/[^/]+-chuong-\\d+\\.html$",
+    "book": "^https?://[^/]+/[a-z0-9-]+-\\d+\\.html(\\?P=\\d+)?$"
+  },
+  "book": {
+    "title": "h1.title@text",
+    "author": "a.ten_tacgia@text",
+    "cover": "img[src*=/Pictures/]@src",
+    "description": "ul.list-info li:has(> h2)@html",
+    "status": "ul.list-info li:contains(Tình Trạng) span@text",
+    "genres": "ul.list-info li.clearfix a[href*=the-loai]@text"
+  },
+  "toc": {
+    "list": "ul.lst-chapter li a",
+    "title": "@text",
+    "link": "@href",
+    "totalPages": "nav.navchapter thongtin span@text|regex:/(\\d+)",
+    "pageUrl": "{url}?P={page}"
+  },
+  "chapter": {
+    "title": "h2.tenchap a@text",
+    "content": "#lst_content",
+    "remove": [
+      "script",
+      "style",
+      "iframe",
+      "ins",
+      "noscript",
+      ".ads"
+    ],
+    "removeLines": [
+      "xalosach",
+      "doctruyen5s"
+    ],
+    "bookUrl": "h1.tentruyen a@href",
+    "prev": "a#prevchap[href*=chuong-]@href",
+    "next": "a#nextchap[href*=chuong-]@href"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "id": "truyenhoan",
+  "name": "Truyện Hoàn",
+  "baseUrl": "https://truyenhoan.com",
+  "hosts": [
+    "truyenhoan.com"
+  ],
+  "lang": "vi",
+  "fetch": {
+    "mode": "http"
+  },
+  "urls": {
+    "chapter": "^https?://[^/]+/[a-z0-9-]+/chuong-\\d+[^/]*\\.html$",
+    "book": "^https?://[^/]+/[a-z0-9-]+\\.\\d+/?(trang-\\d+/?)?$"
+  },
+  "search": {
+    "url": "{base}/tim-kiem/?tukhoa={query}",
+    "list": ".list-truyen .row[itemtype]",
+    "title": "h3.truyen-title a@text",
+    "link": "h3.truyen-title a@href",
+    "author": "span.author@text",
+    "cover": "div[data-image]@data-image",
+    "latestChapter": ".text-info a@text"
+  },
+  "book": {
+    "title": "h1.title@text",
+    "author": ".info a[itemprop=author]@text",
+    "cover": "div.book img@src",
+    "description": ".desc-text@html",
+    "status": ".info div:has(h3:containsOwn(Trạng thái)) span@text",
+    "genres": ".info a[itemprop=genre]@text"
+  },
+  "toc": {
+    "list": "ul.list-chapter li a",
+    "title": "@text",
+    "link": "@href",
+    "totalPages": "ul.pagination a:containsOwn(Last)@href|regex:trang-(\\d+)",
+    "pageUrl": "{url}/trang-{page}/"
+  },
+  "chapter": {
+    "title": "a.chapter-title@text",
+    "content": "#chapter-c",
+    "remove": [
+      "script",
+      "style",
+      "iframe",
+      "ins",
+      "noscript",
+      "div[id^=ads]",
+      ".ads-holder",
+      ".ads-reminder"
+    ],
+    "removeLines": [
+      "truyenhoan",
+      "^Bạn đang đọc truyện tại"
+    ],
+    "bookUrl": "a.truyen-title@href",
+    "prev": "a.btn-chapter-nav:not(.disabled):has(.glyphicon-chevron-left)@href",
+    "next": "a.btn-chapter-nav:not(.disabled):has(.glyphicon-chevron-right)@href"
+  }
+}

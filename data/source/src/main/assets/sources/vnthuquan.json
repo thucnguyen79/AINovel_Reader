@@ -1,0 +1,48 @@
+{
+  "id": "vnthuquan",
+  "name": "Việt Nam Thư Quán",
+  "baseUrl": "https://vnthuquan.org",
+  "hosts": [
+    "vnthuquan.org",
+    "vnthuquan.net"
+  ],
+  "lang": "vi",
+  "fetch": {
+    "mode": "http"
+  },
+  "urls": {
+    "chapter": "^https?://[^/]+/TacPham/[^/]+/chuong-\\d+/?$",
+    "book": "^https?://[^/]+/TacPham/[^/]+/?$"
+  },
+  "book": {
+    "title": "h1.vntq-reader-title@text",
+    "author": "div.vntq-author-top a@text"
+  },
+  "toc": {
+    "list": "#vntqTocList a.vntq-toc-item",
+    "title": "@text",
+    "link": "@href",
+    "bookId": "script:containsData(fetchTocPage)@html|regex:const tuaId = (\\d+)",
+    "totalPages": "select#vntqTocSelect option:last-child@value",
+    "pageUrl": "{base}/api/tacpham/get-mucluc?tuaId={bookId}&page={page}&pageSize=100",
+    "jsonItems": "chapters",
+    "jsonTitle": "title",
+    "jsonLink": "{url}/chuong-{chuongId}"
+  },
+  "chapter": {
+    "title": "div.chuongso_a:matchesOwn(\\S)@text",
+    "content": "#vntqTextContent",
+    "remove": [
+      "script",
+      "style",
+      "iframe",
+      "ins",
+      "noscript"
+    ],
+    "removeLines": [
+      "vnthuquan"
+    ],
+    "prev": "div.vntq-nav-top a.vntq-btn-nav:containsOwn(Lùi)@href",
+    "next": "div.vntq-nav-top a.vntq-btn-nav:containsOwn(Tiến)@href"
+  }
+}

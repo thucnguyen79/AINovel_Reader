@@ -1,0 +1,46 @@
+{
+  "id": "teamtruyen",
+  "name": "TeamTruyen",
+  "baseUrl": "https://teamtruyen.com",
+  "hosts": [
+    "teamtruyen.com"
+  ],
+  "lang": "vi",
+  "fetch": {
+    "mode": "http"
+  },
+  "urls": {
+    "chapter": "^https?://[^/]+/truyen/[^/]+/chuong-\\d+[^/]*/?$",
+    "book": "^https?://[^/]+/truyen/[^/]+/?$"
+  },
+  "book": {
+    "title": "h1.stitle@text",
+    "author": "div.igrid div.il:containsOwn(Tác giả) + div.iv@text|regex:^(?:Tác giả:)?\\s*(.+)$",
+    "cover": "div.scov img@src",
+    "description": "div.story-description@html",
+    "status": "div.igrid div.il:containsOwn(Trạng thái) + div.iv@text"
+  },
+  "toc": {
+    "list": "div#danh-sach-chuong div.grid a",
+    "title": "p@text",
+    "link": "@href"
+  },
+  "chapter": {
+    "title": "h1.ch1@text",
+    "content": "article.chapter-content",
+    "remove": [
+      "script",
+      "style",
+      "iframe",
+      "ins",
+      "noscript",
+      ".ads"
+    ],
+    "removeLines": [
+      "teamtruyen"
+    ],
+    "bookUrl": "a.truncate[href^=/truyen/]@href",
+    "prev": "a.reader-nav-btn:has(span:containsOwn(Chương trước))@href",
+    "next": "a.reader-nav-btn:has(span:containsOwn(Chương sau))@href"
+  }
+}

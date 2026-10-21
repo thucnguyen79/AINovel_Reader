@@ -1,0 +1,45 @@
+{
+  "id": "256wx",
+  "name": "256文学",
+  "baseUrl": "https://www.256wx.org",
+  "hosts": [
+    "256wx.org"
+  ],
+  "lang": "zh",
+  "fetch": {
+    "mode": "http"
+  },
+  "urls": {
+    "chapter": "^https?://[^/]+/read/\\d+/\\d+\\.html$",
+    "book": "^https?://[^/]+/read/\\d+/?$"
+  },
+  "book": {
+    "title": "h1#nr_title@text",
+    "author": "#text > span:containsOwn(作者)@text|regex:作者[:：]\\s*(.+)",
+    "description": "#nr_history p:containsOwn(简介:)@text"
+  },
+  "toc": {
+    "list": "ul#nr1 li a",
+    "title": "@text",
+    "link": "@href"
+  },
+  "chapter": {
+    "title": "h1#nr_title@text",
+    "content": "#nr1",
+    "remove": [
+      "script",
+      "style",
+      "iframe",
+      "ins",
+      "noscript",
+      "div.page"
+    ],
+    "removeLines": [
+      "256wx",
+      "256文学"
+    ],
+    "bookUrl": "a:containsOwn(目录)@href",
+    "prev": "a:containsOwn(上一页)@href",
+    "next": "a:containsOwn(下一页)@href"
+  }
+}

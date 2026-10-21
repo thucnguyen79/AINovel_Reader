@@ -129,3 +129,15 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [ ] Test Android 8–13 và 15 trên máy thật (chỉ có OPPO Android 14)
 - [ ] Nộp Google Play (không trong phạm vi 1.0; kênh chính là GitHub Releases)
 - [ ] Gắn tag `v1.0.0` và tạo Release đầu tiên (người dùng quyết định thời điểm)
+
+## Bổ sung nguồn truyện (22/10/2026)
+- [x] Khảo sát 112 site người dùng gửi (`tools/sources/survey.py`, `probe.py`, `inspect_site.py`): phân loại tĩnh / JS / POST / chặn bot, ghi trong `docs/SOURCE_RULES.md`
+- [x] 17 rule mới: metruyenhot, metruyenhotvn, truyenhoan, truyennet, khotruyenchu, truyennova, phithang, teamtruyen, vnthuquan, hatduahau, dualeotruyenfull, aatruyen, xalosach, tieuthuyet, ranwenapp, tycqxs, 256wx
+- [x] Engine: `toc.pageSize`+`totalChapters` (tính số trang từ tổng chương), `toc.jsonItems/jsonTitle/jsonLink` (mục lục JSON), `chapter.nextPage` (ghép chương chia nhiều trang)
+- [x] Test dữ liệu: `RuleProbe` + `RuleDumpTest` + `record_expect.py` + `SiteFixturesTest` (mọi rule có fixture đều được so với `expect.json`), `SourceRepositoryPagingTest`
+- [x] Thử trên máy: hatduahau (249 chương, 11 trang) và ranwenapp (725 chương, 8 trang, chương 3 phần) mở và đọc được
+- [ ] sstruyen/truyensac, bientruyen, metruyenchu.co…: mục lục nạp JS → cần bắt API hoặc webview bấm trang
+- [ ] nhatruyen, truyenchu.net (Madara), plnovel: mục lục qua POST → thêm `pageMethod`/`pageBody`
+- [ ] truyentronbo, docln: nội dung chương mã hoá → webview
+- [ ] Nhạc nền khi nghe (P2): trộn file nhạc người dùng chọn ở âm lượng thấp dưới giọng TTS (ExoPlayer thứ hai, ducking)
+

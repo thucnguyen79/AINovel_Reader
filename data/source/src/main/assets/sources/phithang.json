@@ -1,0 +1,53 @@
+{
+  "id": "phithang",
+  "name": "Phi Thăng (Chi3Yamaha)",
+  "baseUrl": "https://phithang.com",
+  "hosts": [
+    "phithang.com"
+  ],
+  "lang": "vi",
+  "fetch": {
+    "mode": "http"
+  },
+  "urls": {
+    "chapter": "^https?://[^/]+/novel/[^/]+/chuong-[^/]+/?$",
+    "book": "^https?://[^/]+/novel/[^/]+/?$"
+  },
+  "search": {
+    "url": "{base}/?s={query}",
+    "list": "a.wn-novel-card:not([href*=chuong])",
+    "title": ".wn-novel-card__title@text|regex:^#?\\s*(.+)$",
+    "link": "@href",
+    "cover": "img@data-src"
+  },
+  "book": {
+    "title": "h1.wn-novel-header__title@text",
+    "author": "div.wn-novel-synopsis__content p:containsOwn(Tác giả)@text|regex:Tác giả:\\s*(.+)",
+    "cover": "img.attachment-novel-cover-lg@data-src",
+    "description": "div.wn-novel-synopsis__content@html"
+  },
+  "toc": {
+    "list": "div.wn-chapter-items a.wn-chapter-item",
+    "title": "span.wn-chapter-item__title@text|regex:—\\s*(.+)$",
+    "link": "@href"
+  },
+  "chapter": {
+    "title": "h1.wn-reader__title@text",
+    "content": "div.wn-reader__content",
+    "remove": [
+      "script",
+      "style",
+      "iframe",
+      "ins",
+      "noscript",
+      ".wnab-banner",
+      ".ads"
+    ],
+    "removeLines": [
+      "phithang\\.com"
+    ],
+    "bookUrl": "a.wn-reader__novel-link@href",
+    "prev": "div.wn-reader__nav-prev a@href",
+    "next": "div.wn-reader__nav-next a@href"
+  }
+}

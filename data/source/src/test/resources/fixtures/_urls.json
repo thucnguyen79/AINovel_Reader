@@ -1,0 +1,88 @@
+{
+ "metruyenhot": {
+  "book": "https://metruyenhot.me/lam-moc-bao-thu/",
+  "toc2": "https://metruyenhot.me/lam-moc-bao-thu?page=2",
+  "chapter": "https://metruyenhot.me/lam-moc-bao-thu/chuong-1178/",
+  "chapter_first": "https://metruyenhot.me/lam-moc-bao-thu/chuong-1/"
+ },
+ "metruyenhotvn": {
+  "book": "https://metruyenhotvn.com/om-toi-nhe-co-gai-nho-lam-ngoc-anh/",
+  "chapter": "https://metruyenhotvn.com/om-toi-nhe-co-gai-nho-lam-ngoc-anh/chuong-2179/"
+ },
+ "truyenhoan": {
+  "book": "https://truyenhoan.com/con-duong-ba-chu.66/",
+  "toc2": "https://truyenhoan.com/con-duong-ba-chu.66/trang-2/",
+  "chapter": "https://truyenhoan.com/con-duong-ba-chu/chuong-3752.html",
+  "search": "https://truyenhoan.com/tim-kiem/?tukhoa=ba+chu"
+ },
+ "truyennet": {
+  "book": "https://truyennet.org/chay-hay-chet",
+  "toc2": "https://truyennet.org/get/listchap/24512?page=2",
+  "chapter": "https://truyennet.org/chay-hay-chet/chuong-1-6GOyB0lUNjPm",
+  "search": "https://truyennet.org/tim-kiem?s=chay"
+ },
+ "khotruyenchu": {
+  "book": "https://khotruyenchu.fun/truyen/bat-dau-danh-dau-hoang-co-thanh-the/",
+  "toc2": "https://khotruyenchu.fun/truyen/bat-dau-danh-dau-hoang-co-thanh-the/page/2/",
+  "chapter": "https://khotruyenchu.fun/chuong-1-diem-danh-nhan-thanh-the-dai-thanh-di-tuong-van-thanh-trieu-bai/"
+ },
+ "truyennova": {
+  "book": "https://truyennova.com/truyen/trong-sinh-nam-80-bat-dau-san-ban-tren-nui-lam-giau-dich",
+  "chapter": "https://truyennova.com/truyen/trong-sinh-nam-80-bat-dau-san-ban-tren-nui-lam-giau-dich/chuong-1"
+ },
+ "phithang": {
+  "book": "https://phithang.com/novel/xuyen-viet-chi-gia-huu-chue-te/",
+  "chapter": "https://phithang.com/novel/xuyen-viet-chi-gia-huu-chue-te/chuong-1-nha-co-song-nhi/",
+  "search": "https://phithang.com/?s=xuyen+viet"
+ },
+ "teamtruyen": {
+  "book": "https://teamtruyen.com/truyen/chang-re-quyen-the-bui-nguyen-minh",
+  "chapter": "https://teamtruyen.com/truyen/chang-re-quyen-the-bui-nguyen-minh/chuong-2"
+ },
+ "vnthuquan": {
+  "book": "https://vnthuquan.org/TacPham/co-gai-do-long-3899/",
+  "toc2": "https://vnthuquan.org/api/tacpham/get-mucluc?tuaId=3899&page=2&pageSize=100",
+  "chapter": "https://vnthuquan.org/TacPham/co-gai-do-long-3899/chuong-1"
+ },
+ "hatduahau": {
+  "book": "https://hatduahau.com/truyen/da-ngu-rieng-roi-toi-tai-hon-ma-anh-quy-lam-gi-doc-truyen-2026/",
+  "toc2": "https://hatduahau.com/truyen/da-ngu-rieng-roi-toi-tai-hon-ma-anh-quy-lam-gi-doc-truyen-2026/chuong/page/2/?rev=1",
+  "chapter": "https://hatduahau.com/truyen/da-ngu-rieng-roi-toi-tai-hon-ma-anh-quy-lam-gi-doc-truyen-2026/chuong-1/",
+  "search": "https://hatduahau.com/?s=tai+hon"
+ },
+ "dualeotruyenfull": {
+  "book": "https://dualeotruyenfull.net/doc-truyen/sau-khi-thieu-gia-gia-thuc-tinh-cung-vai-ac-cuoi-truoc-yeu-sau/",
+  "chapter": "https://dualeotruyenfull.net/doc-truyen/sau-khi-thieu-gia-gia-thuc-tinh-cung-vai-ac-cuoi-truoc-yeu-sau/chuong-93/",
+  "search": "https://dualeotruyenfull.net/?s=thieu+gia"
+ },
+ "aatruyen": {
+  "book": "https://aatruyen.net/truyen/sau-nam-cho-doi-chung-ta-nghenh-don-hanh-phuc",
+  "toc2": "https://aatruyen.net/truyen/sau-nam-cho-doi-chung-ta-nghenh-don-hanh-phuc?page=2",
+  "chapter": "https://aatruyen.net/truyen/sau-nam-cho-doi-chung-ta-nghenh-don-hanh-phuc/chuong-230.html"
+ },
+ "xalosach": {
+  "book": "https://xalosach.com/tu-khi-hoa-thanh-thieu-nu-toi-bat-dau-tram-yeu-tru-ma-0.html",
+  "chapter": "https://xalosach.com/doc-truyen/tu-khi-hoa-thanh-thieu-nu-toi-bat-dau-tram-yeu-tru-ma-chuong-1.html"
+ },
+ "tieuthuyet": {
+  "book": "https://tieuthuyet.vn/buc-anh-bi-mat-cua-hoc-ba",
+  "toc2": "https://tieuthuyet.vn/buc-anh-bi-mat-cua-hoc-ba?page_chapter=2",
+  "chapter": "https://tieuthuyet.vn/buc-anh-bi-mat-cua-hoc-ba/chuong-1"
+ },
+ "ranwenapp": {
+  "book": "https://www.ranwenapp.com/html/0/354/",
+  "toc2": "https://www.ranwenapp.com/html/0/354/index_2.html",
+  "chapter": "https://www.ranwenapp.com/html/0/354/387405.html",
+  "chapter_part2": "https://www.ranwenapp.com/html/0/354/387405_2.html",
+  "search": "https://www.ranwenapp.com/search.php?q=%E8%AE%AD%E7%BB%83%E5%AE%B6"
+ },
+ "tycqxs": {
+  "book": "https://www.tycqxs.net/0/645/",
+  "chapter": "https://www.tycqxs.net/0/645/696936.html",
+  "search": "https://www.tycqxs.net/search.php?q=%E5%A4%A7%E4%BD%AC"
+ },
+ "256wx": {
+  "book": "https://www.256wx.org/read/163772/",
+  "chapter": "https://www.256wx.org/read/163772/2.html"
+ }
+}

@@ -24,7 +24,7 @@ Kế hoạch đầy đủ: `docs/PLAN.md`. Mọi quyết định kiến trúc m�
 .\gradlew.bat lintDebug                     # lint (CI chạy, phải không còn lỗi mức Error)
 .\gradlew.bat :app:assembleRelease          # APK release (R8, ký bằng keystore.properties nếu có; xem docs/RELEASE.md)
 D:\Android\Sdk\platform-tools\adb.exe devices
-D:\Android\Sdk\platform-tools\adb.exe install -r app\build\outputs\apk\debug\app-debug.apk
+D:\Android\Sdk\platform-tools\adb.exe install -r app\build\outputs\apk\debug\app-arm64-v8a-debug.apk   # APK chia theo ABI, kể cả debug
 D:\Android\Sdk\platform-tools\adb.exe shell am start -n vn.esstar.ainovel.debug/vn.esstar.ainovel.MainActivity
 D:\Android\Sdk\platform-tools\adb.exe exec-out screencap -p > shot.png
 D:\Android\Sdk\platform-tools\adb.exe logcat -d -s AINovel:V AndroidRuntime:E
@@ -60,7 +60,7 @@ Quy tắc phụ thuộc: `feature` -> `domain`, `core/*`, `data/*` (qua interfac
 - Coroutines: inject dispatcher qua `@Dispatcher(AppDispatcher.IO)`; không dùng `Dispatchers.IO` trực tiếp ngoài module common.
 - Log bằng Timber. Không `println`/`Log.d`.
 - Tên file/lớp tiếng Anh; chuỗi UI tiếng Việt trong resources; comment ngắn gọn, ưu tiên tiếng Anh trong code.
-- Mỗi rule nguồn truyện (`data/source`) đi kèm HTML mẫu trong `src/test/resources/fixtures/<sourceId>/` và unit test parse không cần mạng.
+- Mỗi rule nguồn truyện (`data/source`) đi kèm HTML mẫu trong `src/test/resources/fixtures/<sourceId>/` + `expect.json` (ghi bằng `tools/sources/record_expect.py` từ `RuleDumpTest`; `SiteFixturesTest` kiểm tra lại). Khảo sát site mới bằng `tools/sources/survey.py`, `probe.py`, `inspect_site.py` (xem `docs/SOURCE_RULES.md`).
 - Parser, convert engine, TextSegmenter, TextNormalizer bắt buộc có unit test. UI placeholder không cần test.
 
 ## Quy trình làm việc

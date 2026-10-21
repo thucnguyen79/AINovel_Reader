@@ -1,0 +1,57 @@
+{
+  "id": "dualeotruyenfull",
+  "name": "Dưa Leo Truyện Full",
+  "baseUrl": "https://dualeotruyenfull.net",
+  "hosts": [
+    "dualeotruyenfull.net"
+  ],
+  "lang": "vi",
+  "fetch": {
+    "mode": "http"
+  },
+  "urls": {
+    "chapter": "^https?://[^/]+/doc-truyen/[^/]+/chuong-\\d+[^/]*/?$",
+    "book": "^https?://[^/]+/doc-truyen/[^/]+/?(chuong/page/\\d+/?)?(\\?.*)?$"
+  },
+  "search": {
+    "url": "{base}/?s={query}",
+    "list": "article.uk-grid-small:has(h2 a[href*=/doc-truyen/])",
+    "title": "h2 a@text",
+    "link": "h2 a@href",
+    "cover": "img@src"
+  },
+  "book": {
+    "title": "h1#manga-title@text",
+    "author": "div.manga-info-details a[href*=tac-gia]@text",
+    "cover": "meta[property=og:image]@content",
+    "description": "div#manga-description@html",
+    "genres": "a.uk-button[href*=the-loai]@text"
+  },
+  "toc": {
+    "list": "div#chapter-list .chapter-item a",
+    "title": "h3@text|regex:^(?:.*?–\\s*)?(.+)$",
+    "link": "@href",
+    "totalPages": "ul.uk-pagination li:nth-last-child(2) a@text",
+    "pageUrl": "{url}/chuong/page/{page}/",
+    "reverse": true
+  },
+  "chapter": {
+    "title": "h1.uk-h2@text",
+    "content": "div#chapter-content",
+    "remove": [
+      "script",
+      "style",
+      "iframe",
+      "ins",
+      "noscript",
+      "[id^=ads]",
+      ".ads"
+    ],
+    "removeLines": [
+      "dualeotruyenfull"
+    ],
+    "bookUrl": "a#breadcrumb-manga@href",
+    "prev": "a#prev-link@href",
+    "next": "a#next-link@href"
+  }
+}

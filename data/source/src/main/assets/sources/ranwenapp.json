@@ -1,0 +1,66 @@
+{
+  "id": "ranwenapp",
+  "name": "燃文小说网",
+  "baseUrl": "https://www.ranwenapp.com",
+  "hosts": [
+    "ranwenapp.com"
+  ],
+  "lang": "zh",
+  "fetch": {
+    "mode": "http"
+  },
+  "urls": {
+    "rewrite": [
+      {
+        "pattern": "^http://",
+        "replacement": "https://"
+      }
+    ],
+    "chapter": "^https?://[^/]+/html/\\d+/\\d+/\\d+(_\\d+)?\\.html$",
+    "book": "^https?://[^/]+/html/\\d+/\\d+/?(index_\\d+\\.html)?$"
+  },
+  "search": {
+    "url": "{base}/search.php?q={query}",
+    "list": "dl:has(dd h3 a)",
+    "title": "dd h3 a@text",
+    "link": "dd h3 a@href",
+    "cover": "dt img@src",
+    "author": "dd.book_other:containsOwn(作者) span@text",
+    "latestChapter": "dd.book_other:containsOwn(最新章节) a@text"
+  },
+  "book": {
+    "title": "h1@text",
+    "author": "meta[property=og:novel:author]@content",
+    "cover": "img.img-thumbnail@src",
+    "description": "meta[property=og:description]@content",
+    "status": "meta[property=og:novel:status]@content",
+    "genres": "meta[property=og:novel:category]@content"
+  },
+  "toc": {
+    "list": "div.book_list2 ul li a",
+    "title": "@text",
+    "link": "@href",
+    "totalPages": "div.pages li.page-item.disabled a@text|regex:/(\\d+)",
+    "pageUrl": "{url}/index_{page}.html"
+  },
+  "chapter": {
+    "title": "h1@text|regex:^(.*?)-《[^》]*》$",
+    "content": "article",
+    "remove": [
+      "script",
+      "style",
+      "iframe",
+      "ins",
+      "noscript"
+    ],
+    "removeLines": [
+      "^第\\(\\d+/\\d+\\)页$",
+      "ranwenapp",
+      "燃文小说网"
+    ],
+    "bookUrl": "a:containsOwn(目录)@href",
+    "prev": "a#prev@href|regex:^(.*/\\d+\\.html)$",
+    "next": "a#next@href|regex:^(.*/\\d+\\.html)$",
+    "nextPage": "a#next@href|regex:^(.*_\\d+\\.html)$"
+  }
+}

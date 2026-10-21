@@ -1,0 +1,3 @@
+# One host per line. Copy to sites.txt (git-ignored), then: set SURVEY_DIR=<scratch dir> && python tools/sources/survey.py
+truyenfull.live
+metruyenchu.com.vn

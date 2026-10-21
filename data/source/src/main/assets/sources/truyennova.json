@@ -1,0 +1,47 @@
+{
+  "id": "truyennova",
+  "name": "Nova Truyện",
+  "baseUrl": "https://truyennova.com",
+  "hosts": [
+    "truyennova.com"
+  ],
+  "lang": "vi",
+  "fetch": {
+    "mode": "http"
+  },
+  "urls": {
+    "chapter": "^https?://[^/]+/truyen/[^/]+/chuong-\\d+[^/]*/?$",
+    "book": "^https?://[^/]+/truyen/[^/]+/?$"
+  },
+  "book": {
+    "title": "h1@text",
+    "author": "div.description p:has(strong:containsOwn(Tác giả))@ownText",
+    "cover": "img.detail-cover@src",
+    "description": "div.description@html",
+    "genres": "div.description p:has(strong:containsOwn(Thể loại))@ownText"
+  },
+  "toc": {
+    "list": "div#chapter-grid-container a.chap-item",
+    "title": "div.chap-left@text",
+    "link": "@href"
+  },
+  "chapter": {
+    "title": "div.chapter-title h2@text",
+    "content": "div.chapter-content",
+    "remove": [
+      "script",
+      "style",
+      "iframe",
+      "ins",
+      "noscript",
+      "div[id*=ads]",
+      ".ads"
+    ],
+    "removeLines": [
+      "truyennova"
+    ],
+    "bookUrl": "a:containsOwn(Xem Mục Lục)@href",
+    "prev": "a.btn-nav:not(.disabled):containsOwn(Trước)@href",
+    "next": "a.btn-nav:not(.disabled):containsOwn(Sau)@href"
+  }
+}

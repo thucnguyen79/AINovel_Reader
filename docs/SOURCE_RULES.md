@@ -61,6 +61,9 @@ Ví dụ: `h3.truyen-title a@href`, `#total-page@value`, `.info a[itemprop=genre
     "pageList": "ul li a",             //   selector dùng cho trang 2..N nếu là fragment HTML khác cấu trúc
     "pageJson": "data",                //   nếu trang 2..N là JSON: tên trường chứa HTML (đường dẫn chấm)
     "pageHeaders": { "X-Requested-With": "XMLHttpRequest" },  // header thêm cho trang 2..N
+    "pageSize": 50, "totalChapters": "span[itemprop=numberOfPages]@text",  // cách 1b: site chỉ cho tổng số chương -> số trang = ceil(tổng/pageSize)
+    "jsonItems": "chapters", "jsonTitle": "title",            // cách 1c: trang 2..N là JSON mảng object (vnthuquan)
+    "jsonLink": "{url}/chuong-{chuongId}",                    //   URL chương ghép từ {url}, {base} và {tên trường}
     "next": "css link trang sau",      // cách 2: lần theo link "sau" đến khi hết
     "reverse": false,                  // true nếu site liệt kê chương mới nhất trước
     "maxPages": 500
@@ -71,7 +74,9 @@ Ví dụ: `h3.truyen-title a@href`, `#total-page@value`, `.info a[itemprop=genre
     "remove": ["script", "div[id^=ads]"],       // CSS bị xoá trước khi lấy text
     "removeLines": ["^truyenfull"],             // regex (không phân biệt hoa thường) xoá cả dòng
     "bookUrl": "a.truyen-title@href",  // bắt buộc nếu muốn "Dán link chương" tự tìm truyện
-    "prev": "#prev_chap@href", "next": "#next_chap@href"
+    "prev": "#prev_chap@href", "next": "#next_chap@href",
+    "nextPage": "a#next@href|regex:^(.*_\\d+\\.html)$",  // (tuỳ chọn) link phần tiếp của CÙNG chương (site chia chương thành xxx_2.html);
+    "maxPages": 30                                        //   các phần được tải nối tiếp và ghép đoạn văn
   }
 }
 ```
@@ -82,12 +87,17 @@ Ví dụ: `h3.truyen-title a@href`, `#total-page@value`, `.info a[itemprop=genre
 
 ## Quy trình thêm site mới
 
-1. Dùng `curl -A "<UA trình duyệt>"` tải 4 trang: tìm kiếm, trang truyện (và 1 trang danh sách chương khác nếu có phân trang), trang chương. Lưu vào `data/source/src/test/resources/fixtures/<id>/` với tên `search.html`, `book.html`, `toc_page2.html`, `chapter.html`.
-2. Viết `assets/sources/<id>.json`.
-3. Viết `<Id>RuleTest.kt` theo mẫu `TruyenfullRuleTest`: kiểm tra classify, search, book info, toc (số chương, chỉ số, URL), chapter (tiêu đề, số đoạn, prev/next, không còn rác).
-4. `.\gradlew.bat :data:source:testDebugUnitTest` xanh rồi mới commit.
+Công cụ trong `tools/sources/` (Python 3, cần `beautifulsoup4` + `lxml`; đặt biến môi trường `SURVEY_DIR` tới một thư mục ngoài repo để chứa HTML tải về):
 
-## Các rule hiện có (21/10/2026)
+1. `survey.py` – đọc `sites.txt` (mỗi dòng một host, mẫu `sites.example.txt`), tải trang chủ từng site, ghi `survey.json` (mã HTTP, theme đoán được: WordPress/Madara/Nuxt/Cloudflare…) và `html/<host>.html`.
+2. `probe.py` – với site tĩnh, tự tìm một trang truyện + một trang chương, lưu `html/<host>__book.html`, `html/<host>__chapter.html` và `probe.json`.
+3. `inspect_site.py <host>` – in cấu trúc trang đã lưu: tiêu đề, tác giả, ảnh bìa, nhóm link chương lớn nhất, phân trang, ứng viên khối nội dung, nút trước/sau. `snip.py <host> <file> <css>` in HTML của một selector để chốt rule.
+4. Viết `assets/sources/<id>.json`; chép HTML (đã bỏ `<script>`, `<style>`, `<svg>`) vào `data/source/src/test/resources/fixtures/<id>/` với tên `book.html`, `toc_page2.html` (hoặc `.json`), `chapter.html`, `chapter_part2.html`, `search.html`; thêm URL các trang đó vào `fixtures/_urls.json`.
+5. `.\gradlew.bat :data:source:testDebugUnitTest --tests "*RuleDumpTest"` rồi đọc `data/source/build/rule-dump.txt`: tựa, tác giả, số chương, chương đầu/cuối, trang 2, tiêu đề/đoạn đầu/đoạn cuối/prev/next của chương, kết quả tìm kiếm. Sửa rule đến khi đúng.
+6. `python tools/sources/record_expect.py <id>` ghi `fixtures/<id>/expect.json`; `SiteFixturesTest` so sánh mọi giá trị đó với parser hiện tại nên site đổi giao diện hay parser hỏng sẽ lộ ngay. Rule phức tạp có thể thêm test riêng (`TruyenfullRuleTest`, `WebViewSitesRuleTest`…).
+7. `.\gradlew.bat :data:source:testDebugUnitTest` xanh, cài APK thử trên máy ít nhất trang truyện + một chương, rồi mới commit.
+
+## Các rule hiện có (cập nhật 22/10/2026)
 
 | id | Host | Danh sách chương | Ghi chú |
 |---|---|---|---|
@@ -100,8 +110,30 @@ Ví dụ: `h3.truyen-title a@href`, `#total-page@value`, `.info a[itemprop=genre
 | `zongheng` | zongheng.com (zh) | Trang `detail/{id}?tabsName=catalogue` render bằng JS: `book`/`toc` dùng `webview`, chờ `.chapter-list--item`; chương ở `read.zongheng.com` tải bằng HTTP | Giới thiệu chỉ có ở tab mặc định nên chờ `.detail-work-info--introduction` |
 | `ixdzs8` | ixdzs8.com (zh) | Trang sách tĩnh, `div.clist ul.u-chapter li a` đủ 448 chương | Trang chương có bước "正在验证浏览器" bằng JS nên `chapter.mode = webview`, chờ `article.page-content p` |
 | `17k` | h5.17k.com (zh; link www/m được viết lại sang h5) | `book/{id}.html` (thông tin) + `list/{id}.html` (mục lục `dl.listCont dd a.name`, nạp bằng XHR) | WAF Aliyun chặn HTTP thường và luôn đẩy WebView về bản h5, nên rule viết theo h5: toàn bộ `webview`; tựa/tác giả lấy từ `og:title` |
+| `metruyenhot`, `metruyenhotvn` | metruyenhot.me, metruyenhotvn.com | `?page=N`, 50 chương/trang; tổng số trang lấy từ link `li.nexts` | Hai host cùng template Laravel; không có mô tả truyện; nội dung `#chapt-content .chapter-c` |
+| `truyenhoan` | truyenhoan.com | `{url}/trang-N/`, tổng trang từ link "Last" | Bản sao truyenfull; nút trước/sau cùng id `prev_chap` nên chọn theo icon |
+| `truyennet` | truyennet.org | Cùng engine metruyenchu: AJAX JSON `/get/listchap/{bid}?page=N` | Tìm kiếm `/tim-kiem?s=` |
+| `khotruyenchu` | khotruyenchu.fun | WordPress, `{url}/page/N/`, 50 bài/trang | Chương là bài viết `/chuong-N-…/`; bỏ thanh công cụ đọc, bình luận wpDiscuz |
+| `truyennova` | truyennova.com (cùng engine truyenflow.com, chưa thử) | Một trang đủ mục lục | Tác giả/thể loại nằm trong khối mô tả (`p:has(strong)`) |
+| `phithang` | phithang.com | WordPress theme WN, một trang (1.591 chương) | Tác giả lấy từ dòng "Tác giả:" trong synopsis; tìm kiếm WP `?s=` lọc bỏ link chương |
+| `teamtruyen` | teamtruyen.com | Một trang (6.578 chương, ~5 MB) | Trang chương chứa cả danh sách chương; `prev/next` qua `span` con |
+| `vnthuquan` | vnthuquan.org | 100 chương đầu trong modal, trang sau qua JSON `/api/tacpham/get-mucluc` (`jsonItems`) | `bookId` đọc từ JS `const tuaId = N`; không có ảnh bìa |
+| `hatduahau`, `dualeotruyenfull` | hatduahau.com, dualeotruyenfull.net | WordPress theme init-manga, `{url}/chuong/page/N/` (24/trang); hatduahau thêm `?rev=1` | dualeo liệt kê mới → cũ nên `reverse: true`; tìm kiếm `?s=` chỉ giữ bài có link `/truyen/` hoặc `/doc-truyen/` |
+| `aatruyen` | aatruyen.net | `?page=N`, 40 chương/trang | Bỏ khối "Các chương mới nhất" bằng `div.list-chapter-title.mt-4 + div.cnt-list-chapter` |
+| `xalosach` | xalosach.com | `?P=N`, 100 chương/trang, tổng trang từ "Đi đến …/N" | Link prev/next khi không có chương là `Chưa có chương mới.html` nên lọc `[href*=chuong-]` |
+| `tieuthuyet` | tieuthuyet.vn | `?page_chapter=N`, 15 chương/trang | Theme truyenfull biến thể; nội dung `div.chapter-content#dynamic-content` |
+| `ranwenapp`, `tycqxs` | ranwenapp.com, tycqxs.net (zh) | `{url}/index_N.html`, 100 chương/trang; tổng trang từ "1/8" | Chương chia nhiều phần `xxx_2.html`: dùng `chapter.nextPage` ghép lại; chỉ dùng https (viết lại `http://`); meta `og:novel:*` cho tác giả/trạng thái |
+| `256wx` | 256wx.org (zh) | Một trang; mỗi "chương" là một trang `/read/{id}/N.html` (第N页) | Site không chia chương thật; bỏ khối `div.page` trong nội dung |
 
-Chưa hỗ trợ: **xtruyen.net** (theme Madara tuỳ biến: nội dung chương và danh sách chương nạp bằng `admin-ajax.php` có nonce, tìm kiếm là ứng dụng JS). Cần mode `webview` hoặc giải mã API; để lại cho giai đoạn sau.
+### Site đã khảo sát (22/10/2026) nhưng chưa làm rule
+
+- **Mục lục nạp bằng JS/API riêng, HTML tĩnh chỉ có vài chục chương**: sstruyen.pics + truyensac.buzz (Next.js, nút phân trang client-side, `?page=` bị bỏ qua), bientruyen.com, metruyenchu.co, truyenc.net, zuminovel.com, vtruyenchu.org, truyenfast.com, wikicv.org, truyendichfull.site, docfull.vip, dichtienghoa.net, truyen-h.com, sitruyencv.com, chivi.app, 10sto.com. Cần bắt API bằng trình duyệt (CDP) hoặc mode `webview` biết bấm trang.
+- **Mục lục nạp bằng POST** (`admin-ajax.php` hoặc Madara `ajax/chapters`): nhatruyen.site, truyenchu.net, plnovel.com, gaumeoteam.com, xtruyen.net. Engine mới chỉ GET; cần thêm `pageMethod`/`pageBody`.
+- **Nội dung chương mã hoá bằng JS**: truyentronbo.com (`data-compressed`), docln.sbs (`data-c`); thungtruyen.com đòi "xác minh nhanh". Cần `webview` và chọn đúng selector sau khi giải mã.
+- **Mục lục theo quyển/tập, nhiều trang lồng nhau**: valvrareteam.net (light novel), docln.sbs.
+- **Chặn bot / Cloudflare / không mở được từ server**: wattpad.com, truyenyy.co, sstruyen.net, zingtruyen.store, lacatruyen.vip, loppytoon.com, truyenhdc.com, vietnamthuquan.eu (ngắt kết nối); truyencn.com, inkitt.com, teenfic.net, vip.audiotruyenfull.org, caytruyen.site, giatocvuongtai.com, webtruyendich.com (403); mọi blog `*.wordpress.com` (Cloudflare "Checking your browser"); msvtruyen.com, truyencom.com, metruyenhot.com (lỗi TLS).
+- **Chết / không phải site truyện chữ**: xtruyen.net, truyenmoikk.com, itruyenchuz.org, kenhtruyenfull.com (không phân giải DNS); lovetruyen.pro (521); dasactruyen.com (bị khoá); tieuthuyetdammy.net, dichngay.com, linhdi.vn, dammy.me (trang trống/chuyển hướng); isach.info (chủ yếu tải ebook), truyenc.com (truyện cười/audio), storya.click (chọn ngôn ngữ), noveltoon.vn / sangtacviet.xyz / webnovel.vn / khoaitay.cc / truyen2u.com / davulacam.info (ứng dụng JS hoặc cần đăng nhập).
+- **Chưa khảo sát kỹ** (trang chủ mở được nhưng probe không tìm ra trang truyện): metruyensangtac.com, navyteams.com (nội dung chương nạp JS), truyenflow.com, phamvuc.com, tacgiaviet.com, mongtruyen.com, aztruyen.top, truyenh.top, dammy.cc, monkeydd.com, hangtruyenchu.com, comnguoinovel.com, lnkuro.top, tinhngoncoc.net, tieuthuyetmang.com, itruyen.org, truyendich.space.
 
 ## Mode `webview`
 

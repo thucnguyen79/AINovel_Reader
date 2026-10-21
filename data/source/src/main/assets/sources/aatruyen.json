@@ -1,0 +1,50 @@
+{
+  "id": "aatruyen",
+  "name": "AA Truyện",
+  "baseUrl": "https://aatruyen.net",
+  "hosts": [
+    "aatruyen.net"
+  ],
+  "lang": "vi",
+  "fetch": {
+    "mode": "http"
+  },
+  "urls": {
+    "chapter": "^https?://[^/]+/truyen/[^/]+/chuong-[^/]+\\.html$",
+    "book": "^https?://[^/]+/truyen/[^/]+/?(\\?page=\\d+)?$"
+  },
+  "book": {
+    "title": "h1.title-heading@text",
+    "author": "a.translation_team_link@text",
+    "cover": "meta[property=og:image]@content",
+    "description": "div.comics-description .ql-editor@html"
+  },
+  "toc": {
+    "list": "div.list-chapter-title.mt-4 + div.cnt-list-chapter .episode-title a",
+    "title": "@text",
+    "link": "@href",
+    "totalPages": "ul.pagination li:nth-last-child(2) a@text",
+    "pageUrl": "{url}?page={page}"
+  },
+  "chapter": {
+    "title": "h1.chapter-title@text",
+    "content": "div.story-content div.content-container",
+    "remove": [
+      "script",
+      "style",
+      "iframe",
+      "ins",
+      "noscript",
+      "input",
+      "select",
+      ".chapter-toolbar",
+      ".ads"
+    ],
+    "removeLines": [
+      "aatruyen"
+    ],
+    "bookUrl": "h2.comics-title a@href",
+    "prev": "a.prev_page@href",
+    "next": "a.next_page@href"
+  }
+}

@@ -112,6 +112,22 @@ data class TocRule(
     val pageJson: String? = null,
     /** Extra headers for pages 2..N (e.g. `X-Requested-With` for AJAX endpoints). */
     val pageHeaders: Map<String, String> = emptyMap(),
+    /**
+     * When the site exposes the chapter count but not the page count: the number of chapters per TOC page.
+     * Total pages = ceil([totalChapters] / pageSize). Ignored when [totalPages] matches.
+     */
+    val pageSize: Int? = null,
+    /** Selector giving the total number of chapters; used together with [pageSize]. */
+    val totalChapters: String? = null,
+    /**
+     * When pages 2..N are JSON arrays of chapter objects: dot path to the array (e.g. `chapters`).
+     * Each item yields a chapter from [jsonTitle] and [jsonLink].
+     */
+    val jsonItems: String? = null,
+    /** Field of a JSON item holding the chapter title. */
+    val jsonTitle: String = "title",
+    /** Template of the chapter URL for a JSON item: `{url}`, `{base}` and `{<field>}` placeholders. */
+    val jsonLink: String? = null,
     /** True when the site lists newest chapters first. */
     val reverse: Boolean = false,
     /** Safety cap on the number of TOC pages followed. */
@@ -132,4 +148,11 @@ data class ChapterRule(
     val bookUrl: String? = null,
     val prev: String? = null,
     val next: String? = null,
+    /**
+     * Selector of the link to the next part of the *same* chapter, for sites that split a chapter over
+     * several pages (`xxx_2.html`). Parts are fetched and appended until it yields nothing.
+     */
+    val nextPage: String? = null,
+    /** Safety cap on the number of parts followed through [nextPage]. */
+    val maxPages: Int = 30,
 )

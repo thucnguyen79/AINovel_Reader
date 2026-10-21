@@ -2,6 +2,11 @@
 
 Mỗi mục: bối cảnh, quyết định, hệ quả. Mới nhất ở trên.
 
+## ADR-010 (2026-10-22): Test rule nguồn bằng dữ liệu ghi sẵn (`expect.json`) thay vì test Kotlin viết tay cho từng site
+- Bối cảnh: thêm 17 site một lúc; test viết tay cho mỗi rule (`TruyenfullRuleTest`…) tốn công và dễ bỏ sót trường.
+- Quyết định: `RuleProbe` chạy rule trên fixture và làm phẳng mọi giá trị thành `key=value`; `RuleDumpTest` in ra để người viết rule soát; `tools/sources/record_expect.py` ghi thành `fixtures/<id>/expect.json`; `SiteFixturesTest` so sánh lại toàn bộ và bắt buộc mọi rule trong assets phải có thư mục fixture. Engine thêm `toc.pageSize/totalChapters`, `toc.jsonItems/jsonTitle/jsonLink`, `chapter.nextPage` thay vì viết code riêng cho site.
+- Hệ quả: thêm site = rule JSON + HTML mẫu + một lệnh ghi; đổi parser làm lệch kết quả sẽ lộ ở tất cả site. Fixture lớn phải cắt bớt danh sách chương (teamtruyen, phithang) để repo không phình. Site mục lục nạp JS/POST vẫn chưa hỗ trợ (ghi trong `docs/SOURCE_RULES.md`).
+
 ## ADR-009 (2026-10-21): Phát hành qua GitHub Releases, ký bằng keystore cục bộ, sao lưu ZIP do người dùng giữ
 - Bối cảnh: app không có backend, cần cách phân phối và cập nhật không tốn phí, và cách người dùng giữ dữ liệu khi đổi máy.
 - Quyết định: (1) APK ký bằng keystore trong `keystore/` + `keystore.properties` (git-ignore); CI nhận keystore qua secrets base64; không có keystore thì release ký debug chỉ để thử. (2) Split ABI arm64/armv7 + universal, R8 bật; rule keep cho sherpa-onnx JNI, pdfbox, serializer. (3) Kiểm tra bản mới bằng GitHub REST API `releases/latest` khi người dùng bấm, không tự động, không gửi thông tin máy. (4) Sao lưu là một file ZIP (JSON + text ebook + bìa) người dùng tự chọn nơi lưu qua SAF; khôi phục gộp, không ghi đè truyện đang có. (5) Nhật ký ghi file trong app, chỉ rời máy khi người dùng chia sẻ.

@@ -1,0 +1,57 @@
+{
+  "id": "khotruyenchu",
+  "name": "Kho Truyện Chữ",
+  "baseUrl": "https://khotruyenchu.fun",
+  "hosts": [
+    "khotruyenchu.fun"
+  ],
+  "lang": "vi",
+  "fetch": {
+    "mode": "http"
+  },
+  "urls": {
+    "chapter": "^https?://[^/]+/chuong-\\d+[^/]*/?$",
+    "book": "^https?://[^/]+/truyen/[^/]+/?(page/\\d+/?)?$"
+  },
+  "book": {
+    "title": "h1.truyen-title@text",
+    "author": "div.truyen-meta a[href*=tac-gia]@text",
+    "cover": "div.truyen-cover img@data-src",
+    "description": "div.truyen-desc@html",
+    "status": "div.truyen-meta span:contains(Tình trạng) strong@text",
+    "genres": "div.truyen-meta a[href*=the-loai]@text"
+  },
+  "toc": {
+    "list": "article.entry-card h2.entry-title a",
+    "title": "@text",
+    "link": "@href",
+    "totalPages": "nav.ct-pagination div a.page-numbers:last-child@text",
+    "pageUrl": "{url}/page/{page}/"
+  },
+  "chapter": {
+    "title": "h1.page-title@text",
+    "content": "div.entry-content",
+    "remove": [
+      "script",
+      "style",
+      "iframe",
+      "ins",
+      "noscript",
+      ".story-navigation",
+      ".reading-tools-bar",
+      "#wpd-threads",
+      ".wpd-thread",
+      "#story-toc",
+      ".story-toc",
+      ".btn-main-cat",
+      ".sharedaddy",
+      ".ads"
+    ],
+    "removeLines": [
+      "khotruyenchu"
+    ],
+    "bookUrl": "a.btn-main-cat@href",
+    "prev": "div.nav-prev a@href",
+    "next": "div.nav-next a@href"
+  }
+}

@@ -93,6 +93,7 @@ class SourceRepositoryImpl @Inject constructor(
                         limit.withPermit {
                             val pageUrl = parser.tocPageUrl(tocUrl, page, bookId) ?: return@withPermit emptyList()
                             val body = fetcher.fetch(pageUrl, rule.tocOptions(headers)).html
+                            if (rule.toc.jsonItems != null) return@withPermit parser.parseTocJson(body, tocUrl).chapters
                             val isFragment = rule.toc.pageJson != null || rule.toc.pageList != null
                             val html = if (rule.toc.pageJson != null) parser.tocHtmlFromJson(body) else body
                             parser.parseTocPage(html, pageUrl, fragment = isFragment).chapters
@@ -124,8 +125,28 @@ class SourceRepositoryImpl @Inject constructor(
         val rule = registry.forUrl(rawUrl) ?: throw UnsupportedSourceException(rawUrl)
         val parser = registry.parser(rule)
         val url = parser.canonicalUrl(rawUrl)
-        val page = fetcher.fetch(url, rule.options(rule.chapter.mode, rule.chapter.waitFor))
-        parser.parseChapter(page.html, page.finalUrl)
+        val options = rule.options(rule.chapter.mode, rule.chapter.waitFor)
+        val page = fetcher.fetch(url, options)
+        var content = parser.parseChapter(page.html, page.finalUrl)
+        if (rule.chapter.nextPage == null) return@withContext content
+
+        // Chapter split over several pages: follow the "next part" link and append the paragraphs.
+        var next = parser.chapterNextPage(page.html, page.finalUrl)
+        val seen = hashSetOf(page.finalUrl, url)
+        var parts = 1
+        while (next != null && parts < rule.chapter.maxPages && seen.add(next)) {
+            val part = fetcher.fetch(next, options)
+            val parsed = runCatching { parser.parseChapter(part.html, part.finalUrl) }
+                .onFailure { Timber.w(it, "Chapter part %s failed", next) }
+                .getOrNull() ?: break
+            content = content.copy(
+                paragraphs = content.paragraphs + parsed.paragraphs,
+                nextUrl = parsed.nextUrl ?: content.nextUrl,
+            )
+            next = parser.chapterNextPage(part.html, part.finalUrl)
+            parts++
+        }
+        content
     }
 
     override suspend fun search(query: String, sourceIds: List<SourceId>): List<SearchResult> = withContext(io) {

@@ -4,6 +4,7 @@ import java.net.URLEncoder
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -116,12 +117,45 @@ class RuleParser(private val rule: SourceRule) {
             val title = titleSel.first(el) ?: url
             url to title
         }.mapIndexed { i, (url, title) -> FetchedChapter(index = startIndex + i, title = title, url = url) }
+        val totalPages = doc.first(t.totalPages)?.toIntOrNull()
+            ?: t.pageSize?.takeIf { it > 0 }?.let { size ->
+                doc.first(t.totalChapters)?.filter(Char::isDigit)?.toIntOrNull()?.let { total -> (total + size - 1) / size }
+            }
         return ParsedTocPage(
             chapters = chapters,
             nextUrl = doc.first(t.next),
-            totalPages = doc.first(t.totalPages)?.toIntOrNull(),
+            totalPages = totalPages,
         )
     }
+
+    /**
+     * Parses a JSON TOC page (pages 2..N of rules with [TocRule.jsonItems]): each item of the array becomes a
+     * chapter whose URL is built from [TocRule.jsonLink] with `{url}`, `{base}` and `{<field>}` placeholders.
+     */
+    fun parseTocJson(body: String, bookUrl: String, startIndex: Int = 0): ParsedTocPage {
+        val t = rule.toc
+        val path = t.jsonItems ?: throw SourceParseException("Rule ${rule.id} has no toc.jsonItems")
+        var node: JsonElement = Json.parseToJsonElement(body)
+        for (key in path.split('.')) {
+            node = (node as? JsonObject)?.get(key) ?: throw SourceParseException("JSON field '$path' missing in TOC page")
+        }
+        val items = node as? JsonArray ?: throw SourceParseException("JSON field '$path' is not an array")
+        val linkTemplate = t.jsonLink ?: throw SourceParseException("Rule ${rule.id} has no toc.jsonLink")
+        val chapters = items.mapIndexedNotNull { i, item ->
+            val obj = item as? JsonObject ?: return@mapIndexedNotNull null
+            var link = linkTemplate
+                .replace("{url}", bookUrl.substringBefore('?').substringBefore('#').trimEnd('/'))
+                .replace("{base}", rule.baseUrl.trimEnd('/'))
+            for ((key, value) in obj) link = link.replace("{$key}", (value as? JsonPrimitive)?.contentOrNull ?: "")
+            val title = (obj[t.jsonTitle] as? JsonPrimitive)?.contentOrNull?.trim().orEmpty().ifEmpty { link }
+            FetchedChapter(index = startIndex + i, title = title, url = link)
+        }
+        return ParsedTocPage(chapters = chapters, nextUrl = null, totalPages = null)
+    }
+
+    /** URL of the next part of the same chapter, when the rule declares [ChapterRule.nextPage]. */
+    fun chapterNextPage(html: String, pageUrl: String): String? =
+        rule.chapter.nextPage?.let { parse(html, pageUrl).first(it) }
 
     /** Site-internal book id read from the book/TOC page, when the rule declares one. */
     fun tocBookId(html: String, pageUrl: String): String? = rule.toc.bookId?.let { parse(html, pageUrl).first(it) }

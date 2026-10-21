@@ -1,0 +1,52 @@
+{
+  "id": "tieuthuyet",
+  "name": "Tiểu Thuyết VN",
+  "baseUrl": "https://tieuthuyet.vn",
+  "hosts": [
+    "tieuthuyet.vn"
+  ],
+  "lang": "vi",
+  "fetch": {
+    "mode": "http"
+  },
+  "urls": {
+    "chapter": "^https?://[^/]+/[a-z0-9-]+/chuong-\\d+[^/]*/?$",
+    "book": "^https?://[^/]+/[a-z0-9-]+/?(\\?page_chapter=\\d+.*)?$"
+  },
+  "book": {
+    "title": "h1.title[itemprop=name]@text",
+    "author": "a[itemprop=author]@text",
+    "cover": "div.book12 img@src",
+    "description": ".desc-text@html",
+    "status": ".info div:has(h3:containsOwn(Trạng thái)) span@text",
+    "genres": ".genres a[itemprop=genre]@text"
+  },
+  "toc": {
+    "list": "ul.list-chapter li a.chapter-link",
+    "title": "span.chapter-text@text",
+    "link": "@href",
+    "totalPages": "ul.pagination li:nth-last-child(2) a@text",
+    "pageUrl": "{url}?page_chapter={page}"
+  },
+  "chapter": {
+    "title": "a.chapter-title@text",
+    "content": "div.chapter-content",
+    "remove": [
+      "script",
+      "style",
+      "iframe",
+      "ins",
+      "noscript",
+      ".overlay",
+      "input",
+      "div[id^=ads]",
+      ".ads"
+    ],
+    "removeLines": [
+      "tieuthuyet\\.vn"
+    ],
+    "bookUrl": "a.truyen-title@href",
+    "prev": "a#prev_chap:not(.disabled)@href",
+    "next": "a#next_chap:not(.disabled)@href"
+  }
+}

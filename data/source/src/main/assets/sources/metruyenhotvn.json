@@ -1,0 +1,54 @@
+{
+  "id": "metruyenhotvn",
+  "name": "Metruyenhot VN",
+  "baseUrl": "https://metruyenhotvn.com",
+  "hosts": [
+    "metruyenhotvn.com"
+  ],
+  "lang": "vi",
+  "fetch": {
+    "mode": "http"
+  },
+  "urls": {
+    "chapter": "^https?://[^/]+/[a-z0-9-]+/chuong-\\d+[^/]*/?$",
+    "book": "^https?://[^/]+/[a-z0-9-]+/?(\\?page=\\d+)?$"
+  },
+  "book": {
+    "title": "h1.title@text",
+    "author": "span.rv-sr-a[itemprop=author]@text",
+    "cover": "img.lazyload@data-src",
+    "status": "span.status@text",
+    "genres": "[itemprop=genre]@text"
+  },
+  "toc": {
+    "list": "div.col-sm-6:not(.story-details) ul li a",
+    "title": "@text",
+    "link": "@href",
+    "totalPages": "div.pagination li.nexts a@href|regex:page=(\\d+)",
+    "pageUrl": "{url}?page={page}"
+  },
+  "chapter": {
+    "title": ".rv-chapt-title@text",
+    "content": "#chapt-content .chapter-c",
+    "remove": [
+      "script",
+      "style",
+      "iframe",
+      "ins",
+      "noscript",
+      ".notice",
+      ".box-notice",
+      "[id^=show_ads]",
+      "[id^=top_ads]",
+      "input"
+    ],
+    "removeLines": [
+      "metruyenhot",
+      "metruyen_hot",
+      "^Bạn đang đọc truyện"
+    ],
+    "bookUrl": "ul.breadcrumb li.active a@href",
+    "prev": "li.detail-chapter-btn a:containsOwn(Trước)@href",
+    "next": "li.detail-chapter-btn a:containsOwn(Tiếp)@href"
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "id": "truyennet",
+  "name": "TruyenNet",
+  "baseUrl": "https://truyennet.org",
+  "hosts": [
+    "truyennet.org"
+  ],
+  "lang": "vi",
+  "fetch": {
+    "mode": "http"
+  },
+  "urls": {
+    "chapter": "^https?://[^/]+/[a-z0-9-]+/chuong-\\d+[^/]*/?$",
+    "book": "^https?://[^/]+/[a-z0-9-]+/?$"
+  },
+  "search": {
+    "url": "{base}/tim-kiem?s={query}",
+    "list": "div.item:has(> a)",
+    "title": "a@ownText",
+    "link": "a@href"
+  },
+  "book": {
+    "title": "h1[itemprop=name]@text",
+    "author": "a[itemprop=author]@text",
+    "cover": ".book-info-pic img@src",
+    "description": "#gioithieu .scrolltext@html",
+    "status": ".label-status@text",
+    "genres": ".li--genres a@text"
+  },
+  "toc": {
+    "list": "#chapter-list li a",
+    "pageList": "ul li a",
+    "title": "@text",
+    "link": "@href",
+    "bookId": "input[name=bid]@value",
+    "totalPages": ".paging a:last-child@onclick|regex:page\\(\\d+,\\s*(\\d+)\\)",
+    "pageUrl": "{base}/get/listchap/{bookId}?page={page}",
+    "pageJson": "data",
+    "pageHeaders": {
+      "X-Requested-With": "XMLHttpRequest"
+    }
+  },
+  "chapter": {
+    "title": "h2.current-chapter@text",
+    "content": "#story",
+    "remove": [
+      "script",
+      "style",
+      "iframe",
+      "ins",
+      "noscript",
+      "div[id*=ads]",
+      ".ads"
+    ],
+    "removeLines": [
+      "truyennet",
+      "^Nguồn:"
+    ],
+    "bookUrl": "h1.current-book a@href",
+    "prev": "a.back:not(.disabled)@href",
+    "next": "a.next:not(.disabled)@href"
+  }
+}
