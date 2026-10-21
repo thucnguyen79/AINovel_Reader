@@ -35,7 +35,7 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 ### Epic 1.4 Chất lượng
 - [x] Build + unit test xanh, cập nhật checklist, commit, push
 - [x] Thêm site metruyenchu, wikidich, tvtruyen kèm fixture + 15 unit test (engine thêm `bookId`, `pageList`, `pageJson`, `pageHeaders`, placeholder `{base}`/`{bookId}`)
-- [ ] xtruyen.net: cần mode `webview` hoặc giải mã API admin-ajax (nội dung và danh sách chương nạp bằng JS) – chuyển sang khi làm fetch mode `webview`
+- [ ] xtruyen.net: host không còn phân giải DNS (khảo sát 22/10/2026); bỏ khỏi kế hoạch trừ khi site hoạt động lại
 - [x] Thử metruyenchu (1856 chương qua 19 trang AJAX) và tvtruyen (2462 chương qua 50 trang) trên máy thật; đọc chương OK
 - [x] Ảnh bìa: CDN của tvtruyen yêu cầu Referer của site → `BookCover` gửi Referer theo origin URL truyện, Coil dùng chung OkHttpClient của app
 - [x] Kiểm tra trên máy thật: dán link truyenfull, đọc, lịch sử, WebView (đã sửa 4 lỗi phát hiện: thiếu serializer route, inset cộng đôi, trang chủ bị nhập thành truyện, popup quảng cáo chặn chạm trong WebView)
@@ -58,7 +58,7 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [x] `ChapterDownloadWorker` (Hilt, foreground dataSync, nghỉ 0,9–1,6 s giữa chương, backoff 429/403, retry 3 lần) + bảng `downloads` (Room v2 auto-migration); sheet chọn từ chương đầu / đang đọc và 30 / 100 / 300 / tất cả; thông báo tiến độ + hoàn tất; đã tải thử 30 chương truyenfull trên máy (~1,5 s/chương)
 - [x] Tab Tải truyện: số chương đã tải / lưu tạm, dung lượng, tiến độ + huỷ, xoá dữ liệu đã tải; Cài đặt: tổng dung lượng chương + audio, nút xoá bộ nhớ tạm
 - [x] DNS-over-HTTPS (Hệ thống / Google / Cloudflare) qua `SwitchableDns` cho OkHttp, có fallback; WebView không dùng DoH (giới hạn WebView)
-- [ ] Sao lưu / khôi phục ZIP (chưa làm)
+- [x] Sao lưu / khôi phục ZIP (làm ở Epic 6.1, 21/10/2026)
 - [ ] Tải trước audio N chương kế tiếp khi sạc / Wi-Fi (P1, chưa làm)
 
 ## Giai đoạn 4 – Dịch truyện offline (bắt đầu 21/10/2026)
@@ -125,7 +125,7 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [x] Lint: sửa hết lỗi mức Error (LocalResources, UnstableApi, BOM, onRenderProcessGone)
 - [x] Build release thử trên máy (arm64, minified)
 - [ ] Nhạc nền khi nghe (P2, chưa làm)
-- [ ] Source Tester trong app, mở rộng 30+ site (làm dần sau 1.0)
+- [~] Mở rộng 30+ site: đã có 31 rule (22/10/2026); Source Tester trong app chưa làm (hiện kiểm tra bằng `RuleDumpTest` + fixture)
 - [ ] Test Android 8–13 và 15 trên máy thật (chỉ có OPPO Android 14)
 - [ ] Nộp Google Play (không trong phạm vi 1.0; kênh chính là GitHub Releases)
 - [ ] Gắn tag `v1.0.0` và tạo Release đầu tiên (người dùng quyết định thời điểm)
@@ -140,7 +140,7 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [x] Rule POST: nhatruyen (admin-ajax `nt_load_chapters`, 14 trang), truyenchu (Madara `ajax/chapters/`, 3.751 chương một lần); plnovel.com đang lỗi 500 phía server (thiếu mysqli) nên chưa làm, thử lại sau
 - [x] Rule Next.js: sstruyen + truyensac (API `api.<host>/novels/{id}/chapters`), bientruyen (`/api/story-chapters/{uuid}?group=N`); tìm API bằng cách tải chunk JS và grep `fetch(`
 - [x] Test: `SourceRepositoryPagingTest` (POST trang 2..N với body template, POST trang 1 từ `toc.url` + `reverse`, mục lục JSON toàn phần), `RuleProbe` nhận thêm fixture `toc.html`/`toc.json`; 5 fixture + expect.json mới
-- [ ] Thử nhatruyen / truyenchu / sstruyen / bientruyen trên máy OPPO (chưa cắm máy khi làm)
+- [x] Thử trên máy OPPO 22/10/2026: nhatruyen (688 chương, 14 trang POST, đọc chương 1), truyenchu (3.751 chương Madara), sstruyen (3.752 chương qua API), bientruyen (258 chương) đều mở được trang truyện và mục lục
 - [ ] metruyenchu.co, truyenc.net, gaumeoteam.com…: còn lại trong "chưa làm rule" của `docs/SOURCE_RULES.md`
 - [ ] truyentronbo, docln: nội dung chương mã hoá → webview
 - [ ] Nhạc nền khi nghe (P2): trộn file nhạc người dùng chọn ở âm lượng thấp dưới giọng TTS (ExoPlayer thứ hai, ducking)
