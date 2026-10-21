@@ -169,11 +169,11 @@ class PlaybackService : MediaSessionService() {
     }
 
     private fun chapterButtons(): List<CommandButton> = listOf(
-        CommandButton.Builder(CommandButton.ICON_SKIP_BACK)
+        CommandButton.Builder(CommandButton.ICON_PREVIOUS)
             .setDisplayName(getString(R.string.playback_prev_chapter))
             .setSessionCommand(SessionCommand(PlaybackCommands.PREV_CHAPTER, Bundle.EMPTY))
             .build(),
-        CommandButton.Builder(CommandButton.ICON_SKIP_FORWARD)
+        CommandButton.Builder(CommandButton.ICON_NEXT)
             .setDisplayName(getString(R.string.playback_next_chapter))
             .setSessionCommand(SessionCommand(PlaybackCommands.NEXT_CHAPTER, Bundle.EMPTY))
             .build(),
@@ -189,8 +189,15 @@ class PlaybackService : MediaSessionService() {
                 .add(SessionCommand(PlaybackCommands.SET_SLEEP_TIMER, Bundle.EMPTY))
                 .add(SessionCommand(PlaybackCommands.STOP, Bundle.EMPTY))
                 .build()
+            // Without seek-back/forward the system media controls show previous/next item, i.e. sentence
+            // navigation, which is what listeners expect; chapter buttons come from the custom layout.
+            val playerCommands = MediaSession.ConnectionResult.DEFAULT_PLAYER_COMMANDS.buildUpon()
+                .remove(Player.COMMAND_SEEK_BACK)
+                .remove(Player.COMMAND_SEEK_FORWARD)
+                .build()
             return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
                 .setAvailableSessionCommands(sessionCommands)
+                .setAvailablePlayerCommands(playerCommands)
                 .setMediaButtonPreferences(chapterButtons())
                 .build()
         }

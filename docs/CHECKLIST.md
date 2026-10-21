@@ -50,8 +50,9 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [x] Hẹn giờ tắt (player), tốc độ / cao độ / chọn giọng / ngắt dấu phẩy / chế độ ổn định (Cài đặt, DataStore `TtsPreferences`)
 - [x] Tự chuyển chương trong pipeline; lưu tiến độ theo đoạn khi đổi câu (reader và player dùng chung `reading_progress`)
 - [x] Nút Nghe ở Reader (từ đoạn đang xem), chi tiết truyện (từ vị trí đã lưu), WebView ("Nghe chương này")
-- [ ] Thử trên máy thật: phát nền, lock screen, chuyển câu/chương, đổi tốc độ, hẹn giờ (điện thoại ngắt kết nối khi chuẩn bị cài)
-- [ ] Xin quyền POST_NOTIFICATIONS lúc khởi động (đã code, chưa kiểm tra trên máy)
+- [x] Thử trên máy thật (OPPO CPH2357): Google TTS vi-VN tổng hợp câu đầu sau ~3 giây, phát tiếp khi tắt màn hình, thông báo màn hình khoá có bìa + nút chương trước/sau, chuyển câu/chương, tốc độ 1.5x
+- [ ] Hẹn giờ tắt: đã code, chưa đo trên máy
+- [x] Quyền POST_NOTIFICATIONS: đã được cấp trên máy test, thông báo hiển thị
 
 ## Giai đoạn 3 – Tải truyện & offline
 - [ ] WorkManager download, chọn khoảng chương, thông báo tiến độ
