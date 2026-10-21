@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.FilterChip
@@ -28,18 +27,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
 import java.text.DateFormat
 import java.util.Date
 import vn.esstar.ainovel.core.designsystem.component.AINovelCard
 import vn.esstar.ainovel.core.designsystem.component.EmptyState
 import vn.esstar.ainovel.domain.model.HistoryEntry
+import vn.esstar.ainovel.core.designsystem.component.BookCover
 
 @Composable
 internal fun LibraryRoute(
@@ -135,12 +133,11 @@ private fun HistoryTab(
 private fun HistoryRow(entry: HistoryEntry, onClick: () -> Unit, onOpenBook: () -> Unit, onRemove: () -> Unit) {
     AINovelCard(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick), contentPadding = PaddingValues(12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            AsyncImage(
-                model = entry.book.coverUrl,
-                contentDescription = null,
+            BookCover(
+                url = entry.book.coverUrl,
+                refererUrl = entry.book.url,
                 modifier = Modifier
                     .size(width = 52.dp, height = 72.dp)
-                    .clip(RoundedCornerShape(8.dp))
                     .clickable(onClick = onOpenBook),
             )
             Spacer(Modifier.width(12.dp))

@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -41,7 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -50,12 +48,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
 import vn.esstar.ainovel.core.designsystem.component.AINovelCard
 import vn.esstar.ainovel.core.designsystem.component.SectionTitle
 import vn.esstar.ainovel.domain.model.SearchResult
 import vn.esstar.ainovel.domain.model.SourceInfo
+import vn.esstar.ainovel.core.designsystem.component.BookCover
 
 @Composable
 internal fun HomeRoute(
@@ -223,10 +221,10 @@ private fun SearchResultRow(result: SearchResult, onClick: () -> Unit) {
         contentPadding = androidx.compose.foundation.layout.PaddingValues(12.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            AsyncImage(
-                model = result.coverUrl,
-                contentDescription = null,
-                modifier = Modifier.size(width = 48.dp, height = 64.dp).clip(RoundedCornerShape(8.dp)),
+            BookCover(
+                url = result.coverUrl,
+                refererUrl = result.url,
+                modifier = Modifier.size(width = 48.dp, height = 64.dp),
             )
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {

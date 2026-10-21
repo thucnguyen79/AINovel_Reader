@@ -36,7 +36,8 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [x] Build + unit test xanh, cập nhật checklist, commit, push
 - [x] Thêm site metruyenchu, wikidich, tvtruyen kèm fixture + 15 unit test (engine thêm `bookId`, `pageList`, `pageJson`, `pageHeaders`, placeholder `{base}`/`{bookId}`)
 - [ ] xtruyen.net: cần mode `webview` hoặc giải mã API admin-ajax (nội dung và danh sách chương nạp bằng JS) – chuyển sang khi làm fetch mode `webview`
-- [ ] Thử metruyenchu / tvtruyen trên máy thật (điện thoại ngắt kết nối trước khi kịp thử)
+- [x] Thử metruyenchu (1856 chương qua 19 trang AJAX) và tvtruyen (2462 chương qua 50 trang) trên máy thật; đọc chương OK
+- [x] Ảnh bìa: CDN của tvtruyen yêu cầu Referer của site → `BookCover` gửi Referer theo origin URL truyện, Coil dùng chung OkHttpClient của app
 - [x] Kiểm tra trên máy thật: dán link truyenfull, đọc, lịch sử, WebView (đã sửa 4 lỗi phát hiện: thiếu serializer route, inset cộng đôi, trang chủ bị nhập thành truyện, popup quảng cáo chặn chạm trong WebView)
 - [x] Tài liệu `docs/SOURCE_RULES.md` cập nhật (bảng rule, trường TOC mới, ghi chú xtruyen)
 

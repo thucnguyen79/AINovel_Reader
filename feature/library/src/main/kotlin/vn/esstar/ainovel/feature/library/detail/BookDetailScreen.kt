@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
@@ -41,16 +40,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
 import vn.esstar.ainovel.core.designsystem.component.LoadingState
 import vn.esstar.ainovel.domain.model.Chapter
 import vn.esstar.ainovel.feature.library.R
+import vn.esstar.ainovel.core.designsystem.component.BookCover
 
 @Composable
 internal fun BookDetailRoute(
@@ -118,10 +116,11 @@ internal fun BookDetailScreen(
             item {
                 if (state.isRefreshing) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 Row(modifier = Modifier.padding(16.dp)) {
-                    AsyncImage(
-                        model = book.coverUrl,
-                        contentDescription = null,
-                        modifier = Modifier.size(width = 96.dp, height = 132.dp).clip(RoundedCornerShape(12.dp)),
+                    BookCover(
+                        url = book.coverUrl,
+                        refererUrl = book.url,
+                        cornerRadius = 12.dp,
+                        modifier = Modifier.size(width = 96.dp, height = 132.dp),
                     )
                     Spacer(Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
