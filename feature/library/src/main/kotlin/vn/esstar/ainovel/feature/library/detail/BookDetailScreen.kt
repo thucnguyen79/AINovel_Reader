@@ -49,11 +49,14 @@ import vn.esstar.ainovel.core.designsystem.component.LoadingState
 import vn.esstar.ainovel.domain.model.Chapter
 import vn.esstar.ainovel.feature.library.R
 import vn.esstar.ainovel.core.designsystem.component.BookCover
+import androidx.compose.material.icons.filled.Headphones
+import androidx.compose.material3.TextButton
 
 @Composable
 internal fun BookDetailRoute(
     onBack: () -> Unit,
     onOpenReader: (Long, Long) -> Unit,
+    onOpenPlayer: () -> Unit,
     viewModel: BookDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -64,6 +67,7 @@ internal fun BookDetailRoute(
         onRefresh = viewModel::refresh,
         onToggleFavorite = viewModel::toggleFavorite,
         onOpenChapter = { onOpenReader(viewModel.bookId, it.id) },
+        onListen = { if (viewModel.listen()) onOpenPlayer() },
     )
 }
 
@@ -75,6 +79,7 @@ internal fun BookDetailScreen(
     onRefresh: () -> Unit,
     onToggleFavorite: () -> Unit,
     onOpenChapter: (Chapter) -> Unit,
+    onListen: () -> Unit,
 ) {
     val book = state.book
     var descending by rememberSaveable { mutableStateOf(false) }
@@ -157,7 +162,14 @@ internal fun BookDetailScreen(
                             else stringResource(R.string.detail_read_from_start),
                         )
                     }
-                    OutlinedButton(onClick = { descending = !descending }) {
+                    OutlinedButton(onClick = onListen, enabled = state.chapters.isNotEmpty()) {
+                        Icon(Icons.Default.Headphones, contentDescription = null)
+                        Spacer(Modifier.width(4.dp))
+                        Text(stringResource(R.string.detail_listen))
+                    }
+                }
+                Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = { descending = !descending }) {
                         Icon(Icons.Default.SwapVert, contentDescription = null)
                         Spacer(Modifier.width(4.dp))
                         Text(stringResource(if (descending) R.string.detail_sort_desc else R.string.detail_sort_asc))

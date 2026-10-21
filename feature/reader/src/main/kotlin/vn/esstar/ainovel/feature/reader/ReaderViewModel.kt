@@ -20,6 +20,7 @@ import vn.esstar.ainovel.domain.model.ChapterContent
 import vn.esstar.ainovel.domain.model.ReadingMode
 import vn.esstar.ainovel.domain.model.ReadingPosition
 import vn.esstar.ainovel.domain.repository.LibraryRepository
+import vn.esstar.ainovel.domain.playback.PlaybackController
 
 data class ReaderUiState(
     val book: Book? = null,
@@ -42,6 +43,7 @@ class ReaderViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val library: LibraryRepository,
     private val readerPreferences: ReaderPreferences,
+    private val playback: PlaybackController,
 ) : ViewModel() {
 
     private val route = savedStateHandle.toRoute<ReaderRoute>()
@@ -120,6 +122,13 @@ class ReaderViewModel @Inject constructor(
         viewModelScope.launch {
             library.saveProgress(ReadingPosition(bookId, chapter.id, firstVisibleIndex, offset, percent))
         }
+    }
+
+    /** Starts reading aloud from the paragraph currently at the top of the screen. */
+    fun listen(firstVisibleIndex: Int) {
+        val chapter = _state.value.currentChapter ?: return
+        // Item 0 of the list is the title row, so paragraph index = list index - 1.
+        playback.play(bookId, chapter.id, (firstVisibleIndex - 1).coerceAtLeast(0))
     }
 
     fun setFontSize(sp: Int) {

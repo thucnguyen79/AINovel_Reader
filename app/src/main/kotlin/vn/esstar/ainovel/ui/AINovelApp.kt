@@ -32,6 +32,8 @@ import vn.esstar.ainovel.feature.library.libraryScreen
 import vn.esstar.ainovel.feature.library.navigateToBookDetail
 import vn.esstar.ainovel.feature.library.navigateToLibrary
 import vn.esstar.ainovel.feature.player.MiniPlayer
+import vn.esstar.ainovel.feature.player.navigateToPlayer
+import vn.esstar.ainovel.feature.player.playerScreen
 import vn.esstar.ainovel.feature.reader.navigateToReader
 import vn.esstar.ainovel.feature.reader.readerScreen
 import vn.esstar.ainovel.feature.settings.navigateToSettings
@@ -52,7 +54,7 @@ fun AINovelApp() {
         bottomBar = {
             if (showBars) {
                 Column {
-                    MiniPlayer()
+                    MiniPlayer(onOpenPlayer = { navController.navigateToPlayer() })
                     NavigationBar {
                         TopLevelDestination.entries.forEach { destination ->
                             val selected = currentDestination.isRouteInHierarchy(destination.route)
@@ -71,6 +73,7 @@ fun AINovelApp() {
         val openBook: (Long) -> Unit = { navController.navigateToBookDetail(it) }
         val openReader: (Long, Long) -> Unit = { bookId, chapterId -> navController.navigateToReader(bookId, chapterId) }
         val back: () -> Unit = { navController.popBackStack() }
+        val openPlayer: () -> Unit = { navController.navigateToPlayer() }
 
         NavHost(
             navController = navController,
@@ -83,9 +86,10 @@ fun AINovelApp() {
             libraryScreen(onOpenBook = openBook, onOpenReader = openReader)
             translateScreen()
             settingsScreen()
-            bookDetailScreen(onBack = back, onOpenReader = openReader)
-            browserScreen(onBack = back, onOpenBook = openBook, onOpenReader = openReader)
-            readerScreen(onBack = back)
+            bookDetailScreen(onBack = back, onOpenReader = openReader, onOpenPlayer = openPlayer)
+            browserScreen(onBack = back, onOpenBook = openBook, onOpenReader = openReader, onOpenPlayer = openPlayer)
+            readerScreen(onBack = back, onOpenPlayer = openPlayer)
+            playerScreen(onBack = back)
         }
     }
 }

@@ -17,6 +17,7 @@ import vn.esstar.ainovel.domain.model.UrlKind
 import vn.esstar.ainovel.domain.repository.SourceRepository
 import vn.esstar.ainovel.domain.usecase.OpenUrlResult
 import vn.esstar.ainovel.domain.usecase.OpenUrlUseCase
+import vn.esstar.ainovel.domain.playback.PlaybackController
 
 data class BrowserUiState(
     val initialUrl: String,
@@ -29,6 +30,7 @@ data class BrowserUiState(
 sealed interface BrowserEvent {
     data class OpenBook(val bookId: Long) : BrowserEvent
     data class OpenReader(val bookId: Long, val chapterId: Long) : BrowserEvent
+    data object OpenPlayer : BrowserEvent
     data object Unsupported : BrowserEvent
     data object Failed : BrowserEvent
 }
@@ -38,6 +40,7 @@ class BrowserViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val sources: SourceRepository,
     private val openUrl: OpenUrlUseCase,
+    private val playback: PlaybackController,
 ) : ViewModel() {
 
     private val route = savedStateHandle.toRoute<BrowserRoute>()
@@ -62,7 +65,7 @@ class BrowserViewModel @Inject constructor(
     }
 
     /** "Đọc chương này" / "Mở truyện này": import the current page through the rule engine. */
-    fun openCurrent() {
+    fun openCurrent(listen: Boolean = false) {
         val url = _state.value.currentUrl
         if (_state.value.isOpening) return
         viewModelScope.launch {
@@ -72,7 +75,12 @@ class BrowserViewModel @Inject constructor(
                     _events.send(
                         when (result) {
                             is OpenUrlResult.BookOpened -> BrowserEvent.OpenBook(result.bookId)
-                            is OpenUrlResult.ChapterOpened -> BrowserEvent.OpenReader(result.bookId, result.chapterId)
+                            is OpenUrlResult.ChapterOpened -> if (listen) {
+                                playback.play(result.bookId, result.chapterId, 0)
+                                BrowserEvent.OpenPlayer
+                            } else {
+                                BrowserEvent.OpenReader(result.bookId, result.chapterId)
+                            }
                             is OpenUrlResult.Unsupported -> BrowserEvent.Unsupported
                         },
                     )

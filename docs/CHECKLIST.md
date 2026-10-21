@@ -41,15 +41,17 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [x] Kiểm tra trên máy thật: dán link truyenfull, đọc, lịch sử, WebView (đã sửa 4 lỗi phát hiện: thiếu serializer route, inset cộng đôi, trang chủ bị nhập thành truyện, popup quảng cáo chặn chạm trong WebView)
 - [x] Tài liệu `docs/SOURCE_RULES.md` cập nhật (bảng rule, trường TOC mới, ghi chú xtruyen)
 
-## Giai đoạn 2 – Audio player
-- [ ] `TextSegmenter`, `TextNormalizer` + test
-- [ ] `SystemTtsEngine` (TextToSpeech → file)
-- [ ] `AudioCache`, `PlaybackQueue`
-- [ ] Media3 `MediaSessionService`, notification, lock screen
-- [ ] Mini-player + player đầy đủ, 5 nút điều khiển
-- [ ] Hẹn giờ tắt, tốc độ / cao độ / chọn giọng
-- [ ] Tự chuyển chương, phục hồi đúng câu
-- [ ] "Nghe chương này" trong WebView
+## Giai đoạn 2 – Audio player (bắt đầu 21/10/2026)
+- [x] `TextSegmenter`, `TextNormalizer` + 11 unit test (tách câu, giới hạn độ dài, ngắt dấu phẩy, bỏ dấu chấm chống copy, gộp dấu câu lặp)
+- [x] `SystemTtsEngine` (TextToSpeech → WAV, chọn giọng vi-VN, pitch; tốc độ do player xử lý để cache không phụ thuộc tốc độ)
+- [x] `AudioCache` (LRU 500 MB theo hash engine+giọng+pitch+text), `ChapterAudioPipeline` (tổng hợp trước N câu, nối chương tự động)
+- [x] Media3 `PlaybackService` (MediaSessionService, custom command chương trước/sau, sleep timer, publish trạng thái qua session extras)
+- [x] Mini-player nối với `PlaybackController`; màn hình player: 5 nút, slider theo câu, tốc độ, hẹn giờ, danh sách chương, dừng
+- [x] Hẹn giờ tắt (player), tốc độ / cao độ / chọn giọng / ngắt dấu phẩy / chế độ ổn định (Cài đặt, DataStore `TtsPreferences`)
+- [x] Tự chuyển chương trong pipeline; lưu tiến độ theo đoạn khi đổi câu (reader và player dùng chung `reading_progress`)
+- [x] Nút Nghe ở Reader (từ đoạn đang xem), chi tiết truyện (từ vị trí đã lưu), WebView ("Nghe chương này")
+- [ ] Thử trên máy thật: phát nền, lock screen, chuyển câu/chương, đổi tốc độ, hẹn giờ (điện thoại ngắt kết nối khi chuẩn bị cài)
+- [ ] Xin quyền POST_NOTIFICATIONS lúc khởi động (đã code, chưa kiểm tra trên máy)
 
 ## Giai đoạn 3 – Tải truyện & offline
 - [ ] WorkManager download, chọn khoảng chương, thông báo tiến độ

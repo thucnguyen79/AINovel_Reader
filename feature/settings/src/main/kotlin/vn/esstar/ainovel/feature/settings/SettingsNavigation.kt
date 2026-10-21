@@ -13,6 +13,6 @@ fun NavController.navigateToSettings(navOptions: NavOptions? = null) = navigate(
 
 fun NavGraphBuilder.settingsScreen() {
     composable<SettingsRoute> {
-        SettingsScreen()
+        SettingsRoute()
     }
 }

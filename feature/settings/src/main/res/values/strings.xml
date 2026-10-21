@@ -4,8 +4,13 @@
     <string name="settings_section_audio">Hiệu ứng âm thanh</string>
     <string name="settings_section_voice">Giọng đọc</string>
     <string name="settings_section_system">Cài đặt hệ thống</string>
-    <string name="settings_placeholder_speed">Tốc độ đọc: 1,0 (giai đoạn 2)</string>
-    <string name="settings_placeholder_pitch">Độ cao: 1,0 (giai đoạn 2)</string>
-    <string name="settings_placeholder_voice">Giọng hệ thống / Giọng neural (giai đoạn 2 và 5)</string>
-    <string name="settings_placeholder_system">Hẹn giờ tắt, ngắt dấu phẩy, xoá bộ nhớ tạm, chia sẻ log</string>
+    <string name="settings_speed">Tốc độ đọc: %1$s</string>
+    <string name="settings_pitch">Độ cao: %1$s</string>
+    <string name="settings_voice_pick">Chọn giọng</string>
+    <string name="settings_voice_default">Giọng mặc định của máy</string>
+    <string name="settings_voice_hint">Giọng hệ thống (Google Speech Services). Để tải thêm giọng tiếng Việt offline, mở Cài đặt máy › Ngôn ngữ › Chuyển văn bản thành giọng nói.</string>
+    <string name="settings_voice_unavailable">Không tìm thấy công cụ chuyển văn bản thành giọng nói. Hãy cài Google Speech Services từ Play Store.</string>
+    <string name="settings_break_comma">Ngắt dấu phẩy</string>
+    <string name="settings_stable_mode">Tăng cường ổn định âm thanh</string>
+    <string name="settings_stable_mode_hint">Tổng hợp trước nhiều câu hơn trước khi phát, tốn thời gian chờ ban đầu.</string>
 </resources>

@@ -20,6 +20,7 @@
     <string name="detail_chapter_count">%1$d chương</string>
     <string name="detail_read_from_start">Đọc từ đầu</string>
     <string name="detail_continue">Đọc tiếp chương %1$d</string>
+    <string name="detail_listen">Nghe</string>
     <string name="detail_sort_asc">Cũ → mới</string>
     <string name="detail_sort_desc">Mới → cũ</string>
     <string name="detail_chapters">Danh sách chương</string>

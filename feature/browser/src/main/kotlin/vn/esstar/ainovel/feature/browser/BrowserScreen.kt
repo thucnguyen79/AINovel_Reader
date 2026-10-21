@@ -52,12 +52,14 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import timber.log.Timber
 import vn.esstar.ainovel.domain.model.UrlKind
+import androidx.compose.material.icons.filled.Headphones
 
 @Composable
 internal fun BrowserRoute(
     onBack: () -> Unit,
     onOpenBook: (Long) -> Unit,
     onOpenReader: (Long, Long) -> Unit,
+    onOpenPlayer: () -> Unit,
     viewModel: BrowserViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -69,6 +71,7 @@ internal fun BrowserRoute(
             when (event) {
                 is BrowserEvent.OpenBook -> onOpenBook(event.bookId)
                 is BrowserEvent.OpenReader -> onOpenReader(event.bookId, event.chapterId)
+                BrowserEvent.OpenPlayer -> onOpenPlayer()
                 BrowserEvent.Unsupported -> snackbar.showSnackbar(context.getString(R.string.browser_unsupported))
                 BrowserEvent.Failed -> snackbar.showSnackbar(context.getString(R.string.browser_open_failed))
             }
@@ -80,7 +83,8 @@ internal fun BrowserRoute(
         snackbar = snackbar,
         onBack = onBack,
         onUrlChanged = viewModel::onUrlChanged,
-        onOpenCurrent = viewModel::openCurrent,
+        onOpenCurrent = { viewModel.openCurrent(listen = false) },
+        onListenCurrent = { viewModel.openCurrent(listen = true) },
     )
 }
 
@@ -93,6 +97,7 @@ internal fun BrowserScreen(
     onBack: () -> Unit,
     onUrlChanged: (String) -> Unit,
     onOpenCurrent: () -> Unit,
+    onListenCurrent: () -> Unit,
 ) {
     val context = LocalContext.current
     var progress by remember { mutableIntStateOf(0) }
@@ -190,7 +195,12 @@ internal fun BrowserScreen(
                             maxLines = 2,
                         )
                     }
-                    Spacer(Modifier.width(12.dp))
+                    Spacer(Modifier.width(8.dp))
+                    if (state.urlKind == UrlKind.CHAPTER) {
+                        IconButton(onClick = onListenCurrent, enabled = state.sourceName != null && !state.isOpening) {
+                            Icon(Icons.Default.Headphones, contentDescription = stringResource(R.string.browser_listen_chapter))
+                        }
+                    }
                     Button(onClick = onOpenCurrent, enabled = state.sourceName != null && !state.isOpening) {
                         if (state.isOpening) {
                             CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)

@@ -3,4 +3,6 @@ plugins {
 }
 
 dependencies {
+    implementation(projects.core.datastore)
+    implementation(projects.tts.api)
 }

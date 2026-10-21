@@ -29,8 +29,9 @@ fun NavGraphBuilder.libraryScreen(
 fun NavGraphBuilder.bookDetailScreen(
     onBack: () -> Unit,
     onOpenReader: (bookId: Long, chapterId: Long) -> Unit,
+    onOpenPlayer: () -> Unit,
 ) {
     composable<BookDetailRoute> {
-        BookDetailRoute(onBack = onBack, onOpenReader = onOpenReader)
+        BookDetailRoute(onBack = onBack, onOpenReader = onOpenReader, onOpenPlayer = onOpenPlayer)
     }
 }

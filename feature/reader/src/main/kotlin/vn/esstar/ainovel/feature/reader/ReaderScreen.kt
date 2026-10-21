@@ -57,16 +57,19 @@ import vn.esstar.ainovel.core.datastore.ReaderPrefs
 import vn.esstar.ainovel.core.designsystem.component.ErrorState
 import vn.esstar.ainovel.core.designsystem.component.LoadingState
 import vn.esstar.ainovel.domain.model.Chapter
+import androidx.compose.material.icons.filled.Headphones
 
 @Composable
 internal fun ReaderRoute(
     onBack: () -> Unit,
+    onOpenPlayer: () -> Unit,
     viewModel: ReaderViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     ReaderScreen(
         state = state,
         onBack = onBack,
+        onListen = { firstVisible -> viewModel.listen(firstVisible); onOpenPlayer() },
         onPrev = viewModel::prev,
         onNext = viewModel::next,
         onOpenChapter = { viewModel.open(it.id) },
@@ -81,6 +84,7 @@ internal fun ReaderRoute(
 internal fun ReaderScreen(
     state: ReaderUiState,
     onBack: () -> Unit,
+    onListen: (firstVisibleIndex: Int) -> Unit,
     onPrev: () -> Unit,
     onNext: () -> Unit,
     onOpenChapter: (Chapter) -> Unit,
@@ -126,6 +130,11 @@ internal fun ReaderScreen(
                     navigationIcon = {
                         IconButton(onClick = onBack) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.reader_back))
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { onListen(listState.firstVisibleItemIndex) }, enabled = state.content != null) {
+                            Icon(Icons.Default.Headphones, contentDescription = stringResource(R.string.reader_listen))
                         }
                     },
                 )

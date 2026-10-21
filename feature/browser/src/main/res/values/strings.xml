@@ -9,4 +9,5 @@
     <string name="browser_open_page">Thử mở trang</string>
     <string name="browser_unsupported">Trang này không phải trang truyện hoặc chương được hỗ trợ.</string>
     <string name="browser_open_failed">Không đọc được trang này.</string>
+    <string name="browser_listen_chapter">Nghe chương này</string>
 </resources>

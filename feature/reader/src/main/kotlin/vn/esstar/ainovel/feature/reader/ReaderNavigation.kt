@@ -12,8 +12,8 @@ data class ReaderRoute(val bookId: Long, val chapterId: Long)
 fun NavController.navigateToReader(bookId: Long, chapterId: Long, navOptions: NavOptions? = null) =
     navigate(ReaderRoute(bookId, chapterId), navOptions)
 
-fun NavGraphBuilder.readerScreen(onBack: () -> Unit) {
+fun NavGraphBuilder.readerScreen(onBack: () -> Unit, onOpenPlayer: () -> Unit) {
     composable<ReaderRoute> {
-        ReaderRoute(onBack = onBack)
+        ReaderRoute(onBack = onBack, onOpenPlayer = onOpenPlayer)
     }
 }

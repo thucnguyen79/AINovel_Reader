@@ -1,8 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="player_nothing_playing">Chưa phát truyện nào</string>
-    <string name="player_hint">Dán link truyện ở Trang chủ để bắt đầu nghe</string>
+    <string name="player_hint">Mở một chương rồi bấm Nghe để bắt đầu</string>
     <string name="player_play">Phát</string>
+    <string name="player_pause">Tạm dừng</string>
+    <string name="player_stop">Dừng hẳn</string>
     <string name="player_previous_chapter">Chương trước</string>
     <string name="player_next_chapter">Chương sau</string>
+    <string name="player_previous_segment">Câu trước</string>
+    <string name="player_next_segment">Câu sau</string>
+    <string name="player_title">Đang nghe</string>
+    <string name="player_collapse">Thu nhỏ</string>
+    <string name="player_speed">Tốc độ đọc</string>
+    <string name="player_sleep_timer">Hẹn giờ tắt</string>
+    <string name="player_sleep_off">Tắt</string>
+    <string name="player_sleep_minutes">%1$d phút</string>
+    <string name="player_sleep_until">Đến %1$s</string>
+    <string name="player_chapters">Chương %1$d / %2$d</string>
+    <string name="player_chapter_list">Danh sách chương</string>
+    <string name="player_segment_position">Câu %1$d / %2$d</string>
+    <string name="player_error_tts">Không khởi động được giọng đọc. Hãy cài Google Speech Services hoặc chọn giọng khác trong Cài đặt.</string>
+    <string name="player_error_chapter">Không tải được nội dung chương.</string>
+    <string name="player_error_synthesis">Giọng đọc gặp lỗi liên tục, thử chọn giọng khác.</string>
 </resources>

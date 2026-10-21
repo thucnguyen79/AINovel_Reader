@@ -10,4 +10,5 @@
     <string name="reader_chapters">Danh sách chương</string>
     <string name="reader_font_smaller">Giảm cỡ chữ</string>
     <string name="reader_font_larger">Tăng cỡ chữ</string>
+    <string name="reader_listen">Nghe chương này</string>
 </resources>

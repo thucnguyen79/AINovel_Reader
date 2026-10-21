@@ -15,8 +15,9 @@ fun NavGraphBuilder.browserScreen(
     onBack: () -> Unit,
     onOpenBook: (bookId: Long) -> Unit,
     onOpenReader: (bookId: Long, chapterId: Long) -> Unit,
+    onOpenPlayer: () -> Unit,
 ) {
     composable<BrowserRoute> {
-        BrowserRoute(onBack = onBack, onOpenBook = onOpenBook, onOpenReader = onOpenReader)
+        BrowserRoute(onBack = onBack, onOpenBook = onOpenBook, onOpenReader = onOpenReader, onOpenPlayer = onOpenPlayer)
     }
 }

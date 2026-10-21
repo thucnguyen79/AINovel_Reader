@@ -20,6 +20,7 @@ import vn.esstar.ainovel.domain.model.ReadingPosition
 import vn.esstar.ainovel.domain.repository.LibraryRepository
 import vn.esstar.ainovel.domain.repository.SourceRepository
 import vn.esstar.ainovel.feature.library.BookDetailRoute
+import vn.esstar.ainovel.domain.playback.PlaybackController
 
 data class BookDetailUiState(
     val book: Book? = null,
@@ -36,6 +37,7 @@ class BookDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val library: LibraryRepository,
     private val sources: SourceRepository,
+    private val playback: PlaybackController,
 ) : ViewModel() {
 
     val bookId: Long = savedStateHandle.toRoute<BookDetailRoute>().bookId
@@ -69,6 +71,15 @@ class BookDetailViewModel @Inject constructor(
                 .onFailure { Timber.e(it, "Refresh failed for %s", url) }
                 .also { r -> transient.update { it.copy(isRefreshing = false, refreshFailed = r.isFailure) } }
         }
+    }
+
+    /** Starts listening from the saved position, or from the first chapter. */
+    fun listen(): Boolean {
+        val s = state.value
+        val chapter = s.continueChapter ?: s.chapters.firstOrNull() ?: return false
+        val paragraph = s.progress?.takeIf { it.chapterId == chapter.id }?.sentenceIndex ?: 0
+        playback.play(bookId, chapter.id, paragraph)
+        return true
     }
 
     fun toggleFavorite() {

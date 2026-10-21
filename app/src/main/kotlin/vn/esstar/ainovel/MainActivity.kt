@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
 import vn.esstar.ainovel.core.designsystem.theme.AINovelTheme
 import vn.esstar.ainovel.ui.AINovelApp
+import vn.esstar.ainovel.ui.RequestNotificationPermission
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -15,6 +16,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AINovelTheme {
+                RequestNotificationPermission()
                 AINovelApp()
             }
         }
