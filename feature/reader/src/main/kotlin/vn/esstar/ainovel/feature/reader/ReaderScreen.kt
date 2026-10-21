@@ -23,7 +23,11 @@ import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.TextDecrease
 import androidx.compose.material.icons.filled.TextIncrease
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -57,6 +61,7 @@ import vn.esstar.ainovel.core.datastore.ReaderPrefs
 import vn.esstar.ainovel.core.designsystem.component.ErrorState
 import vn.esstar.ainovel.core.designsystem.component.LoadingState
 import vn.esstar.ainovel.domain.model.Chapter
+import vn.esstar.ainovel.domain.model.TranslateMode
 import androidx.compose.material.icons.filled.Headphones
 
 @Composable
@@ -76,6 +81,7 @@ internal fun ReaderRoute(
         onRetry = viewModel::retry,
         onScroll = viewModel::onScroll,
         onFontSize = viewModel::setFontSize,
+        onTranslateMode = viewModel::setTranslateMode,
     )
 }
 
@@ -91,7 +97,9 @@ internal fun ReaderScreen(
     onRetry: () -> Unit,
     onScroll: (Int, Int) -> Unit,
     onFontSize: (Int) -> Unit,
+    onTranslateMode: (TranslateMode) -> Unit,
 ) {
+    var showTranslateMenu by remember { mutableStateOf(false) }
     var showChapters by rememberSaveable { mutableStateOf(false) }
     var chromeVisible by rememberSaveable { mutableStateOf(true) }
     val listState = remember(state.content?.chapterId) {
@@ -113,7 +121,7 @@ internal fun ReaderScreen(
                     title = {
                         Column {
                             Text(
-                                state.currentChapter?.title ?: "",
+                                state.content?.title?.takeIf { it.isNotBlank() } ?: state.currentChapter?.title ?: "",
                                 style = MaterialTheme.typography.titleMedium,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -133,6 +141,22 @@ internal fun ReaderScreen(
                         }
                     },
                     actions = {
+                        if (state.translateMode != null) {
+                            IconButton(onClick = { showTranslateMenu = true }) {
+                                Icon(Icons.Default.Translate, contentDescription = stringResource(R.string.reader_translate_mode))
+                            }
+                            DropdownMenu(expanded = showTranslateMenu, onDismissRequest = { showTranslateMenu = false }) {
+                                TranslateMode.entries.forEach { mode ->
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(mode.label())) },
+                                        trailingIcon = if (mode == state.translateMode) {
+                                            { Icon(Icons.Default.Check, contentDescription = null) }
+                                        } else null,
+                                        onClick = { showTranslateMenu = false; onTranslateMode(mode) },
+                                    )
+                                }
+                            }
+                        }
                         IconButton(onClick = { onListen(listState.firstVisibleItemIndex) }, enabled = state.content != null) {
                             Icon(Icons.Default.Headphones, contentDescription = stringResource(R.string.reader_listen))
                         }
@@ -162,7 +186,7 @@ internal fun ReaderScreen(
             )
             else -> ChapterBody(
                 paragraphs = state.content.paragraphs,
-                title = state.currentChapter?.title,
+                title = state.content.title.takeIf { it.isNotBlank() } ?: state.currentChapter?.title,
                 prefs = state.prefs,
                 listState = listState,
                 hasNext = state.hasNext,
@@ -288,4 +312,10 @@ private fun ChapterList(chapters: List<Chapter>, currentId: Long?, onSelect: (Ch
             )
         }
     }
+}
+
+private fun TranslateMode.label(): Int = when (this) {
+    TranslateMode.CONVERT -> R.string.reader_translate_convert
+    TranslateMode.HAN_VIET -> R.string.reader_translate_hanviet
+    TranslateMode.RAW -> R.string.reader_translate_raw
 }

@@ -1,0 +1,40 @@
+{
+  "id": "jjwxc",
+  "name": "晋江文学城",
+  "baseUrl": "https://www.jjwxc.net",
+  "hosts": ["jjwxc.net"],
+  "lang": "zh",
+  "fetch": { "mode": "http", "charset": "GB18030" },
+  "urls": {
+    "chapter": "onebook\\.php\\?novelid=\\d+&(amp;)?chapterid=\\d+",
+    "book": "onebook\\.php\\?novelid=\\d+$"
+  },
+  "search": {
+    "url": "{base}/search.php?kw={query}&t=1",
+    "queryCharset": "GBK",
+    "list": "h3.title",
+    "title": "a@text",
+    "link": "a@href"
+  },
+  "book": {
+    "title": "h1[itemprop=name]@text",
+    "author": "span[itemprop=author]@text",
+    "cover": "img.noveldefaultimage@src",
+    "description": "#novelintro@html",
+    "status": "span[itemprop=updataStatus]@text"
+  },
+  "toc": {
+    "list": "tr[itemprop=chapter] a[itemprop=url]",
+    "title": "@text",
+    "link": "@href"
+  },
+  "chapter": {
+    "title": ".noveltext h2@text",
+    "content": ".noveltext",
+    "remove": ["script", "style", "h2", ".noveltext > div:first-child", "#chapterJurisdiction", "#favoriteshow_2", ".readsmall", "div[style*=text-align: center]"],
+    "removeLines": ["添加书签", "推荐给朋友", "\\[投诉\\]", "插入书签", "晋江文学城", "^作者有话要说"],
+    "bookUrl": "a[href~=onebook\\.php\\?novelid=\\d+$]@href",
+    "prev": "a:has(span:containsOwn(上一章))@href",
+    "next": "#chapter_next_link@href"
+  }
+}

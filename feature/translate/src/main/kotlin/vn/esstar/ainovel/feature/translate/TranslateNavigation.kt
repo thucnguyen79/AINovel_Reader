@@ -11,8 +11,12 @@ data object TranslateRoute
 
 fun NavController.navigateToTranslate(navOptions: NavOptions? = null) = navigate(TranslateRoute, navOptions)
 
-fun NavGraphBuilder.translateScreen() {
+fun NavGraphBuilder.translateScreen(
+    onOpenBook: (bookId: Long) -> Unit,
+    onOpenReader: (bookId: Long, chapterId: Long) -> Unit,
+    onOpenBrowser: (url: String) -> Unit,
+) {
     composable<TranslateRoute> {
-        TranslateScreen()
+        TranslateRoute(onOpenBook = onOpenBook, onOpenReader = onOpenReader, onOpenBrowser = onOpenBrowser)
     }
 }

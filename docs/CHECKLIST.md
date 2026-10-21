@@ -61,12 +61,31 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [ ] Sao lưu / khôi phục ZIP (chưa làm)
 - [ ] Tải trước audio N chương kế tiếp khi sạc / Wi-Fi (P1, chưa làm)
 
-## Giai đoạn 4 – Dịch truyện offline
-- [ ] Convert engine (trie, Names / VietPhrase / Hán Việt / luật nhân) + test
-- [ ] Nhập từ điển, glossary theo bộ
-- [ ] 5 site Trung + fixture
-- [ ] Tab Dịch truyện, dịch cả bộ chạy nền
-- [ ] ML Kit zh → vi
+## Giai đoạn 4 – Dịch truyện offline (bắt đầu 21/10/2026)
+### Epic 4.1 Convert engine (`data/translate`)
+- [x] `IndexedDictionary`: file nhị phân mmap, khoá sắp xếp theo byte UTF-8, tra `longestMatch` không nạp cả từ điển vào heap
+- [x] `DictionaryTextParser` đọc định dạng QuickTranslator (`Hán=Việt`, nghĩa đầu trước `/`)
+- [x] `ConvertEngine`: glossary > Names > VietPhrase (khớp dài nhất) > Hán Việt từng chữ; 3 chế độ Convert / Hán Việt / Nguyên văn; đổi dấu câu Trung, viết hoa đầu câu
+- [x] Từ điển Hán Việt có sẵn sinh từ Unicode Unihan `kVietnamese` (8306 chữ, `assets/dicts/hanviet.txt`)
+- [x] Unit test `ConvertEngineTest` (6 test)
+- [ ] Luật nhân (VietPhrase 2 nghĩa, đảo trật tự tính từ) – để sau
+### Epic 4.2 Từ điển và tích hợp
+- [x] `DictionaryManager`: nhập Names.txt / VietPhrase.txt qua SAF → build `.dict` trong `files/dicts/`, meta.json, gỡ từ điển
+- [x] `TranslationRepository` + `TranslatePreferences` (chế độ mặc định), `GetReadableChapterUseCase`
+- [x] Reader: sách `lang = zh` hiển thị bản convert, menu đổi Convert / Hán Việt / Nguyên văn trên thanh tiêu đề
+- [x] Nghe: `ChapterAudioPipeline` đọc văn bản đã convert (cùng use case với Reader)
+- [ ] Glossary theo bộ truyện (bảng đã dự kiến, chưa làm UI)
+- [ ] Dịch cả bộ chạy nền (hiện convert theo chương khi mở, đủ nhanh)
+### Epic 4.3 Site Trung
+- [x] Fetcher hỗ trợ charset: sniff `<meta charset>`, GBK/GB2312 → GB18030, `search.queryCharset` để mã hoá từ khoá
+- [x] `52shuku` (52shuku.net) + fixture + test
+- [x] `jjwxc` (jjwxc.net, GB18030) + fixture + test
+- [ ] `zongheng`, `ixdzs8`, `17k`: cần mode `webview` (danh sách chương render bằng JS / chống bot) – ghi trong SOURCE_RULES
+### Epic 4.4 Tab Dịch truyện
+- [x] Dán link truyện Trung (dùng chung `OpenUrlUseCase`), chip site Trung, danh sách "Truyện đã dịch" từ lịch sử
+- [x] Chọn chế độ mặc định, nhập / thay / gỡ từ điển
+- [ ] ML Kit zh → vi (P1, tải model theo yêu cầu người dùng)
+- [ ] Kiểm tra trên máy thật (chưa cắm thiết bị khi hoàn thành lát này)
 
 ## Giai đoạn 5 – Ebook + giọng neural
 - [ ] Nhập EPUB / TXT / ZIP / PDF, URL / Google Drive

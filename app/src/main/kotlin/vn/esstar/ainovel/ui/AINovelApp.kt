@@ -84,7 +84,7 @@ fun AINovelApp() {
         ) {
             homeScreen(onOpenBook = openBook, onOpenReader = openReader, onOpenBrowser = navController::navigateToBrowser)
             libraryScreen(onOpenBook = openBook, onOpenReader = openReader)
-            translateScreen()
+            translateScreen(onOpenBook = openBook, onOpenReader = openReader, onOpenBrowser = navController::navigateToBrowser)
             settingsScreen()
             bookDetailScreen(onBack = back, onOpenReader = openReader, onOpenPlayer = openPlayer)
             browserScreen(onBack = back, onOpenBook = openBook, onOpenReader = openReader, onOpenPlayer = openPlayer)

@@ -1,9 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="translate_title">Dịch truyện</string>
-    <string name="translate_paste_title">Dán link chương truyện</string>
-    <string name="translate_paste_description">Sao chép đường dẫn chương truyện tiếng Trung và dán vào đây</string>
+    <string name="translate_paste_title">Dán link truyện tiếng Trung</string>
+    <string name="translate_paste_description">Sao chép đường dẫn truyện hoặc chương từ các site tiếng Trung được hỗ trợ và dán vào đây. App sẽ convert sang tiếng Việt bằng từ điển VietPhrase ngay trên máy.</string>
+    <string name="translate_paste_hint">Link truyện hoặc chương</string>
     <string name="translate_paste_button">Dán link</string>
+    <string name="translate_open_button">Mở</string>
+    <string name="translate_clear">Xoá</string>
+    <string name="translate_sites_section">Site tiếng Trung hỗ trợ</string>
+    <string name="translate_sites_webview_note">Các site như zongheng, ixdzs8, 17k cần trình duyệt trong app, sẽ bổ sung ở bản sau.</string>
     <string name="translate_translated_section">Truyện đã dịch</string>
-    <string name="translate_translated_empty">Chương bạn đã dịch sẽ xuất hiện ở đây.</string>
+    <string name="translate_translated_empty">Truyện tiếng Trung bạn đã mở sẽ xuất hiện ở đây.</string>
+    <string name="translate_mode_section">Chế độ hiển thị mặc định</string>
+    <string name="translate_mode_convert">Convert</string>
+    <string name="translate_mode_hanviet">Hán Việt</string>
+    <string name="translate_mode_raw">Nguyên văn</string>
+    <string name="translate_dict_section">Từ điển</string>
+    <string name="translate_dict_description">Nhập file Names.txt và VietPhrase.txt (định dạng QuickTranslator, mỗi dòng Hán=Việt, mã UTF-8). Từ điển Hán Việt đã có sẵn.</string>
+    <string name="translate_dict_names">Names (tên riêng)</string>
+    <string name="translate_dict_vietphrase">VietPhrase</string>
+    <string name="translate_dict_hanviet">Hán Việt</string>
+    <string name="translate_dict_entries">%1$s mục · %2$s</string>
+    <string name="translate_dict_missing">Chưa nhập</string>
+    <string name="translate_dict_builtin">Có sẵn trong app</string>
+    <string name="translate_dict_import">Nhập file</string>
+    <string name="translate_dict_replace">Thay file</string>
+    <string name="translate_dict_remove">Gỡ</string>
+    <string name="translate_dict_importing">Đang nhập…</string>
+    <string name="translate_msg_imported">Đã nhập %1$s: %2$s mục.</string>
+    <string name="translate_msg_import_failed">Không nhập được từ điển. Hãy chọn file .txt UTF-8 dạng Hán=Việt.</string>
+    <string name="translate_msg_removed">Đã gỡ từ điển.</string>
+    <string name="translate_msg_empty_input">Hãy dán link truyện tiếng Trung.</string>
+    <string name="translate_msg_clipboard_empty">Bộ nhớ tạm trống.</string>
+    <string name="translate_msg_unsupported">Site chưa được hỗ trợ dịch, mở bằng trình duyệt trong app.</string>
+    <string name="translate_msg_open_failed">Không mở được link. Kiểm tra mạng và thử lại.</string>
 </resources>

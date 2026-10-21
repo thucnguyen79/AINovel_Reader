@@ -11,4 +11,8 @@
     <string name="reader_font_smaller">Giảm cỡ chữ</string>
     <string name="reader_font_larger">Tăng cỡ chữ</string>
     <string name="reader_listen">Nghe chương này</string>
+    <string name="reader_translate_mode">Chế độ dịch</string>
+    <string name="reader_translate_convert">Convert (VietPhrase)</string>
+    <string name="reader_translate_hanviet">Hán Việt</string>
+    <string name="reader_translate_raw">Nguyên văn tiếng Trung</string>
 </resources>

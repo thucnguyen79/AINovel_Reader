@@ -36,6 +36,7 @@ import vn.esstar.ainovel.core.common.di.Dispatcher
 import vn.esstar.ainovel.core.datastore.TtsPreferences
 import vn.esstar.ainovel.core.storage.AppStorage
 import vn.esstar.ainovel.domain.repository.LibraryRepository
+import vn.esstar.ainovel.domain.usecase.GetReadableChapterUseCase
 import vn.esstar.ainovel.tts.api.AudioCache
 import vn.esstar.ainovel.tts.api.TtsEngine
 
@@ -48,6 +49,7 @@ class PlaybackService : MediaSessionService() {
 
     @Inject lateinit var library: LibraryRepository
     @Inject lateinit var engine: TtsEngine
+    @Inject lateinit var readableChapter: GetReadableChapterUseCase
     @Inject lateinit var ttsPreferences: TtsPreferences
     @Inject lateinit var storage: AppStorage
     @Inject @Dispatcher(AppDispatcher.IO) lateinit var io: CoroutineDispatcher
@@ -74,6 +76,7 @@ class PlaybackService : MediaSessionService() {
             scope = scope,
             player = player,
             library = library,
+            contentProvider = { readableChapter(it) },
             engine = engine,
             cache = AudioCache(storage.audioCache),
             io = io,

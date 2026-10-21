@@ -47,11 +47,11 @@ class SourceRepositoryImpl @Inject constructor(
         val rule = registry.forUrl(url) ?: throw UnsupportedSourceException(url)
         val parser = registry.parser(rule)
 
-        val bookPage = fetcher.get(url, rule.fetch.headers)
+        val bookPage = fetcher.get(url, rule.fetch.headers, rule.fetch.charset)
         val info = parser.parseBookInfo(bookPage.html, bookPage.finalUrl)
 
         val tocUrl = info.tocUrl ?: bookPage.finalUrl
-        val firstTocHtml = if (tocUrl == bookPage.finalUrl) bookPage.html else fetcher.get(tocUrl, rule.fetch.headers).html
+        val firstTocHtml = if (tocUrl == bookPage.finalUrl) bookPage.html else fetcher.get(tocUrl, rule.fetch.headers, rule.fetch.charset).html
         val chapters = fetchAllTocPages(rule, parser, tocUrl, firstTocHtml)
         if (chapters.isEmpty()) throw SourceParseException("No chapters found at $tocUrl")
 
@@ -89,7 +89,7 @@ class SourceRepositoryImpl @Inject constructor(
                     async {
                         limit.withPermit {
                             val pageUrl = parser.tocPageUrl(tocUrl, page, bookId) ?: return@withPermit emptyList()
-                            val body = fetcher.get(pageUrl, headers).html
+                            val body = fetcher.get(pageUrl, headers, rule.fetch.charset).html
                             val isFragment = rule.toc.pageJson != null || rule.toc.pageList != null
                             val html = if (rule.toc.pageJson != null) parser.tocHtmlFromJson(body) else body
                             parser.parseTocPage(html, pageUrl, fragment = isFragment).chapters
@@ -104,7 +104,7 @@ class SourceRepositoryImpl @Inject constructor(
             var count = 1
             val seen = hashSetOf(tocUrl)
             while (next != null && count < rule.toc.maxPages && seen.add(next)) {
-                val html = fetcher.get(next, rule.fetch.headers).html
+                val html = fetcher.get(next, rule.fetch.headers, rule.fetch.charset).html
                 val parsed = parser.parseTocPage(html, next)
                 pages += parsed.chapters
                 next = parsed.nextUrl
@@ -119,7 +119,7 @@ class SourceRepositoryImpl @Inject constructor(
 
     override suspend fun fetchChapter(url: String): FetchedChapterContent = withContext(io) {
         val rule = registry.forUrl(url) ?: throw UnsupportedSourceException(url)
-        val page = fetcher.get(url, rule.fetch.headers)
+        val page = fetcher.get(url, rule.fetch.headers, rule.fetch.charset)
         registry.parser(rule).parseChapter(page.html, page.finalUrl)
     }
 
@@ -132,7 +132,7 @@ class SourceRepositoryImpl @Inject constructor(
                     runCatching {
                         val parser = registry.parser(rule)
                         val url = parser.searchUrl(query) ?: return@async emptyList()
-                        val page = fetcher.get(url, rule.fetch.headers)
+                        val page = fetcher.get(url, rule.fetch.headers, rule.fetch.charset)
                         parser.parseSearch(page.html, page.finalUrl)
                     }.onFailure { Timber.w(it, "Search failed on %s", rule.id) }.getOrDefault(emptyList())
                 }

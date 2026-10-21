@@ -40,6 +40,8 @@ data class UrlPatterns(
 data class SearchRule(
     /** Template with `{base}` and `{query}` placeholders. */
     val url: String,
+    /** Charset used to URL-encode `{query}` (e.g. `GBK` for jjwxc); default UTF-8. */
+    val queryCharset: String? = null,
     val list: String,
     val title: String,
     val link: String = "@href",

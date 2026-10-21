@@ -26,12 +26,14 @@ Ví dụ: `h3.truyen-title a@href`, `#total-page@value`, `.info a[itemprop=genre
   "hosts": ["truyenfull.live", "truyenfull.vn"],   // khớp host (bỏ www., m.) và subdomain
   "lang": "vi",
   "fetch": { "mode": "http", "headers": {}, "charset": null },   // mode: http | webview | webview-cf
+                                       // charset: gợi ý khi header/meta không nói (vd "GB18030"); fetcher tự sniff <meta charset>
   "urls": {                            // regex (containsMatchIn) để phân loại URL
     "chapter": "/chuong-\\d+",
     "book": "^https?://[^/]+/[^/]+/?$"
   },
   "search": {                          // bỏ qua nếu site không có tìm kiếm
     "url": "{base}/tim-kiem/?tukhoa={query}",   // {query} đã URL-encode
+    "queryCharset": "GBK",             // (tuỳ chọn) bảng mã để encode {query}, mặc định UTF-8
     "list": "css của từng dòng kết quả",
     "title": "…@text", "link": "…@href",
     "author": "…", "cover": "…", "latestChapter": "…",
@@ -87,8 +89,16 @@ Ví dụ: `h3.truyen-title a@href`, `#total-page@value`, `.info a[itemprop=genre
 | `metruyenchu` | metruyenchu.com.vn, metruyenchuvn.com | Trang 1 inline, trang 2..N qua AJAX JSON `/get/listchap/{bookId}?page=N` | Văn bản có chèn dấu chấm chống copy (`t.h.u.ố.c`), cần chuẩn hoá ở TextNormalizer |
 | `wikidich` | wikidichvn.com | Cùng engine với metruyenchu | |
 | `tvtruyen` | tvtruyen.space (tvtruyen.com chuyển hướng) | `?page=N`, 50 chương/trang, tổng số trang lấy từ phân trang | Trang truyện ~300 KB |
+| `52shuku` | 52shuku.net (zh) | `ul.list li.mulu a` một trang | Tìm kiếm `/so/search.php?q=`; tiêu đề kết quả có số thứ tự, lọc bằng regex |
+| `jjwxc` | jjwxc.net (zh, GB18030) | `tr[itemprop=chapter] a[itemprop=url]` một trang; chương khoá (VIP) không có link nên bị bỏ qua | Tìm kiếm cần `queryCharset: GBK`; nội dung `.noveltext`, bỏ "作者有话要说" |
 
 Chưa hỗ trợ: **xtruyen.net** (theme Madara tuỳ biến: nội dung chương và danh sách chương nạp bằng `admin-ajax.php` có nonce, tìm kiếm là ứng dụng JS). Cần mode `webview` hoặc giải mã API; để lại cho giai đoạn sau.
+
+Site Trung đã khảo sát (21/10/2026) nhưng chưa làm rule vì HTML tĩnh không đủ:
+- **zongheng.com**: danh sách chương render bằng JS, API JSON trả 404 khi gọi ngoài trình duyệt.
+- **ixdzs8.com**: trang xác minh trình duyệt bằng JS trước khi trả nội dung.
+- **17k.com**: WAF Aliyun chặn request không có cookie từ trình duyệt.
+Cả ba cần `fetch.mode: webview` (tải trang bằng WebView ẩn rồi lấy DOM); sẽ làm khi fetcher có mode này.
 
 ## Giới hạn hiện tại
 

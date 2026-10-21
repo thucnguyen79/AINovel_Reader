@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -19,6 +20,10 @@ import vn.esstar.ainovel.domain.model.Chapter
 import vn.esstar.ainovel.domain.model.ChapterContent
 import vn.esstar.ainovel.domain.model.ReadingMode
 import vn.esstar.ainovel.domain.model.ReadingPosition
+import vn.esstar.ainovel.domain.model.TranslatableLanguages
+import vn.esstar.ainovel.domain.model.TranslateMode
+import vn.esstar.ainovel.domain.repository.TranslationRepository
+import vn.esstar.ainovel.domain.usecase.GetReadableChapterUseCase
 import vn.esstar.ainovel.domain.repository.LibraryRepository
 import vn.esstar.ainovel.domain.playback.PlaybackController
 
@@ -30,6 +35,8 @@ data class ReaderUiState(
     val isLoading: Boolean = true,
     val error: Boolean = false,
     val prefs: ReaderPrefs = ReaderPrefs(),
+    /** Null when the book is not in a translatable language. */
+    val translateMode: TranslateMode? = null,
     /** Paragraph index + pixel offset to restore when [content] changes. */
     val restoreIndex: Int = 0,
     val restoreOffset: Int = 0,
@@ -44,6 +51,8 @@ class ReaderViewModel @Inject constructor(
     private val library: LibraryRepository,
     private val readerPreferences: ReaderPreferences,
     private val playback: PlaybackController,
+    private val translation: TranslationRepository,
+    private val readableChapter: GetReadableChapterUseCase,
 ) : ViewModel() {
 
     private val route = savedStateHandle.toRoute<ReaderRoute>()
@@ -63,7 +72,8 @@ class ReaderViewModel @Inject constructor(
         viewModelScope.launch {
             val book = library.getBook(bookId)
             val chapters = library.getChapters(bookId)
-            _state.update { it.copy(book = book, chapters = chapters) }
+            val mode = if (book != null && TranslatableLanguages.needsTranslation(book.language)) translation.mode.first() else null
+            _state.update { it.copy(book = book, chapters = chapters, translateMode = mode) }
             val progress = library.getProgress(bookId)
             val restore = progress?.takeIf { it.chapterId == route.chapterId }
             open(route.chapterId, restore?.sentenceIndex ?: 0, restore?.scrollOffset ?: 0)
@@ -81,7 +91,7 @@ class ReaderViewModel @Inject constructor(
                 _state.update { it.copy(isLoading = false, error = true) }
                 return@launch
             }
-            runCatching { library.getChapterContent(chapterId) }
+            runCatching { readableChapter(chapterId, _state.value.translateMode) }
                 .onSuccess { content ->
                     _state.update { it.copy(content = content, isLoading = false) }
                     lastSavedIndex = -1
@@ -129,6 +139,14 @@ class ReaderViewModel @Inject constructor(
         val chapter = _state.value.currentChapter ?: return
         // Item 0 of the list is the title row, so paragraph index = list index - 1.
         playback.play(bookId, chapter.id, (firstVisibleIndex - 1).coerceAtLeast(0))
+    }
+
+    /** Switches Convert / Hán Việt / Nguyên văn for Chinese books and reloads the current chapter. */
+    fun setTranslateMode(mode: TranslateMode) {
+        if (_state.value.translateMode == null || _state.value.translateMode == mode) return
+        _state.update { it.copy(translateMode = mode) }
+        viewModelScope.launch { translation.setMode(mode) }
+        _state.value.currentChapter?.let { open(it.id, lastSavedIndex.coerceAtLeast(0), lastSavedOffset.coerceAtLeast(0)) }
     }
 
     fun setFontSize(sp: Int) {

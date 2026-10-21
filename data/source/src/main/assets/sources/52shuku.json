@@ -1,0 +1,34 @@
+{
+  "id": "52shuku",
+  "name": "52书库",
+  "baseUrl": "https://www.52shuku.net",
+  "hosts": ["52shuku.net", "52shuku.vip"],
+  "lang": "zh",
+  "fetch": { "mode": "http", "charset": "UTF-8" },
+  "urls": {
+    "chapter": "^https?://[^/]+/[a-z]+/\\d+_b/[A-Za-z0-9]+_\\d+\\.html$",
+    "book": "^https?://[^/]+/[a-z]+/\\d+_b/[A-Za-z0-9]+\\.html$"
+  },
+  "search": {
+    "url": "{base}/so/search.php?q={query}",
+    "list": "article.excerpt",
+    "title": "h2 a@text|regex:^\\d+\\.\\s*(.+)$",
+    "link": "h2 a@href"
+  },
+  "book": {
+    "title": "h1.article-title@text",
+    "author": "article.article-content p:contains(作者)@text|regex:作者[：:]\\s*([^【\\s]+)",
+    "description": "article.article-content@html"
+  },
+  "toc": {
+    "list": "ul.list li.mulu a",
+    "title": "@text",
+    "link": "@href"
+  },
+  "chapter": {
+    "title": "h1.article-title@text",
+    "content": "article.article-content",
+    "remove": ["script", "style", ".meta", "div[id*=ad]"],
+    "removeLines": ["52书库", "52shuku", "^小说简介[：:]?$"]
+  }
+}

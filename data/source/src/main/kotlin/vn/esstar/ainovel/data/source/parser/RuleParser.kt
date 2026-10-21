@@ -55,9 +55,12 @@ class RuleParser(private val rule: SourceRule) {
         }
     }
 
-    fun searchUrl(query: String): String? = rule.search?.url
-        ?.replace("{base}", rule.baseUrl.trimEnd('/'))
-        ?.replace("{query}", URLEncoder.encode(query, "UTF-8"))
+    fun searchUrl(query: String): String? = rule.search?.let { search ->
+        val charset = search.queryCharset ?: "UTF-8"
+        search.url
+            .replace("{base}", rule.baseUrl.trimEnd('/'))
+            .replace("{query}", URLEncoder.encode(query, charset))
+    }
 
     fun parseSearch(html: String, pageUrl: String): List<SearchResult> {
         val search = rule.search ?: return emptyList()

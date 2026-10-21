@@ -20,6 +20,7 @@ import timber.log.Timber
 import vn.esstar.ainovel.core.datastore.TtsPrefs
 import vn.esstar.ainovel.domain.model.Book
 import vn.esstar.ainovel.domain.model.Chapter
+import vn.esstar.ainovel.domain.model.ChapterContent
 import vn.esstar.ainovel.domain.model.ReadingMode
 import vn.esstar.ainovel.domain.model.ReadingPosition
 import vn.esstar.ainovel.domain.playback.PlaybackError
@@ -47,6 +48,8 @@ class ChapterAudioPipeline(
     private val scope: CoroutineScope,
     private val player: Player,
     private val library: LibraryRepository,
+    /** Chapter text as the user reads it (converted for Chinese books). */
+    private val contentProvider: suspend (chapterId: Long) -> ChapterContent,
     private val engine: TtsEngine,
     private val cache: AudioCache,
     private val io: CoroutineDispatcher,
@@ -104,7 +107,7 @@ class ChapterAudioPipeline(
     /** Returns false when the chapter could not be produced (error already published). */
     private suspend fun produceChapter(book: Book, chapter: Chapter, paragraphIndex: Int, segmentIndex: Int?, autoPlay: Boolean): Boolean {
         val prefs = prefsProvider()
-        val content = runCatching { library.getChapterContent(chapter.id) }
+        val content = runCatching { contentProvider(chapter.id) }
             .onFailure { Timber.e(it, "Cannot load chapter %d", chapter.id) }
             .getOrNull() ?: run {
             _status.update { it.copy(error = PlaybackError.CHAPTER_LOAD_FAILED) }
