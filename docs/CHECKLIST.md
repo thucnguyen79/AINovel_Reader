@@ -52,6 +52,7 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [x] Nút Nghe ở Reader (từ đoạn đang xem), chi tiết truyện (từ vị trí đã lưu), WebView ("Nghe chương này")
 - [x] Thử trên máy thật (OPPO CPH2357): Google TTS vi-VN tổng hợp câu đầu sau ~3 giây, phát tiếp khi tắt màn hình, thông báo màn hình khoá có bìa + nút chương trước/sau, chuyển câu/chương, tốc độ 1.5x
 - [ ] Hẹn giờ tắt: đã code, chưa đo trên máy
+- [~] Mở đầu chương khi nghe (09/11/2026): nghỉ 3 giây khi tự chuyển sang chương kế (WAV im lặng trong cache), rồi đọc tiêu đề chương, rồi nội dung; bấm chương trước/sau hoặc nghe từ giữa chương thì không nghỉ. Đã code + unit test `SilenceWavTest`, chưa thử trên máy
 - [x] Quyền POST_NOTIFICATIONS: đã được cấp trên máy test, thông báo hiển thị
 
 ## Giai đoạn 3 – Tải truyện & offline (bắt đầu 21/10/2026)

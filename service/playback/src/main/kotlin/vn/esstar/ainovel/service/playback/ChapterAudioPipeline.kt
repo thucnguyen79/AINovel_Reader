@@ -27,6 +27,7 @@ import vn.esstar.ainovel.domain.playback.PlaybackError
 import vn.esstar.ainovel.domain.repository.LibraryRepository
 import vn.esstar.ainovel.tts.api.AudioCache
 import vn.esstar.ainovel.tts.api.Segment
+import vn.esstar.ainovel.tts.api.SilenceWav
 import vn.esstar.ainovel.tts.api.SynthesisResult
 import vn.esstar.ainovel.tts.api.TextNormalizer
 import vn.esstar.ainovel.tts.api.TextSegmenter
@@ -129,6 +130,42 @@ class ChapterAudioPipeline(
         val params = VoiceParams(voiceId = prefs.voiceId, pitch = prefs.pitch)
         var consecutiveFailures = 0
         var isFirstItem = autoPlay
+        val title = content.title.ifBlank { chapter.title }
+
+        suspend fun enqueue(item: MediaItem) = withContext(Dispatchers.Main) {
+            player.addMediaItem(item)
+            if (isFirstItem) {
+                player.prepare()
+                player.play()
+                isFirstItem = false
+            } else if (player.playbackState == Player.STATE_ENDED || player.playbackState == Player.STATE_IDLE) {
+                // Playhead caught up with the producer; resume from the newly added item.
+                player.seekTo(player.mediaItemCount - 1, 0)
+                player.prepare()
+                player.play()
+            }
+            _status.update { it.copy(isBuffering = false) }
+        }
+
+        // Chapter opening: a pause when the book flows on from the previous chapter, then the title.
+        if (start == 0) {
+            Timber.i("Chapter %d opens with %s title '%s'", chapter.id, if (autoPlay) "no pause and" else "a ${CHAPTER_PAUSE_MS} ms pause and", title)
+            if (!autoPlay) {
+                val pause = withContext(io) {
+                    cache.existing(PAUSE_CACHE_KEY) ?: SilenceWav.write(cache.fileFor(PAUSE_CACHE_KEY), CHAPTER_PAUSE_MS)
+                }
+                enqueue(introItem(book, chapter, title, INTRO_PAUSE, segments.size, pause.toURI().toString()))
+            }
+            val spokenTitle = normalizer.normalize(title)
+            if (spokenTitle.any { it.isLetterOrDigit() }) {
+                val key = cache.key(engine.id, params, spokenTitle)
+                val file = cache.existing(key) ?: withContext(io) {
+                    (engine.synthesize(spokenTitle, params, cache.fileFor(key)) as? SynthesisResult.Success)?.file?.also { cache.evictIfNeeded() }
+                }
+                if (file != null) enqueue(introItem(book, chapter, title, INTRO_TITLE, segments.size, file.toURI().toString()))
+                else Timber.w("Title synthesis failed for chapter %d", chapter.id)
+            }
+        }
 
         for (i in start until segments.size) {
             if (!scope.isActive) return false
@@ -155,21 +192,7 @@ class ChapterAudioPipeline(
                 continue
             }
             consecutiveFailures = 0
-            val item = mediaItem(book, chapter, content.title.ifBlank { chapter.title }, segment, segments.size, file.toURI().toString())
-            withContext(Dispatchers.Main) {
-                player.addMediaItem(item)
-                if (isFirstItem) {
-                    player.prepare()
-                    player.play()
-                    isFirstItem = false
-                } else if (player.playbackState == Player.STATE_ENDED || player.playbackState == Player.STATE_IDLE) {
-                    // Playhead caught up with the producer; resume from the newly added item.
-                    player.seekTo(player.mediaItemCount - 1, 0)
-                    player.prepare()
-                    player.play()
-                }
-                _status.update { it.copy(isBuffering = false) }
-            }
+            enqueue(mediaItem(book, chapter, title, segment, segments.size, file.toURI().toString()))
         }
         return true
     }
@@ -218,7 +241,7 @@ class ChapterAudioPipeline(
         val bookId = extras.getLong(PlaybackCommands.EXTRA_BOOK_ID, -1)
         val chapterId = extras.getLong(PlaybackCommands.EXTRA_CHAPTER_ID, -1)
         if (bookId < 0 || chapterId < 0) return
-        val paragraph = extras.getInt(PlaybackCommands.EXTRA_PARAGRAPH_INDEX, 0)
+        val paragraph = extras.getInt(PlaybackCommands.EXTRA_PARAGRAPH_INDEX, 0).coerceAtLeast(0)
         val segment = extras.getInt(PlaybackCommands.EXTRA_SEGMENT_INDEX, 0)
         val count = extras.getInt(PlaybackCommands.EXTRA_SEGMENT_COUNT, 1).coerceAtLeast(1)
         scope.launch {
@@ -240,6 +263,16 @@ class ChapterAudioPipeline(
 
     private fun playingChapterId(): Long? =
         player.currentMediaItem?.mediaMetadata?.extras?.getLong(PlaybackCommands.EXTRA_CHAPTER_ID, -1)?.takeIf { it >= 0 }
+
+    /**
+     * Pause or spoken title placed before the first segment. Paragraph index -1 keeps the reader from
+     * highlighting anything; segment index 0 keeps the player slider at the chapter start.
+     */
+    private fun introItem(book: Book, chapter: Chapter, title: String, kind: String, segmentCount: Int, uri: String): MediaItem =
+        mediaItem(book, chapter, title, Segment(index = 0, paragraphIndex = -1, text = "", start = 0, end = 0), segmentCount, uri)
+            .buildUpon()
+            .setMediaId("${PlaybackCommands.mediaId(chapter.id, 0)}:$kind")
+            .build()
 
     private fun mediaItem(book: Book, chapter: Chapter, title: String, segment: Segment, segmentCount: Int, uri: String): MediaItem {
         val extras = Bundle().apply {
@@ -270,5 +303,10 @@ class ChapterAudioPipeline(
     private companion object {
         const val POLL_MS = 250L
         const val MAX_CONSECUTIVE_FAILURES = 5
+        /** Silence inserted before a chapter that starts because the previous one ended. */
+        const val CHAPTER_PAUSE_MS = 3_000
+        const val PAUSE_CACHE_KEY = "pause-3000ms"
+        const val INTRO_PAUSE = "pause"
+        const val INTRO_TITLE = "title"
     }
 }
