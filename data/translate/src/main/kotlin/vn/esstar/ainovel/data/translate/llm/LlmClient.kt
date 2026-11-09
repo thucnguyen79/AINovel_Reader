@@ -94,12 +94,14 @@ internal abstract class BaseLlmClient(http: OkHttpClient, protected val json: Js
                 ?: (obj["error"] as? JsonPrimitive)?.contentOrNull
                 ?: obj["message"]?.jsonPrimitive?.contentOrNull
         }.getOrNull()?.take(200)
-        val base = when (code) {
-            400 -> "Yêu cầu không hợp lệ (kiểm tra tên model)."
-            401, 403 -> "API key bị từ chối."
-            404 -> "Không tìm thấy model hoặc đường dẫn API."
-            429 -> "Vượt hạn mức (rate limit) của nhà cung cấp, thử lại sau."
-            in 500..599 -> "Máy chủ của nhà cung cấp đang lỗi."
+        val keyProblem = detail?.contains("api key", ignoreCase = true) == true || detail?.contains("api_key", ignoreCase = true) == true
+        val base = when {
+            keyProblem -> "API key bị từ chối."
+            code == 400 -> "Yêu cầu không hợp lệ (kiểm tra tên model)."
+            code == 401 || code == 403 -> "API key bị từ chối."
+            code == 404 -> "Không tìm thấy model hoặc đường dẫn API."
+            code == 429 -> "Vượt hạn mức (rate limit) của nhà cung cấp, thử lại sau."
+            code in 500..599 -> "Máy chủ của nhà cung cấp đang lỗi."
             else -> "Lỗi HTTP $code."
         }
         return if (detail.isNullOrBlank()) base else "$base $detail"
