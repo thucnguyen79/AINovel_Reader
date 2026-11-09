@@ -141,6 +141,8 @@ internal open class GeminiClient(
             putJsonObject("generationConfig") {
                 put("temperature", temperature)
                 put("maxOutputTokens", 8192)
+                // Translation needs no reasoning pass; Gemini 2.5 Flash thinks by default, which triples latency.
+                if (settings.effectiveModel.contains("2.5-flash")) putJsonObject("thinkingConfig") { put("thinkingBudget", 0) }
             }
         }
         val request = Request.Builder()

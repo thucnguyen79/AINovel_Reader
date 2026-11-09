@@ -7,6 +7,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -121,18 +125,45 @@ class LlmRepositoryImpl @Inject constructor(
         _progress.update { it + (chapterId to LlmProgress(chapterId, 0, total)) }
 
         val out = paragraphs.toMutableList()
-        chunks.forEachIndexed { ci, chunk ->
-            val reply = client.complete(system, ChapterTranslator.userPrompt(chunk, glossary, null))
-            val parsed = ChapterTranslator.parseReply(reply, chunk.paragraphs.size)
-                ?: retryChunk(client, system, chunk, glossary)
-            if (parsed == null) {
-                Timber.w("LLM chunk %d of chapter %d unparseable; keeping source paragraphs", ci, chapterId)
-            } else {
-                parsed.forEachIndexed { i, text -> out[chunk.startIndex + i] = text.ifBlank { chunk.paragraphs[i] } }
-            }
-            _progress.update { it + (chapterId to LlmProgress(chapterId, ci + 1, total)) }
+        val done = java.util.concurrent.atomic.AtomicInteger(0)
+        val failed = java.util.concurrent.atomic.AtomicInteger(0)
+        // Two chunks in flight: halves the wait without tripping free-tier per-minute limits.
+        val limit = Semaphore(MAX_PARALLEL_CHUNKS)
+        var firstError: LlmException? = null
+        coroutineScope {
+            chunks.mapIndexed { ci, chunk ->
+                async {
+                    limit.withPermit {
+                        val parsed = try {
+                            val reply = client.complete(system, ChapterTranslator.userPrompt(chunk, glossary, null))
+                            ChapterTranslator.parseReply(reply, chunk.paragraphs.size) ?: retryChunk(client, system, chunk, glossary)
+                        } catch (e: LlmException) {
+                            Timber.w("LLM chunk %d of chapter %d failed: %s", ci, chapterId, e.userMessage)
+                            if (firstError == null) firstError = e
+                            null
+                        }
+                        if (parsed == null) {
+                            failed.incrementAndGet()
+                            Timber.w("LLM chunk %d of chapter %d kept as source text", ci, chapterId)
+                        } else {
+                            synchronized(out) { parsed.forEachIndexed { i, text -> out[chunk.startIndex + i] = text.ifBlank { chunk.paragraphs[i] } } }
+                        }
+                        val n = done.incrementAndGet()
+                        _progress.update { it + (chapterId to LlmProgress(chapterId, n, total)) }
+                    }
+                }
+            }.awaitAll()
+        }
+        if (failed.get() == chunks.size && chunks.isNotEmpty()) {
+            // Nothing came back (bad key, quota exhausted...): surface the reason instead of a silent raw chapter.
+            throw firstError ?: LlmException("Model không trả về bản dịch nào.")
         }
         val newTitle = translateTitle(client, system, title, glossary)
+        if (failed.get() > 0) {
+            // Partial result: show it now but do not cache it, so the next open fills in the missing chunks.
+            Timber.w("Chapter %d translated partially (%d/%d chunks failed); not cached", chapterId, failed.get(), chunks.size)
+            return LlmChapter(title = newTitle, paragraphs = out, provider = settings.provider, model = settings.effectiveModel)
+        }
         val entity = LlmChapterEntity(
             chapterId = chapterId,
             bookId = bookId,
@@ -174,6 +205,10 @@ class LlmRepositoryImpl @Inject constructor(
         provider = runCatching { LlmProviderKind.valueOf(provider) }.getOrDefault(LlmProviderKind.OPENAI_COMPATIBLE),
         model = model,
     )
+
+    private companion object {
+        const val MAX_PARALLEL_CHUNKS = 2
+    }
 
     private fun Throwable.userMessage(): String = (this as? LlmException)?.userMessage ?: (message ?: this::class.simpleName ?: "Lỗi không rõ")
 }

@@ -153,7 +153,7 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [x] Reader: menu Chế độ dịch có "Dịch bằng AI" cho cả truyện Việt (nếu đã có key), nhớ theo từng truyện; hiển thị tiến độ "Đang dịch bằng AI… n/m"; "Dịch lại chương này bằng AI"
 - [x] TTS: pipeline gọi trước nội dung chương kế (bản AI được dịch trong lúc nghe chương hiện tại)
 - [x] Unit test: `ChapterTranslatorTest` (6), `LlmClientTest` với MockWebServer (6)
-- [ ] Thử trên máy với key thật (Gemini) – cần người dùng nhập key
+- [x] Thử trên OPPO 09/11/2026 với key Gemini thật: "Lưu và kiểm tra" OK; chương convert 8 đoạn lớn dịch trong 65 s (tuần tự) → 32 s (2–3 khối song song, tắt thinking); mở lại chương lấy từ cache ngay; TTS đọc bản AI. Gói miễn phí Gemini giới hạn ~10 lượt/phút nên chunk 3.500 ký tự, 2 khối song song, khối hỏng thì giữ nguyên văn và không cache
 - [ ] Dịch trước N chương khi có Wi-Fi (WorkManager) – để sau
 - [ ] Tóm tắt chương bằng AI (P2 trong PLAN) – để sau
 

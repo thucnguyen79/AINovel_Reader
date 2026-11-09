@@ -8,8 +8,11 @@ import vn.esstar.ainovel.domain.model.GlossaryEntry
  */
 object ChapterTranslator {
 
-    /** Target size of one request in characters; large enough to keep context, small enough for free tiers. */
-    const val DEFAULT_CHUNK_CHARS = 2_200
+    /**
+     * Target size of one request in characters. Larger chunks mean fewer requests, which matters more than
+     * latency on free tiers that cap requests per minute (Gemini Flash: about 10/min).
+     */
+    const val DEFAULT_CHUNK_CHARS = 3_500
 
     data class Chunk(val startIndex: Int, val paragraphs: List<String>)
 

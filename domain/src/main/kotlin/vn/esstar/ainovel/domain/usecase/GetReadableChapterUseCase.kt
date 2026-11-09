@@ -30,7 +30,8 @@ class GetReadableChapterUseCase @Inject constructor(
 
         val wantsAi = mode == TranslateMode.LLM || (mode == null && llm.isAiBook(book.id))
         if (wantsAi) {
-            val ai = llm.translateChapter(book.id, chapterId, content.title, content.paragraphs, book.language)
+            // A failed model call (quota, network) must not hide the chapter: fall back to the dictionary text.
+            val ai = runCatching { llm.translateChapter(book.id, chapterId, content.title, content.paragraphs, book.language) }.getOrNull()
             if (ai != null && ai.paragraphs.size == content.paragraphs.size) {
                 return content.copy(title = ai.title.ifBlank { content.title }, paragraphs = ai.paragraphs, tokens = null)
             }
