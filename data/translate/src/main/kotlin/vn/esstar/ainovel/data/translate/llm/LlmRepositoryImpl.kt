@@ -25,6 +25,9 @@ import vn.esstar.ainovel.core.common.di.AppDispatcher
 import vn.esstar.ainovel.core.common.di.Dispatcher
 import vn.esstar.ainovel.core.database.dao.GlossaryDao
 import vn.esstar.ainovel.core.database.dao.LlmChapterDao
+import vn.esstar.ainovel.core.database.dao.LlmSummaryDao
+import vn.esstar.ainovel.core.database.entity.LlmSummaryEntity
+import vn.esstar.ainovel.domain.model.LlmSummary
 import vn.esstar.ainovel.core.database.entity.LlmChapterEntity
 import vn.esstar.ainovel.core.datastore.LlmPreferences
 import vn.esstar.ainovel.domain.model.GlossaryEntry
@@ -41,13 +44,15 @@ import vn.esstar.ainovel.domain.repository.LlmRepository
 class LlmRepositoryImpl @Inject constructor(
     private val prefs: LlmPreferences,
     private val dao: LlmChapterDao,
+    private val summaryDao: LlmSummaryDao,
     private val glossaryDao: GlossaryDao,
     http: OkHttpClient,
     json: Json,
     @Dispatcher(AppDispatcher.IO) private val io: CoroutineDispatcher,
 ) : LlmRepository {
 
-    private val factory = LlmClientFactory(http, json)
+    private val throttle = LlmThrottle()
+    private val factory = LlmClientFactory(http, json, throttle)
 
     /** Translations outlive the caller (reader navigates away, TTS prefetch); they run in this scope. */
     private val scope = CoroutineScope(SupervisorJob() + io)
@@ -90,15 +95,16 @@ class LlmRepositoryImpl @Inject constructor(
 
     override suspend fun cached(chapterId: Long): LlmChapter? = dao.get(chapterId)?.toDomain()
 
-    override suspend fun translateChapter(bookId: Long, chapterId: Long, title: String, paragraphs: List<String>, sourceLanguage: String): LlmChapter? {
+    override suspend fun translateChapter(bookId: Long, chapterId: Long, title: String, paragraphs: List<String>, sourceLanguage: String, background: Boolean): LlmChapter? {
         dao.get(chapterId)?.let { return it.toDomain() }
         val settings = prefs.settings.first()
         if (!settings.isConfigured) return null
+        if (!background) throttle.markInteractive()
         val job = inFlightLock.withLock {
             inFlight.getOrPut(chapterId) {
                 scope.async {
                     try {
-                        produce(settings, bookId, chapterId, title, paragraphs, sourceLanguage)
+                        produce(settings, bookId, chapterId, title, paragraphs, sourceLanguage, background)
                     } finally {
                         inFlightLock.withLock { inFlight.remove(chapterId) }
                         _progress.update { it - chapterId }
@@ -116,6 +122,7 @@ class LlmRepositoryImpl @Inject constructor(
         title: String,
         paragraphs: List<String>,
         sourceLanguage: String,
+        background: Boolean,
     ): LlmChapter {
         val client = factory.create(settings)
         val glossary = glossaryDao.listForBook(bookId).map { GlossaryEntry(it.id, it.bookId, it.source, it.target) }
@@ -127,13 +134,14 @@ class LlmRepositoryImpl @Inject constructor(
         val out = paragraphs.toMutableList()
         val done = java.util.concurrent.atomic.AtomicInteger(0)
         val failed = java.util.concurrent.atomic.AtomicInteger(0)
-        // Two chunks in flight: halves the wait without tripping free-tier per-minute limits.
-        val limit = Semaphore(MAX_PARALLEL_CHUNKS)
+        // Two chunks in flight for the user, one for prefetch: halves the wait without tripping free-tier limits.
+        val limit = Semaphore(if (background) 1 else MAX_PARALLEL_CHUNKS)
         var firstError: LlmException? = null
         coroutineScope {
             chunks.mapIndexed { ci, chunk ->
                 async {
                     limit.withPermit {
+                        if (background) throttle.awaitBackgroundSlot()
                         val parsed = try {
                             val reply = client.complete(system, ChapterTranslator.userPrompt(chunk, glossary, null))
                             ChapterTranslator.parseReply(reply, chunk.paragraphs.size) ?: retryChunk(client, system, chunk, glossary)
@@ -197,7 +205,34 @@ class LlmRepositoryImpl @Inject constructor(
 
     override suspend fun cacheInfo(): LlmCacheInfo = LlmCacheInfo(chapters = dao.count(), bytes = dao.totalChars() * 2)
 
-    override suspend fun clearCache() = dao.deleteAll()
+    override suspend fun clearCache() {
+        dao.deleteAll()
+        summaryDao.deleteAll()
+    }
+
+    override val prefetchCount: Flow<Int> get() = prefs.prefetchCount
+
+    override suspend fun setPrefetchCount(count: Int) {
+        prefs.setPrefetchCount(count)
+    }
+
+    override suspend fun cachedSummary(chapterId: Long): LlmSummary? = summaryDao.get(chapterId)?.toDomain()
+
+    override suspend fun summarizeChapter(chapterId: Long, title: String, paragraphs: List<String>, force: Boolean): LlmSummary {
+        if (!force) summaryDao.get(chapterId)?.let { return it.toDomain() }
+        val settings = prefs.settings.first()
+        if (!settings.isConfigured) throw LlmException("Chưa cấu hình Dịch bằng AI trong Cài đặt.")
+        throttle.markInteractive()
+        val reply = withContext(io) {
+            factory.create(settings).complete(ChapterTranslator.summarySystemPrompt(), ChapterTranslator.summaryUserPrompt(title, paragraphs), temperature = 0.4)
+        }.trim()
+        if (reply.isBlank()) throw LlmException("Model không trả về tóm tắt.")
+        val entity = LlmSummaryEntity(chapterId = chapterId, model = settings.effectiveModel, text = reply, createdAt = System.currentTimeMillis())
+        summaryDao.upsert(entity)
+        return entity.toDomain()
+    }
+
+    private fun LlmSummaryEntity.toDomain() = LlmSummary(text = text, model = model, createdAt = createdAt)
 
     private fun LlmChapterEntity.toDomain() = LlmChapter(
         title = title,

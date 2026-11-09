@@ -44,14 +44,19 @@ interface LlmClient {
 }
 
 /** Builds the right client for the provider; all providers except Gemini speak the OpenAI chat API. */
-class LlmClientFactory(private val http: OkHttpClient, private val json: Json) {
+class LlmClientFactory(private val http: OkHttpClient, private val json: Json, private val throttle: LlmThrottle = LlmThrottle()) {
     fun create(settings: LlmSettings): LlmClient = when (settings.provider) {
-        LlmProviderKind.GEMINI -> GeminiClient(http, json, settings)
-        LlmProviderKind.OPENROUTER, LlmProviderKind.GROQ, LlmProviderKind.OPENAI_COMPATIBLE -> OpenAiCompatibleClient(http, json, settings)
+        LlmProviderKind.GEMINI -> GeminiClient(http, json, settings, throttle = throttle)
+        LlmProviderKind.OPENROUTER, LlmProviderKind.GROQ, LlmProviderKind.OPENAI_COMPATIBLE -> OpenAiCompatibleClient(http, json, settings, throttle)
     }
 }
 
-internal abstract class BaseLlmClient(http: OkHttpClient, protected val json: Json, final override val settings: LlmSettings) : LlmClient {
+internal abstract class BaseLlmClient(
+    http: OkHttpClient,
+    protected val json: Json,
+    final override val settings: LlmSettings,
+    private val throttle: LlmThrottle? = null,
+) : LlmClient {
 
     /** LLM replies for a 2 000-character chunk routinely take longer than the 30 s page-fetch timeout. */
     protected val client: OkHttpClient = http.newBuilder()
@@ -77,14 +82,25 @@ internal abstract class BaseLlmClient(http: OkHttpClient, protected val json: Js
                 }
                 val retryable = r.code == 429 || r.code == 503 || r.code == 502 || r.code == 500
                 if (retryable && attempt < MAX_ATTEMPTS) {
-                    val wait = r.header("Retry-After")?.toLongOrNull()?.times(1000) ?: (BACKOFF_MS * (1L shl (attempt - 1)))
+                    val wait = (r.header("Retry-After")?.toDoubleOrNull()?.times(1000)?.toLong()
+                        ?: retryDelayFromBody(body)
+                        ?: (BACKOFF_MS * (1L shl (attempt - 1)))).coerceIn(500, MAX_RETRY_WAIT_MS)
+                    if (r.code == 429) throttle?.onRateLimited(wait)
                     Timber.w("LLM %s -> HTTP %d, retry %d after %d ms", request.url.host, r.code, attempt, wait)
-                    delay(wait.coerceIn(500, 60_000))
+                    delay(wait)
                 } else {
                     throw LlmException(httpMessage(r.code, body))
                 }
             }
         }
+    }
+
+    /** Gemini puts the wait in the body (`retryDelay: "42s"` or "Please retry in 42.5s"); OpenAI-style servers use Retry-After. */
+    internal fun retryDelayFromBody(body: String): Long? {
+        val m = Regex(""""retryDelay"\s*:\s*"(\d+(?:\.\d+)?)s"""").find(body)
+            ?: Regex("""retry in (\d+(?:\.\d+)?)\s*s""", RegexOption.IGNORE_CASE).find(body)
+            ?: return null
+        return (m.groupValues[1].toDouble() * 1000).toLong() + 500
     }
 
     protected fun httpMessage(code: Int, body: String): String {
@@ -117,6 +133,7 @@ internal abstract class BaseLlmClient(http: OkHttpClient, protected val json: Js
         const val READ_TIMEOUT_S = 120L
         const val MAX_ATTEMPTS = 4
         const val BACKOFF_MS = 2_000L
+        const val MAX_RETRY_WAIT_MS = 75_000L
     }
 }
 
@@ -127,7 +144,8 @@ internal open class GeminiClient(
     settings: LlmSettings,
     /** Overridable so tests can point the fixed Google endpoint at a local server. */
     private val base: String = settings.effectiveBaseUrl,
-) : BaseLlmClient(http, json, settings) {
+    throttle: LlmThrottle? = null,
+) : BaseLlmClient(http, json, settings, throttle) {
 
     override suspend fun complete(system: String, user: String, temperature: Double): String {
         val payload = buildJsonObject {
@@ -177,7 +195,7 @@ internal open class GeminiClient(
 }
 
 /** OpenAI-style `/chat/completions` and `/models`, used by OpenRouter, Groq and any compatible server. */
-internal class OpenAiCompatibleClient(http: OkHttpClient, json: Json, settings: LlmSettings) : BaseLlmClient(http, json, settings) {
+internal class OpenAiCompatibleClient(http: OkHttpClient, json: Json, settings: LlmSettings, throttle: LlmThrottle? = null) : BaseLlmClient(http, json, settings, throttle) {
 
     private val base = settings.effectiveBaseUrl
 

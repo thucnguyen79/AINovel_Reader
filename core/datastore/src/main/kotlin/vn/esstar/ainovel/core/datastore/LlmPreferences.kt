@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -31,6 +32,7 @@ class LlmPreferences @Inject constructor(@ApplicationContext private val context
         val MODEL = stringPreferencesKey("model")
         val BASE_URL = stringPreferencesKey("base_url")
         val AI_BOOKS = stringSetPreferencesKey("ai_books")
+        val PREFETCH = intPreferencesKey("prefetch_chapters")
     }
 
     val settings: Flow<LlmSettings> = context.llmDataStore.data.map { p ->
@@ -49,6 +51,11 @@ class LlmPreferences @Inject constructor(@ApplicationContext private val context
         it[Keys.BASE_URL] = settings.baseUrl.trim()
     }
 
+    /** Chapters to translate ahead on Wi-Fi; default 5. */
+    val prefetchCount: Flow<Int> = context.llmDataStore.data.map { p -> p[Keys.PREFETCH] ?: DEFAULT_PREFETCH }
+
+    suspend fun setPrefetchCount(count: Int) = context.llmDataStore.edit { it[Keys.PREFETCH] = count.coerceIn(0, 50) }
+
     val aiBooks: Flow<Set<Long>> = context.llmDataStore.data.map { p ->
         p[Keys.AI_BOOKS].orEmpty().mapNotNull { it.toLongOrNull() }.toSet()
     }
@@ -60,3 +67,5 @@ class LlmPreferences @Inject constructor(@ApplicationContext private val context
         it[Keys.AI_BOOKS] = if (enabled) current + bookId.toString() else current - bookId.toString()
     }
 }
+
+const val DEFAULT_PREFETCH = 5

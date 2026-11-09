@@ -171,6 +171,11 @@ class SettingsViewModel @Inject constructor(
             }
     }
 
+    val llmPrefetch: StateFlow<Int> = llm.prefetchCount
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 5)
+
+    fun setLlmPrefetch(count: Int) = viewModelScope.launch { llm.setPrefetchCount(count) }
+
     fun refreshLlmCache() = viewModelScope.launch { _llmCache.value = runCatching { llm.cacheInfo() }.getOrNull() }
 
     fun clearLlmCache() = viewModelScope.launch {

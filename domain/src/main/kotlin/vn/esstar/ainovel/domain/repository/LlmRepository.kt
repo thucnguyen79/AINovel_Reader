@@ -5,6 +5,7 @@ import vn.esstar.ainovel.domain.model.LlmCacheInfo
 import vn.esstar.ainovel.domain.model.LlmChapter
 import vn.esstar.ainovel.domain.model.LlmProgress
 import vn.esstar.ainovel.domain.model.LlmSettings
+import vn.esstar.ainovel.domain.model.LlmSummary
 import vn.esstar.ainovel.domain.model.LlmTestResult
 
 /**
@@ -33,8 +34,9 @@ interface LlmRepository {
      * Returns the cached translation or produces one now (blocking until the model has answered every
      * chunk). Concurrent calls for the same chapter share one job. Null when AI mode is not configured.
      * @param sourceLanguage book language code; "zh" sends the Chinese text, anything else is treated as convert.
+     * @param background true for prefetch: one request at a time and yields to interactive requests.
      */
-    suspend fun translateChapter(bookId: Long, chapterId: Long, title: String, paragraphs: List<String>, sourceLanguage: String): LlmChapter?
+    suspend fun translateChapter(bookId: Long, chapterId: Long, title: String, paragraphs: List<String>, sourceLanguage: String, background: Boolean = false): LlmChapter?
 
     /** Chunk progress of translations running now, keyed by chapter id. */
     val progress: Flow<Map<Long, LlmProgress>>
@@ -42,4 +44,13 @@ interface LlmRepository {
     suspend fun deleteCached(chapterId: Long)
     suspend fun cacheInfo(): LlmCacheInfo
     suspend fun clearCache()
+
+    /** How many chapters ahead of the reading position to translate on Wi-Fi; 0 = off. */
+    val prefetchCount: Flow<Int>
+    suspend fun setPrefetchCount(count: Int)
+
+    suspend fun cachedSummary(chapterId: Long): LlmSummary?
+
+    /** Summarizes the chapter text (as displayed) in a few Vietnamese sentences; cached unless [force]. */
+    suspend fun summarizeChapter(chapterId: Long, title: String, paragraphs: List<String>, force: Boolean = false): LlmSummary
 }

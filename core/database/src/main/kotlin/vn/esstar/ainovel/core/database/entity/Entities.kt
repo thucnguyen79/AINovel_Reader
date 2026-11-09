@@ -138,3 +138,17 @@ data class LlmChapterEntity(
     val text: String,
     @ColumnInfo(name = "created_at") val createdAt: Long,
 )
+
+/** AI summary of one chapter (BYOK), independent of whether the chapter itself was translated. */
+@Entity(
+    tableName = "llm_summaries",
+    foreignKeys = [
+        ForeignKey(entity = ChapterEntity::class, parentColumns = ["id"], childColumns = ["chapter_id"], onDelete = ForeignKey.CASCADE),
+    ],
+)
+data class LlmSummaryEntity(
+    @PrimaryKey @ColumnInfo(name = "chapter_id") val chapterId: Long,
+    val model: String,
+    val text: String,
+    @ColumnInfo(name = "created_at") val createdAt: Long,
+)

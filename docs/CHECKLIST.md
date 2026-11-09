@@ -154,6 +154,8 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [x] TTS: pipeline gọi trước nội dung chương kế (bản AI được dịch trong lúc nghe chương hiện tại)
 - [x] Unit test: `ChapterTranslatorTest` (6), `LlmClientTest` với MockWebServer (6)
 - [x] Thử trên OPPO 09/11/2026 với key Gemini thật: "Lưu và kiểm tra" OK; chương convert 8 đoạn lớn dịch trong 65 s (tuần tự) → 32 s (2–3 khối song song, tắt thinking); mở lại chương lấy từ cache ngay; TTS đọc bản AI. Gói miễn phí Gemini giới hạn ~10 lượt/phút nên chunk 3.500 ký tự, 2 khối song song, khối hỏng thì giữ nguyên văn và không cache
-- [ ] Dịch trước N chương khi có Wi-Fi (WorkManager) – để sau
-- [ ] Tóm tắt chương bằng AI (P2 trong PLAN) – để sau
+- [x] Dịch trước N chương khi có Wi-Fi: `AiPrefetchWorker` (WorkManager, ràng buộc UNMETERED + pin không yếu, unique theo truyện, REPLACE khi đổi vị trí đọc), `AiPrefetchScheduler` gọi từ Reader mỗi khi mở chương ở chế độ AI; Cài đặt chọn Tắt / 3 / 5 / 10 / 20 chương. Đã thấy worker dịch sẵn chương 816, 817 trên máy
+- [x] Tóm tắt chương bằng AI: menu Chế độ dịch › "Tóm tắt chương bằng AI" → sheet tóm tắt 5–8 câu, cache Room `llm_summaries` (v6), nút Tóm tắt lại. Thử trên máy với gemini-3-flash-preview: 9 giây, đúng nội dung
+- [x] `LlmThrottle`: worker nền nhường hạn mức khi người dùng vừa bấm dịch/tóm tắt (30 giây) hoặc khi nhà cung cấp vừa trả 429; đọc `retryDelay` Gemini / `Retry-After`; worker nghỉ 10 giây giữa các chương, chạy 1 khối một lúc
+- [ ] Gói Gemini 2.5 Flash miễn phí hết hạn mức sau ~40 yêu cầu/ngày thử nghiệm: hướng dẫn người dùng đổi model (gemini-3-flash-preview, flash-lite) khi gặp 429 kéo dài; cân nhắc tự chuyển model dự phòng
 

@@ -4,7 +4,9 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import vn.esstar.ainovel.domain.repository.AiPrefetchScheduler
 import vn.esstar.ainovel.domain.repository.DownloadRepository
+import vn.esstar.ainovel.service.download.AiPrefetchSchedulerImpl
 import vn.esstar.ainovel.service.download.DownloadRepositoryImpl
 
 @Module
@@ -12,4 +14,7 @@ import vn.esstar.ainovel.service.download.DownloadRepositoryImpl
 abstract class DownloadModule {
     @Binds
     abstract fun bindDownloadRepository(impl: DownloadRepositoryImpl): DownloadRepository
+
+    @Binds
+    abstract fun bindAiPrefetchScheduler(impl: AiPrefetchSchedulerImpl): AiPrefetchScheduler
 }

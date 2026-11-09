@@ -50,6 +50,10 @@
     <string name="settings_ai_status_error">Lỗi: %1$s</string>
     <string name="settings_ai_cache">Bản dịch AI đã lưu: %1$d chương · %2$s</string>
     <string name="settings_ai_cache_clear">Xoá</string>
+    <string name="settings_ai_prefetch">Dịch trước khi có Wi-Fi</string>
+    <string name="settings_ai_prefetch_hint">Với truyện đang bật Dịch bằng AI, app tự dịch sẵn các chương kế tiếp trong nền khi máy nối Wi-Fi và pin không yếu, để đọc hay nghe không phải chờ.</string>
+    <string name="settings_ai_prefetch_off">Tắt</string>
+    <string name="settings_ai_prefetch_n">%1$d chương</string>
     <string name="settings_ai_usage_hint">Mỗi chương được gửi một lần rồi lưu lại; đọc hay nghe lại không tốn thêm lượt. Chương dài khoảng 3–5 lượt gọi, mất 20–60 giây tuỳ nhà cung cấp.</string>
     <string name="settings_ai_models_failed">Không lấy được danh sách model: %1$s</string>
     <string name="settings_ai_saved">Đã lưu cấu hình AI.</string>

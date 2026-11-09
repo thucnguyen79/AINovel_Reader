@@ -37,7 +37,7 @@ data class LlmSettings(
 
         /** Models worth suggesting in the settings UI; the user can type any other name. */
         fun suggestedModels(provider: LlmProviderKind): List<String> = when (provider) {
-            LlmProviderKind.GEMINI -> listOf("gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash")
+            LlmProviderKind.GEMINI -> listOf("gemini-2.5-flash", "gemini-3-flash-preview", "gemini-2.5-flash-lite", "gemini-2.5-pro")
             LlmProviderKind.OPENROUTER -> listOf(
                 "meta-llama/llama-3.3-70b-instruct:free",
                 "google/gemma-3-27b-it:free",
@@ -71,3 +71,6 @@ data class LlmCacheInfo(val chapters: Int, val bytes: Long)
 
 /** Raised by the client for HTTP or protocol errors; [userMessage] is safe to show as-is. */
 class LlmException(val userMessage: String, cause: Throwable? = null) : RuntimeException(userMessage, cause)
+
+/** AI-written recap of one chapter. */
+data class LlmSummary(val text: String, val model: String, val createdAt: Long)

@@ -96,6 +96,8 @@ internal fun ReaderRoute(
         onFontSize = viewModel::setFontSize,
         onTranslateMode = viewModel::setTranslateMode,
         onRetranslate = viewModel::retranslateWithAi,
+        onSummarize = viewModel::summarize,
+        onDismissSummary = viewModel::dismissSummary,
         onSaveGlossary = viewModel::saveGlossary,
         onRemoveGlossary = viewModel::removeGlossary,
     )
@@ -116,6 +118,8 @@ internal fun ReaderScreen(
     onFontSize: (Int) -> Unit,
     onTranslateMode: (TranslateMode) -> Unit,
     onRetranslate: () -> Unit,
+    onSummarize: (Boolean) -> Unit,
+    onDismissSummary: () -> Unit,
     onSaveGlossary: (source: String, target: String, allBooks: Boolean) -> Unit,
     onRemoveGlossary: (GlossaryEntry) -> Unit,
 ) {
@@ -220,6 +224,12 @@ internal fun ReaderScreen(
                                         onClick = { showTranslateMenu = false; onRetranslate() },
                                     )
                                 }
+                                if (state.aiAvailable && state.content != null) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.reader_ai_summary_menu)) },
+                                        onClick = { showTranslateMenu = false; onSummarize(false) },
+                                    )
+                                }
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.reader_glossary_menu, state.glossary.size)) },
                                     onClick = { showTranslateMenu = false; showGlossary = true },
@@ -284,6 +294,13 @@ internal fun ReaderScreen(
             onDismiss = { selectedWord = null },
             onSave = { target, allBooks -> selectedWord = null; onSaveGlossary(token.source, target, allBooks) },
         )
+    }
+
+    state.summary?.let { summary ->
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(onDismissRequest = onDismissSummary, sheetState = sheetState) {
+            SummarySheet(state = summary, onAgain = { onSummarize(true) })
+        }
     }
 
     if (showGlossary) {

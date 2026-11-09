@@ -18,6 +18,12 @@
     <string name="reader_translate_mlkit">Dịch máy (ML Kit)</string>
     <string name="reader_translate_llm">Dịch bằng AI</string>
     <string name="reader_ai_retranslate">Dịch lại chương này bằng AI</string>
+    <string name="reader_ai_summary_menu">Tóm tắt chương bằng AI</string>
+    <string name="reader_ai_summary_title">Tóm tắt chương</string>
+    <string name="reader_ai_summary_loading">Đang tóm tắt bằng AI…</string>
+    <string name="reader_ai_summary_error">Không tóm tắt được: %1$s</string>
+    <string name="reader_ai_summary_again">Tóm tắt lại</string>
+    <string name="reader_ai_summary_model">Tạo bởi %1$s</string>
     <string name="reader_ai_preparing">Đang gửi chương cho AI…</string>
     <string name="reader_ai_translating">Đang dịch bằng AI… %1$d/%2$d</string>
     <string name="reader_glossary_menu">Từ riêng của truyện (%1$d)</string>

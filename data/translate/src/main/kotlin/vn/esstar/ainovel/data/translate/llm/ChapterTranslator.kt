@@ -94,5 +94,29 @@ object ChapterTranslator {
         return out.map { it?.replace(Regex("\\s*\\n\\s*"), " ")?.trim().orEmpty() }
     }
 
+    /** Characters of chapter text sent for a summary; long chapters are cut (beginning matters most). */
+    const val SUMMARY_INPUT_CHARS = 14_000
+
+    fun summarySystemPrompt(): String =
+        "Bạn là trợ lý đọc truyện. Tóm tắt chương truyện sau bằng tiếng Việt trong 5-8 câu: diễn biến chính theo thứ tự, " +
+            "nhân vật xuất hiện, và chi tiết cần nhớ cho chương sau. Giữ nguyên tên riêng như trong văn bản. " +
+            "Không mở đầu bằng \"Chương này\", không bình luận, không dùng Markdown."
+
+    fun summaryUserPrompt(title: String, paragraphs: List<String>): String = buildString {
+        if (title.isNotBlank()) append("Tiêu đề: ").append(title.trim()).append('\n')
+        append("Nội dung:\n")
+        var budget = SUMMARY_INPUT_CHARS
+        for (p in paragraphs) {
+            val t = p.trim()
+            if (t.isEmpty()) continue
+            if (t.length > budget) {
+                append(t.take(budget)).append("…\n")
+                break
+            }
+            append(t).append('\n')
+            budget -= t.length + 1
+        }
+    }
+
     private const val MAX_GLOSSARY = 120
 }

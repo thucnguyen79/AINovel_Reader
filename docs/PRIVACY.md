@@ -42,5 +42,5 @@ Không có máy chủ riêng của ứng dụng, không analytics, không Fireba
 Kho mã nguồn và báo lỗi: https://github.com/thucnguyen79/AINovel_Reader
 
 ## Dịch bằng AI (tuỳ chọn, tắt mặc định)
-Nếu bạn tự nhập API key của Gemini, OpenRouter, Groq hoặc một máy chủ OpenAI-compatible, nội dung các chương bạn bật "Dịch bằng AI" sẽ được gửi tới nhà cung cấp đó theo điều khoản của họ; app không gửi gì khác (không gửi tên tài khoản, thiết bị hay lịch sử đọc). Key chỉ lưu trong bộ nhớ riêng của app trên máy, không nằm trong file sao lưu và không được gửi đi đâu ngoài nhà cung cấp bạn chọn. Xoá key trong Cài đặt là đủ để tắt hoàn toàn.
+Nếu bạn tự nhập API key của Gemini, OpenRouter, Groq hoặc một máy chủ OpenAI-compatible, nội dung các chương bạn bật "Dịch bằng AI" sẽ được gửi tới nhà cung cấp đó theo điều khoản của họ; app không gửi gì khác (không gửi tên tài khoản, thiết bị hay lịch sử đọc). Key chỉ lưu trong bộ nhớ riêng của app trên máy, không nằm trong file sao lưu và không được gửi đi đâu ngoài nhà cung cấp bạn chọn. Khi bật "Dịch trước khi có Wi-Fi", các chương kế tiếp của truyện đang bật AI cũng được gửi đi trong nền. Xoá key trong Cài đặt là đủ để tắt hoàn toàn.
 

@@ -26,6 +26,9 @@ import vn.esstar.ainovel.domain.model.TranslateMode
 import vn.esstar.ainovel.domain.repository.TranslationRepository
 import vn.esstar.ainovel.domain.repository.LlmRepository
 import vn.esstar.ainovel.domain.model.LlmProgress
+import vn.esstar.ainovel.domain.model.LlmException
+import vn.esstar.ainovel.domain.model.LlmSummary
+import vn.esstar.ainovel.domain.repository.AiPrefetchScheduler
 import kotlinx.coroutines.flow.combine
 import vn.esstar.ainovel.domain.usecase.GetReadableChapterUseCase
 import vn.esstar.ainovel.domain.repository.LibraryRepository
@@ -47,6 +50,8 @@ data class ReaderUiState(
     val aiAvailable: Boolean = false,
     /** Chunk progress while the current chapter is being translated by the model. */
     val aiProgress: LlmProgress? = null,
+    /** Summary sheet state; null = closed. */
+    val summary: SummaryState? = null,
     /** Glossary entries that apply to this book (global ones included). */
     val glossary: List<GlossaryEntry> = emptyList(),
     /** Paragraph the player is reading aloud in the chapter shown, or -1. */
@@ -62,6 +67,12 @@ data class ReaderUiState(
     val hasNext: Boolean get() = currentChapter?.let { c -> chapters.any { it.index == c.index + 1 } } == true
 }
 
+sealed interface SummaryState {
+    data object Loading : SummaryState
+    data class Ready(val summary: LlmSummary) : SummaryState
+    data class Failed(val message: String) : SummaryState
+}
+
 @HiltViewModel
 class ReaderViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -70,6 +81,7 @@ class ReaderViewModel @Inject constructor(
     private val playback: PlaybackController,
     private val translation: TranslationRepository,
     private val llm: LlmRepository,
+    private val prefetch: AiPrefetchScheduler,
     private val readableChapter: GetReadableChapterUseCase,
 ) : ViewModel() {
 
@@ -142,6 +154,9 @@ class ReaderViewModel @Inject constructor(
                     library.touchHistory(bookId, chapterId, ReadingMode.READ)
                     library.saveProgress(ReadingPosition(bookId, chapterId, restoreIndex, restoreOffset, 0f))
                     refreshChapterFlags()
+                    if (_state.value.translateMode == TranslateMode.LLM) {
+                        runCatching { prefetch.scheduleAhead(bookId, chapter.index) }.onFailure { Timber.w(it, "AI prefetch scheduling failed") }
+                    }
                 }
                 .onFailure {
                     Timber.e(it, "Load chapter %d failed", chapterId)
@@ -208,6 +223,28 @@ class ReaderViewModel @Inject constructor(
             s.currentChapter?.let { open(it.id, lastSavedIndex.coerceAtLeast(0), lastSavedOffset.coerceAtLeast(0)) }
         }
     }
+
+    /** Opens the summary sheet; uses the cached summary unless [force]. */
+    fun summarize(force: Boolean = false) {
+        val s = _state.value
+        val chapter = s.currentChapter ?: return
+        val content = s.content ?: return
+        _state.update { it.copy(summary = SummaryState.Loading) }
+        viewModelScope.launch {
+            val result = runCatching { llm.summarizeChapter(chapter.id, content.title, content.paragraphs, force) }
+            _state.update { st ->
+                if (st.summary == null) st // sheet closed meanwhile
+                else st.copy(
+                    summary = result.fold(
+                        onSuccess = { SummaryState.Ready(it) },
+                        onFailure = { SummaryState.Failed((it as? LlmException)?.userMessage ?: it.message.orEmpty()) },
+                    ),
+                )
+            }
+        }
+    }
+
+    fun dismissSummary() = _state.update { it.copy(summary = null) }
 
     /** Drops the cached AI translation of the current chapter and asks the model again. */
     fun retranslateWithAi() {

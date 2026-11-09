@@ -53,6 +53,16 @@ class ChapterTranslatorTest {
     }
 
     @Test
+    fun `summary prompt keeps the title and truncates long chapters`() {
+        val long = List(10) { "x".repeat(2_000) }
+        val prompt = ChapterTranslator.summaryUserPrompt("Chương 9: Thử", long)
+        assertTrue(prompt.startsWith("Tiêu đề: Chương 9: Thử\nNội dung:\n"))
+        assertTrue(prompt.length < ChapterTranslator.SUMMARY_INPUT_CHARS + 200)
+        assertTrue(prompt.trimEnd().endsWith("…"))
+        assertTrue(ChapterTranslator.summarySystemPrompt().contains("5-8 câu"))
+    }
+
+    @Test
     fun `parseReply accepts an unnumbered answer for a single paragraph`() {
         assertEquals(listOf("Chương 1: Về Không"), ChapterTranslator.parseReply("Chương 1: Về Không", 1))
         assertEquals(listOf("Chương 1: Về Không"), ChapterTranslator.parseReply("[1] Chương 1: Về Không", 1))

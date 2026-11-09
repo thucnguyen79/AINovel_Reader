@@ -38,4 +38,6 @@ object DatabaseModule {
     @Provides fun provideBackupDao(db: AINovelDatabase) = db.backupDao()
 
     @Provides fun provideLlmChapterDao(db: AINovelDatabase) = db.llmChapterDao()
+
+    @Provides fun provideLlmSummaryDao(db: AINovelDatabase) = db.llmSummaryDao()
 }

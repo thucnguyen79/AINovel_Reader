@@ -103,6 +103,7 @@ internal fun SettingsRoute(viewModel: SettingsViewModel = hiltViewModel()) {
     val llmStatus by viewModel.llmStatus.collectAsStateWithLifecycle()
     val llmModels by viewModel.llmModels.collectAsStateWithLifecycle()
     val llmCache by viewModel.llmCache.collectAsStateWithLifecycle()
+    val llmPrefetch by viewModel.llmPrefetch.collectAsStateWithLifecycle()
     SettingsScreen(
         prefs = prefs,
         voices = voices,
@@ -137,6 +138,8 @@ internal fun SettingsRoute(viewModel: SettingsViewModel = hiltViewModel()) {
         onSaveAndTestLlm = viewModel::saveAndTestLlm,
         onFetchLlmModels = viewModel::fetchLlmModels,
         onClearLlmCache = viewModel::clearLlmCache,
+        llmPrefetch = llmPrefetch,
+        onLlmPrefetch = viewModel::setLlmPrefetch,
     )
 }
 
@@ -176,6 +179,8 @@ internal fun SettingsScreen(
     onSaveAndTestLlm: (LlmSettings) -> Unit,
     onFetchLlmModels: (LlmSettings) -> Unit,
     onClearLlmCache: () -> Unit,
+    llmPrefetch: Int,
+    onLlmPrefetch: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -313,6 +318,8 @@ internal fun SettingsScreen(
             status = llmStatus,
             models = llmModels,
             cache = llmCache,
+            prefetch = llmPrefetch,
+            onPrefetch = onLlmPrefetch,
             onSave = onSaveLlm,
             onSaveAndTest = onSaveAndTestLlm,
             onFetchModels = onFetchLlmModels,

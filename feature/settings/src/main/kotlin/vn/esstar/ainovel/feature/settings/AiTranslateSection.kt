@@ -64,6 +64,8 @@ internal fun AiTranslateSection(
     status: LlmUiStatus,
     models: List<String>,
     cache: LlmCacheInfo?,
+    prefetch: Int,
+    onPrefetch: (Int) -> Unit,
     onSave: (LlmSettings) -> Unit,
     onSaveAndTest: (LlmSettings) -> Unit,
     onFetchModels: (LlmSettings) -> Unit,
@@ -195,6 +197,21 @@ internal fun AiTranslateSection(
                     modifier = Modifier.weight(1f),
                 )
                 TextButton(onClick = onClearCache, enabled = cache.chapters > 0) { Text(stringResource(R.string.settings_ai_cache_clear)) }
+            }
+        }
+        Text(stringResource(R.string.settings_ai_prefetch), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(top = 12.dp))
+        Text(
+            stringResource(R.string.settings_ai_prefetch_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 4.dp)) {
+            listOf(0, 3, 5, 10, 20).forEach { n ->
+                FilterChip(
+                    selected = prefetch == n,
+                    onClick = { onPrefetch(n) },
+                    label = { Text(if (n == 0) stringResource(R.string.settings_ai_prefetch_off) else stringResource(R.string.settings_ai_prefetch_n, n)) },
+                )
             }
         }
         Text(

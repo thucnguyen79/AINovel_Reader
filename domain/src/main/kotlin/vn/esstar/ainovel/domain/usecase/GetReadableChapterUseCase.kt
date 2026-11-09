@@ -22,7 +22,7 @@ class GetReadableChapterUseCase @Inject constructor(
      * @param mode explicit mode from the reader; null means "whatever applies to this book" (AI mode when the
      *   book was switched to it, the default convert mode for Chinese books, raw text otherwise).
      */
-    suspend operator fun invoke(chapterId: Long, mode: TranslateMode? = null, forceRefresh: Boolean = false): ChapterContent {
+    suspend operator fun invoke(chapterId: Long, mode: TranslateMode? = null, forceRefresh: Boolean = false, background: Boolean = false): ChapterContent {
         val content = library.getChapterContent(chapterId, forceRefresh)
         val chapter = library.getChapter(chapterId) ?: return content
         val book = library.getBook(chapter.bookId) ?: return content
@@ -31,7 +31,7 @@ class GetReadableChapterUseCase @Inject constructor(
         val wantsAi = mode == TranslateMode.LLM || (mode == null && llm.isAiBook(book.id))
         if (wantsAi) {
             // A failed model call (quota, network) must not hide the chapter: fall back to the dictionary text.
-            val ai = runCatching { llm.translateChapter(book.id, chapterId, content.title, content.paragraphs, book.language) }.getOrNull()
+            val ai = runCatching { llm.translateChapter(book.id, chapterId, content.title, content.paragraphs, book.language, background) }.getOrNull()
             if (ai != null && ai.paragraphs.size == content.paragraphs.size) {
                 return content.copy(title = ai.title.ifBlank { content.title }, paragraphs = ai.paragraphs, tokens = null)
             }
