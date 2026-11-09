@@ -2,6 +2,11 @@
 
 Mỗi mục: bối cảnh, quyết định, hệ quả. Mới nhất ở trên.
 
+## ADR-011 (2026-11-09): "Dịch bằng AI" chỉ qua key của người dùng, cache theo chương, bật theo từng truyện
+- Bối cảnh: truyện convert trên site Việt chỉ mượt được khi có mô hình ngôn ngữ; từ điển/luật nhân không sắp xếp lại được cả câu, ML Kit chỉ có Trung → Việt, Gemini Nano không có trên máy OPPO, mô hình nhỏ chạy trên máy quá chậm.
+- Quyết định: `LlmRepository` (domain) + `data/translate/llm`: hai giao thức (`GeminiClient` cho Gemini API, `OpenAiCompatibleClient` cho OpenRouter / Groq / máy chủ tuỳ chỉnh), chọn bằng `LlmProviderKind`; key, model, URL lưu trong DataStore riêng (`llm_prefs`, không đưa vào ZIP sao lưu); kết quả lưu bảng Room `llm_chapters` (v5) nên mỗi chương chỉ gửi một lần; `TranslateMode.LLM` được nhớ theo từng truyện (`ai_books`) chứ không phải mặc định toàn cục, áp cho cả sách Việt (viết lại convert) lẫn sách Trung (dịch thẳng). Prompt đánh số đoạn `[n]` và yêu cầu trả đúng số đoạn để giữ chỉ số đoạn cho Reader/TTS; chunk ~2.200 ký tự, thử lại một lần khi model bỏ số; `chapter.nextPage`/pipeline TTS gọi trước chương kế để không hở khi nghe liên tục.
+- Hệ quả: cần mạng và quota của nhà cung cấp; lỗi 401/429 hiển thị bằng tiếng Việt; không có key thì menu không hiện "Dịch bằng AI". Không nhúng key, không chi phí vận hành, đúng ADR-002.
+
 ## ADR-010 (2026-10-22): Test rule nguồn bằng dữ liệu ghi sẵn (`expect.json`) thay vì test Kotlin viết tay cho từng site
 - Bối cảnh: thêm 17 site một lúc; test viết tay cho mỗi rule (`TruyenfullRuleTest`…) tốn công và dễ bỏ sót trường.
 - Quyết định: `RuleProbe` chạy rule trên fixture và làm phẳng mọi giá trị thành `key=value`; `RuleDumpTest` in ra để người viết rule soát; `tools/sources/record_expect.py` ghi thành `fixtures/<id>/expect.json`; `SiteFixturesTest` so sánh lại toàn bộ và bắt buộc mọi rule trong assets phải có thư mục fixture. Engine thêm `toc.pageSize/totalChapters`, `toc.jsonItems/jsonTitle/jsonLink`, `chapter.nextPage` thay vì viết code riêng cho site.

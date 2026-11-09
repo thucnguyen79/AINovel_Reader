@@ -249,7 +249,7 @@ internal fun TranslateScreen(
             item { SectionTitle(stringResource(R.string.translate_mode_section)) }
             item {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TranslateMode.entries.forEach { mode ->
+                    TranslateMode.entries.filter { it != TranslateMode.LLM }.forEach { mode ->
                         FilterChip(
                             selected = state.mode == mode,
                             onClick = { onModeChange(mode) },
@@ -393,6 +393,7 @@ private fun TranslateMode.label(): Int = when (this) {
     TranslateMode.HAN_VIET -> R.string.translate_mode_hanviet
     TranslateMode.MLKIT -> R.string.translate_mode_mlkit
     TranslateMode.RAW -> R.string.translate_mode_raw
+    TranslateMode.LLM -> R.string.translate_mode_llm
 }
 
 private fun DictionaryType.label(): Int = when (this) {

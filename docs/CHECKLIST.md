@@ -146,3 +146,14 @@ Theo `docs/PLAN.md` mục 6. Cập nhật khi hoàn thành từng task. Ký hi�
 - [ ] truyentronbo, docln: nội dung chương mã hoá → webview
 - [ ] Nhạc nền khi nghe (P2): trộn file nhạc người dùng chọn ở âm lượng thấp dưới giọng TTS (ExoPlayer thứ hai, ducking)
 
+## Dịch bằng AI – BYOK (09/11/2026)
+- [x] Domain: `LlmSettings` (Gemini / OpenRouter / Groq / OpenAI-compatible), `LlmRepository`, `TranslateMode.LLM`; `GetReadableChapterUseCase` ưu tiên bản AI khi truyện bật AI, rơi về convert/nguyên văn khi chưa cấu hình hoặc lỗi
+- [x] `data/translate/llm`: `LlmClient` (Gemini `generateContent`, OpenAI `chat/completions`, liệt kê model, retry 429/5xx theo Retry-After, thông báo lỗi tiếng Việt), `ChapterTranslator` (chunk ~2.200 ký tự, prompt đánh số `[n]`, bảng thuật ngữ từ glossary, parse + thử lại), `LlmRepositoryImpl` (cache Room `llm_chapters` v5, job dùng chung theo chương, tiến độ theo chunk)
+- [x] Cài đặt › Dịch bằng AI: chọn nhà cung cấp, API key (ẩn/hiện), URL máy chủ (tuỳ chỉnh), model gợi ý hoặc lấy danh sách từ nhà cung cấp, Lưu / Lưu và kiểm tra, xoá bản dịch đã lưu
+- [x] Reader: menu Chế độ dịch có "Dịch bằng AI" cho cả truyện Việt (nếu đã có key), nhớ theo từng truyện; hiển thị tiến độ "Đang dịch bằng AI… n/m"; "Dịch lại chương này bằng AI"
+- [x] TTS: pipeline gọi trước nội dung chương kế (bản AI được dịch trong lúc nghe chương hiện tại)
+- [x] Unit test: `ChapterTranslatorTest` (6), `LlmClientTest` với MockWebServer (6)
+- [ ] Thử trên máy với key thật (Gemini) – cần người dùng nhập key
+- [ ] Dịch trước N chương khi có Wi-Fi (WorkManager) – để sau
+- [ ] Tóm tắt chương bằng AI (P2 trong PLAN) – để sau
+

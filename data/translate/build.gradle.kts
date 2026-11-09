@@ -12,4 +12,7 @@ dependencies {
     implementation(projects.core.storage)
     implementation(projects.domain)
     implementation(libs.mlkit.translate)
+    implementation(libs.okhttp)
+
+    testImplementation(libs.okhttp.mockwebserver)
 }

@@ -119,3 +119,22 @@ data class EbookWithBook(
     @Embedded val ebook: EbookEntity,
     @Embedded(prefix = "b_") val book: BookEntity,
 )
+
+/** A chapter rewritten by the user's LLM (BYOK); paragraphs are joined with "
+". One row per chapter. */
+@Entity(
+    tableName = "llm_chapters",
+    foreignKeys = [
+        ForeignKey(entity = ChapterEntity::class, parentColumns = ["id"], childColumns = ["chapter_id"], onDelete = ForeignKey.CASCADE),
+    ],
+    indices = [Index("book_id")],
+)
+data class LlmChapterEntity(
+    @PrimaryKey @ColumnInfo(name = "chapter_id") val chapterId: Long,
+    @ColumnInfo(name = "book_id") val bookId: Long,
+    val provider: String,
+    val model: String,
+    val title: String,
+    val text: String,
+    @ColumnInfo(name = "created_at") val createdAt: Long,
+)

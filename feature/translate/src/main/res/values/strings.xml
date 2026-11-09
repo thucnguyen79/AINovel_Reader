@@ -16,6 +16,7 @@
     <string name="translate_mode_hanviet">Hán Việt</string>
     <string name="translate_mode_mlkit">Dịch máy</string>
     <string name="translate_mode_raw">Nguyên văn</string>
+    <string name="translate_mode_llm">Dịch bằng AI</string>
     <string name="translate_mlkit_section">Dịch máy trên máy (ML Kit)</string>
     <string name="translate_mlkit_description">Dịch Trung → Việt bằng model Google ML Kit chạy ngay trên điện thoại, không cần tài khoản. Cần tải model một lần (khoảng 60 MB cho hai ngôn ngữ), sau đó dùng offline. Chất lượng khác với convert: câu tự nhiên hơn nhưng tên riêng có thể sai.</string>
     <string name="translate_mlkit_status_missing">Chưa tải model</string>

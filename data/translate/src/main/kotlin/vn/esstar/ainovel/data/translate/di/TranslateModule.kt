@@ -5,6 +5,8 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import vn.esstar.ainovel.data.translate.TranslationRepositoryImpl
+import vn.esstar.ainovel.data.translate.llm.LlmRepositoryImpl
+import vn.esstar.ainovel.domain.repository.LlmRepository
 import vn.esstar.ainovel.domain.repository.TranslationRepository
 
 @Module
@@ -12,4 +14,7 @@ import vn.esstar.ainovel.domain.repository.TranslationRepository
 abstract class TranslateModule {
     @Binds
     abstract fun bindTranslationRepository(impl: TranslationRepositoryImpl): TranslationRepository
+
+    @Binds
+    abstract fun bindLlmRepository(impl: LlmRepositoryImpl): LlmRepository
 }

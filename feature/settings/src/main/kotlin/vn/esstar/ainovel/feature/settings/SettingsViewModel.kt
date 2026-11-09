@@ -31,6 +31,11 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import vn.esstar.ainovel.core.common.log.FileLoggingTree
 import java.io.File
+import vn.esstar.ainovel.domain.model.LlmCacheInfo
+import vn.esstar.ainovel.domain.model.LlmException
+import vn.esstar.ainovel.domain.model.LlmSettings
+import vn.esstar.ainovel.domain.model.LlmTestResult
+import vn.esstar.ainovel.domain.repository.LlmRepository
 
 sealed interface SettingsEvent {
     data class Exported(val summary: BackupSummary) : SettingsEvent
@@ -38,6 +43,9 @@ sealed interface SettingsEvent {
     data class BackupFailed(val reason: String?) : SettingsEvent
     data class ShareLog(val files: List<File>) : SettingsEvent
     data object NoLog : SettingsEvent
+    data object LlmSaved : SettingsEvent
+    data object LlmCacheCleared : SettingsEvent
+    data class LlmModelsFailed(val reason: String) : SettingsEvent
 }
 
 @HiltViewModel
@@ -51,6 +59,7 @@ class SettingsViewModel @Inject constructor(
     private val updateChecker: UpdateChecker,
     val appInfo: AppInfo,
     private val fileLog: FileLoggingTree,
+    private val llm: LlmRepository,
 ) : ViewModel() {
 
     private val _events = Channel<SettingsEvent>(Channel.BUFFERED)
@@ -121,6 +130,55 @@ class SettingsViewModel @Inject constructor(
     }
 
 
+    val llmSettings: StateFlow<LlmSettings> = llm.settings
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LlmSettings())
+
+    private val _llmStatus = MutableStateFlow<LlmUiStatus>(LlmUiStatus.Idle)
+    val llmStatus: StateFlow<LlmUiStatus> = _llmStatus
+
+    private val _llmModels = MutableStateFlow<List<String>>(emptyList())
+    val llmModels: StateFlow<List<String>> = _llmModels
+
+    private val _llmCache = MutableStateFlow<LlmCacheInfo?>(null)
+    val llmCache: StateFlow<LlmCacheInfo?> = _llmCache
+
+    fun saveLlm(settings: LlmSettings) = viewModelScope.launch {
+        llm.saveSettings(settings)
+        _llmStatus.value = LlmUiStatus.Idle
+        _events.send(SettingsEvent.LlmSaved)
+    }
+
+    fun saveAndTestLlm(settings: LlmSettings) = viewModelScope.launch {
+        llm.saveSettings(settings)
+        _llmStatus.value = LlmUiStatus.Busy
+        _llmStatus.value = when (val r = llm.testConnection(settings)) {
+            is LlmTestResult.Success -> LlmUiStatus.Ok(r.detail)
+            is LlmTestResult.Failure -> LlmUiStatus.Error(r.message)
+        }
+    }
+
+    fun fetchLlmModels(settings: LlmSettings) = viewModelScope.launch {
+        _llmStatus.value = LlmUiStatus.Busy
+        runCatching { llm.listModels(settings) }
+            .onSuccess { list ->
+                _llmModels.value = list
+                _llmStatus.value = LlmUiStatus.Idle
+                if (list.isEmpty()) _events.send(SettingsEvent.LlmModelsFailed("danh sách rỗng"))
+            }
+            .onFailure {
+                _llmStatus.value = LlmUiStatus.Idle
+                _events.send(SettingsEvent.LlmModelsFailed((it as? LlmException)?.userMessage ?: it.message.orEmpty()))
+            }
+    }
+
+    fun refreshLlmCache() = viewModelScope.launch { _llmCache.value = runCatching { llm.cacheInfo() }.getOrNull() }
+
+    fun clearLlmCache() = viewModelScope.launch {
+        runCatching { llm.clearCache() }.onFailure { Timber.e(it, "Clear LLM cache failed") }
+        refreshLlmCache()
+        _events.send(SettingsEvent.LlmCacheCleared)
+    }
+
     val prefs: StateFlow<TtsPrefs> = ttsPreferences.prefs
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TtsPrefs())
 
@@ -132,6 +190,7 @@ class SettingsViewModel @Inject constructor(
 
     init {
         refreshStorage()
+        refreshLlmCache()
         viewModelScope.launch {
             val ok = runCatching { engine.initialize() }.getOrDefault(false)
             _engineAvailable.value = ok

@@ -24,6 +24,9 @@ import vn.esstar.ainovel.domain.model.ReadingPosition
 import vn.esstar.ainovel.domain.model.TranslatableLanguages
 import vn.esstar.ainovel.domain.model.TranslateMode
 import vn.esstar.ainovel.domain.repository.TranslationRepository
+import vn.esstar.ainovel.domain.repository.LlmRepository
+import vn.esstar.ainovel.domain.model.LlmProgress
+import kotlinx.coroutines.flow.combine
 import vn.esstar.ainovel.domain.usecase.GetReadableChapterUseCase
 import vn.esstar.ainovel.domain.repository.LibraryRepository
 import vn.esstar.ainovel.domain.playback.PlaybackController
@@ -36,8 +39,14 @@ data class ReaderUiState(
     val isLoading: Boolean = true,
     val error: Boolean = false,
     val prefs: ReaderPrefs = ReaderPrefs(),
-    /** Null when the book is not in a translatable language. */
+    /** Null when the book has no translate menu (Vietnamese source and AI mode not configured). */
     val translateMode: TranslateMode? = null,
+    /** True when the book is Chinese and goes through the dictionary pipeline. */
+    val isChinese: Boolean = false,
+    /** True when the user configured an LLM key, so "Dịch bằng AI" can be offered. */
+    val aiAvailable: Boolean = false,
+    /** Chunk progress while the current chapter is being translated by the model. */
+    val aiProgress: LlmProgress? = null,
     /** Glossary entries that apply to this book (global ones included). */
     val glossary: List<GlossaryEntry> = emptyList(),
     /** Paragraph the player is reading aloud in the chapter shown, or -1. */
@@ -60,6 +69,7 @@ class ReaderViewModel @Inject constructor(
     private val readerPreferences: ReaderPreferences,
     private val playback: PlaybackController,
     private val translation: TranslationRepository,
+    private val llm: LlmRepository,
     private val readableChapter: GetReadableChapterUseCase,
 ) : ViewModel() {
 
@@ -92,10 +102,21 @@ class ReaderViewModel @Inject constructor(
         viewModelScope.launch {
             val book = library.getBook(bookId)
             val chapters = library.getChapters(bookId)
-            val mode = if (book != null && TranslatableLanguages.needsTranslation(book.language)) translation.mode.first() else null
-            _state.update { it.copy(book = book, chapters = chapters, translateMode = mode) }
-            if (mode != null) {
+            val chinese = book != null && TranslatableLanguages.needsTranslation(book.language)
+            val aiAvailable = llm.settings.first().isConfigured
+            val mode = when {
+                aiAvailable && llm.isAiBook(bookId) -> TranslateMode.LLM
+                chinese -> translation.mode.first()
+                aiAvailable -> TranslateMode.RAW
+                else -> null
+            }
+            _state.update { it.copy(book = book, chapters = chapters, translateMode = mode, isChinese = chinese, aiAvailable = aiAvailable) }
+            if (chinese || aiAvailable) {
                 launch { translation.observeGlossary(bookId).collect { g -> _state.update { it.copy(glossary = g) } } }
+            }
+            launch {
+                combine(llm.progress, _state) { progress, s -> s.currentChapter?.let { progress[it.id] } }
+                    .collect { p -> _state.update { if (it.aiProgress == p) it else it.copy(aiProgress = p) } }
             }
             val progress = library.getProgress(bookId)
             val restore = progress?.takeIf { it.chapterId == route.chapterId }
@@ -173,12 +194,29 @@ class ReaderViewModel @Inject constructor(
         playback.play(bookId, chapter.id, paragraphIndex.coerceAtLeast(0))
     }
 
-    /** Switches Convert / Hán Việt / Nguyên văn for Chinese books and reloads the current chapter. */
+    /**
+     * Switches the display mode and reloads the current chapter. AI mode is remembered per book; the
+     * dictionary modes (Convert / Hán Việt / Dịch máy / Nguyên văn) are the global default for Chinese books.
+     */
     fun setTranslateMode(mode: TranslateMode) {
-        if (_state.value.translateMode == null || _state.value.translateMode == mode) return
+        val s = _state.value
+        if (s.translateMode == null || s.translateMode == mode) return
         _state.update { it.copy(translateMode = mode) }
-        viewModelScope.launch { translation.setMode(mode) }
-        _state.value.currentChapter?.let { open(it.id, lastSavedIndex.coerceAtLeast(0), lastSavedOffset.coerceAtLeast(0)) }
+        viewModelScope.launch {
+            llm.setAiBook(bookId, mode == TranslateMode.LLM)
+            if (mode != TranslateMode.LLM && s.isChinese) translation.setMode(mode)
+            s.currentChapter?.let { open(it.id, lastSavedIndex.coerceAtLeast(0), lastSavedOffset.coerceAtLeast(0)) }
+        }
+    }
+
+    /** Drops the cached AI translation of the current chapter and asks the model again. */
+    fun retranslateWithAi() {
+        val chapter = _state.value.currentChapter ?: return
+        if (_state.value.translateMode != TranslateMode.LLM) return
+        viewModelScope.launch {
+            runCatching { llm.deleteCached(chapter.id) }.onFailure { Timber.e(it, "Delete AI cache failed") }
+            open(chapter.id, lastSavedIndex.coerceAtLeast(0), lastSavedOffset.coerceAtLeast(0))
+        }
     }
 
     /** Saves a meaning for a Chinese word (this book only, or every book) and re-converts the chapter in place. */

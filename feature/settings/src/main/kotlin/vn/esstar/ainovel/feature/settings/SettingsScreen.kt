@@ -59,6 +59,8 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedButton
 import vn.esstar.ainovel.core.datastore.DohMode
 import vn.esstar.ainovel.domain.model.StorageInfo
+import vn.esstar.ainovel.domain.model.LlmCacheInfo
+import vn.esstar.ainovel.domain.model.LlmSettings
 
 @Composable
 internal fun SettingsRoute(viewModel: SettingsViewModel = hiltViewModel()) {
@@ -74,6 +76,9 @@ internal fun SettingsRoute(viewModel: SettingsViewModel = hiltViewModel()) {
                 is SettingsEvent.Imported -> snackbar.showSnackbar(resources.getString(R.string.settings_backup_imported, event.summary.books, event.summary.glossaryEntries))
                 is SettingsEvent.BackupFailed -> snackbar.showSnackbar(resources.getString(R.string.settings_backup_failed, event.reason ?: ""))
                 SettingsEvent.NoLog -> snackbar.showSnackbar(resources.getString(R.string.settings_share_log_empty))
+                SettingsEvent.LlmSaved -> snackbar.showSnackbar(resources.getString(R.string.settings_ai_saved))
+                SettingsEvent.LlmCacheCleared -> snackbar.showSnackbar(resources.getString(R.string.settings_ai_cache_cleared))
+                is SettingsEvent.LlmModelsFailed -> snackbar.showSnackbar(resources.getString(R.string.settings_ai_models_failed, event.reason))
                 is SettingsEvent.ShareLog -> {
                     val authority = context.packageName + ".files"
                     val uris = ArrayList(event.files.map { FileProvider.getUriForFile(context, authority, it) })
@@ -94,6 +99,10 @@ internal fun SettingsRoute(viewModel: SettingsViewModel = hiltViewModel()) {
     val neuralModels by viewModel.neuralModels.collectAsStateWithLifecycle()
     val dohMode by viewModel.dohMode.collectAsStateWithLifecycle()
     val storage by viewModel.storage.collectAsStateWithLifecycle()
+    val llmSettings by viewModel.llmSettings.collectAsStateWithLifecycle()
+    val llmStatus by viewModel.llmStatus.collectAsStateWithLifecycle()
+    val llmModels by viewModel.llmModels.collectAsStateWithLifecycle()
+    val llmCache by viewModel.llmCache.collectAsStateWithLifecycle()
     SettingsScreen(
         prefs = prefs,
         voices = voices,
@@ -120,6 +129,14 @@ internal fun SettingsRoute(viewModel: SettingsViewModel = hiltViewModel()) {
         update = update,
         onCheckUpdate = viewModel::checkUpdate,
         onShareLog = viewModel::shareLog,
+        llmSettings = llmSettings,
+        llmStatus = llmStatus,
+        llmModels = llmModels,
+        llmCache = llmCache,
+        onSaveLlm = viewModel::saveLlm,
+        onSaveAndTestLlm = viewModel::saveAndTestLlm,
+        onFetchLlmModels = viewModel::fetchLlmModels,
+        onClearLlmCache = viewModel::clearLlmCache,
     )
 }
 
@@ -151,6 +168,14 @@ internal fun SettingsScreen(
     update: UpdateState,
     onCheckUpdate: () -> Unit,
     onShareLog: () -> Unit,
+    llmSettings: LlmSettings,
+    llmStatus: LlmUiStatus,
+    llmModels: List<String>,
+    llmCache: LlmCacheInfo?,
+    onSaveLlm: (LlmSettings) -> Unit,
+    onSaveAndTestLlm: (LlmSettings) -> Unit,
+    onFetchLlmModels: (LlmSettings) -> Unit,
+    onClearLlmCache: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -283,6 +308,17 @@ internal fun SettingsScreen(
             )
         }
 
+        AiTranslateSection(
+            saved = llmSettings,
+            status = llmStatus,
+            models = llmModels,
+            cache = llmCache,
+            onSave = onSaveLlm,
+            onSaveAndTest = onSaveAndTestLlm,
+            onFetchModels = onFetchLlmModels,
+            onClearCache = onClearLlmCache,
+        )
+
         BackupSection(busy = backupBusy, onExport = onExport, onImport = onImport)
 
         AboutSection(appInfo = appInfo, update = update, onCheckUpdate = onCheckUpdate, onShareLog = onShareLog)
@@ -336,7 +372,7 @@ private fun NeuralModelRow(
     }
 }
 
-private fun formatBytes(bytes: Long): String = when {
+internal fun formatBytes(bytes: Long): String = when {
     bytes >= 1L shl 30 -> String.format(Locale.US, "%.1f GB", bytes / (1L shl 30).toDouble())
     bytes >= 1L shl 20 -> String.format(Locale.US, "%.1f MB", bytes / (1L shl 20).toDouble())
     bytes >= 1L shl 10 -> String.format(Locale.US, "%.0f KB", bytes / (1L shl 10).toDouble())

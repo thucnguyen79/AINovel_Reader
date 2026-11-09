@@ -14,8 +14,12 @@
     <string name="reader_translate_mode">Chế độ dịch</string>
     <string name="reader_translate_convert">Convert (VietPhrase)</string>
     <string name="reader_translate_hanviet">Hán Việt</string>
-    <string name="reader_translate_raw">Nguyên văn tiếng Trung</string>
+    <string name="reader_translate_raw">Nguyên văn</string>
     <string name="reader_translate_mlkit">Dịch máy (ML Kit)</string>
+    <string name="reader_translate_llm">Dịch bằng AI</string>
+    <string name="reader_ai_retranslate">Dịch lại chương này bằng AI</string>
+    <string name="reader_ai_preparing">Đang gửi chương cho AI…</string>
+    <string name="reader_ai_translating">Đang dịch bằng AI… %1$d/%2$d</string>
     <string name="reader_glossary_menu">Từ riêng của truyện (%1$d)</string>
     <string name="reader_word_title">Chọn nghĩa</string>
     <string name="reader_word_current">Đang dùng: %1$s</string>

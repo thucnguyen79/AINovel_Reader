@@ -127,6 +127,10 @@ class ChapterAudioPipeline(
             ?: segments.indexOfFirst { it.paragraphIndex >= paragraphIndex }.takeIf { it >= 0 } ?: 0
 
         library.touchHistory(book.id, chapter.id, ReadingMode.LISTEN)
+        // Prepare the next chapter's text in the background so AI-translated books flow on without a gap.
+        chapters.firstOrNull { it.index == chapter.index + 1 }?.let { next ->
+            scope.launch { runCatching { withContext(io) { contentProvider(next.id) } }.onFailure { Timber.w(it, "Prefetch of chapter %d failed", next.id) } }
+        }
         val params = VoiceParams(voiceId = prefs.voiceId, pitch = prefs.pitch)
         var consecutiveFailures = 0
         var isFirstItem = autoPlay

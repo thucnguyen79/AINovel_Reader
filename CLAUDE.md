@@ -43,7 +43,7 @@ Build lần đầu hoặc sau khi đổi dependency có thể mất vài phút: 
 - `app` – Application, MainActivity, điều hướng 4 tab + mini-player.
 - `core/common` (dispatchers, AppResult), `core/designsystem` (theme, component), `core/network` (OkHttp, DoH, Jsoup, WebView fetcher), `core/database` (Room), `core/datastore` (settings), `core/storage` (bố cục file).
 - `domain` – model và use case thuần Kotlin (JVM, không Android).
-- `data/source` (rule engine nguồn truyện), `data/library`, `data/ebook`, `data/translate` (convert engine, ML Kit, LlmProvider BYOK).
+- `data/source` (rule engine nguồn truyện), `data/library`, `data/ebook`, `data/translate` (convert engine, ML Kit, `llm/` = Dịch bằng AI BYOK: Gemini + OpenAI-compatible, cache Room `llm_chapters`).
 - `tts/api` (JVM: TtsEngine, TextSegmenter, TextNormalizer, AudioCache, VoiceModelManager), `tts/system` (Android TextToSpeech), `tts/neural` (sherpa-onnx + model Piper, CompositeTtsEngine là binding TtsEngine), sau này `tts/online`.
 - `feature/*` – màn hình Compose + ViewModel: home, browser, reader, player, library, translate, settings.
 - `service/playback` (Media3 MediaSessionService), `service/download` (WorkManager).

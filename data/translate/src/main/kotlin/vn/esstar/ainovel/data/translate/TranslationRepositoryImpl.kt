@@ -53,7 +53,8 @@ class TranslationRepositoryImpl @Inject constructor(
         return when (effective) {
             TranslateMode.RAW -> paragraphs
             TranslateMode.MLKIT -> translateMlKit(paragraphs, bookId)
-            TranslateMode.CONVERT, TranslateMode.HAN_VIET -> {
+            // LLM mode is served by LlmRepository before this point; as a dictionary fallback it behaves like Convert.
+            TranslateMode.CONVERT, TranslateMode.HAN_VIET, TranslateMode.LLM -> {
                 val engine = engineFor(bookId)
                 withContext(default) { engine.convertParagraphs(paragraphs, effective.toConvertMode()) }
             }

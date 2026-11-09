@@ -1,6 +1,6 @@
 # Chính sách riêng tư – AINovel Reader
 
-Cập nhật: 21/10/2026
+Cập nhật: 09/11/2026
 
 AINovel Reader là ứng dụng Android miễn phí, mã nguồn mở, không tài khoản, không quảng cáo và **không thu thập dữ liệu cá nhân**.
 
@@ -40,3 +40,7 @@ Không có máy chủ riêng của ứng dụng, không analytics, không Fireba
 ## Liên hệ
 
 Kho mã nguồn và báo lỗi: https://github.com/thucnguyen79/AINovel_Reader
+
+## Dịch bằng AI (tuỳ chọn, tắt mặc định)
+Nếu bạn tự nhập API key của Gemini, OpenRouter, Groq hoặc một máy chủ OpenAI-compatible, nội dung các chương bạn bật "Dịch bằng AI" sẽ được gửi tới nhà cung cấp đó theo điều khoản của họ; app không gửi gì khác (không gửi tên tài khoản, thiết bị hay lịch sử đọc). Key chỉ lưu trong bộ nhớ riêng của app trên máy, không nằm trong file sao lưu và không được gửi đi đâu ngoài nhà cung cấp bạn chọn. Xoá key trong Cài đặt là đủ để tắt hoàn toàn.
+

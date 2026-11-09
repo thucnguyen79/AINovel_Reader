@@ -95,6 +95,7 @@ internal fun ReaderRoute(
         onScroll = viewModel::onScroll,
         onFontSize = viewModel::setFontSize,
         onTranslateMode = viewModel::setTranslateMode,
+        onRetranslate = viewModel::retranslateWithAi,
         onSaveGlossary = viewModel::saveGlossary,
         onRemoveGlossary = viewModel::removeGlossary,
     )
@@ -114,6 +115,7 @@ internal fun ReaderScreen(
     onScroll: (Int, Int) -> Unit,
     onFontSize: (Int) -> Unit,
     onTranslateMode: (TranslateMode) -> Unit,
+    onRetranslate: () -> Unit,
     onSaveGlossary: (source: String, target: String, allBooks: Boolean) -> Unit,
     onRemoveGlossary: (GlossaryEntry) -> Unit,
 ) {
@@ -195,7 +197,14 @@ internal fun ReaderScreen(
                                 Icon(Icons.Default.Translate, contentDescription = stringResource(R.string.reader_translate_mode))
                             }
                             DropdownMenu(expanded = showTranslateMenu, onDismissRequest = { showTranslateMenu = false }) {
-                                TranslateMode.entries.forEach { mode ->
+                                val modes = TranslateMode.entries.filter { mode ->
+                                    when (mode) {
+                                        TranslateMode.LLM -> state.aiAvailable
+                                        TranslateMode.RAW -> true
+                                        else -> state.isChinese
+                                    }
+                                }
+                                modes.forEach { mode ->
                                     DropdownMenuItem(
                                         text = { Text(stringResource(mode.label())) },
                                         trailingIcon = if (mode == state.translateMode) {
@@ -205,6 +214,12 @@ internal fun ReaderScreen(
                                     )
                                 }
                                 HorizontalDivider()
+                                if (state.translateMode == TranslateMode.LLM) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.reader_ai_retranslate)) },
+                                        onClick = { showTranslateMenu = false; onRetranslate() },
+                                    )
+                                }
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.reader_glossary_menu, state.glossary.size)) },
                                     onClick = { showTranslateMenu = false; showGlossary = true },
@@ -231,7 +246,14 @@ internal fun ReaderScreen(
         },
     ) { padding ->
         when {
-            state.isLoading -> LoadingState(modifier = Modifier.padding(padding), message = stringResource(R.string.reader_loading))
+            state.isLoading -> LoadingState(
+                modifier = Modifier.padding(padding),
+                message = when {
+                    state.aiProgress != null -> stringResource(R.string.reader_ai_translating, state.aiProgress.done, state.aiProgress.total)
+                    state.translateMode == TranslateMode.LLM -> stringResource(R.string.reader_ai_preparing)
+                    else -> stringResource(R.string.reader_loading)
+                },
+            )
             state.error || state.content == null -> ErrorState(
                 message = stringResource(R.string.reader_error),
                 modifier = Modifier.padding(padding),
@@ -434,4 +456,5 @@ private fun TranslateMode.label(): Int = when (this) {
     TranslateMode.HAN_VIET -> R.string.reader_translate_hanviet
     TranslateMode.MLKIT -> R.string.reader_translate_mlkit
     TranslateMode.RAW -> R.string.reader_translate_raw
+    TranslateMode.LLM -> R.string.reader_translate_llm
 }

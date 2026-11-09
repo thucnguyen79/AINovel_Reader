@@ -12,8 +12,11 @@ data class DictionaryInfo(
     val builtIn: Boolean,
 )
 
-/** How a Chinese chapter is shown. MLKIT is on-device machine translation (model downloaded on demand). */
-enum class TranslateMode { CONVERT, HAN_VIET, MLKIT, RAW }
+/**
+ * How a chapter is shown. MLKIT is on-device machine translation (model downloaded on demand); LLM sends the
+ * text to the user's own model (BYOK) and applies to Vietnamese convert books as well as Chinese ones.
+ */
+enum class TranslateMode { CONVERT, HAN_VIET, MLKIT, RAW, LLM }
 
 /** A converted word with its Chinese source, used by the reader for tap-to-choose-meaning. */
 data class TextToken(
